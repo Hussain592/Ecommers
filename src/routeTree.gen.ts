@@ -10,33 +10,453 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CartRouteImport } from './routes/cart'
+import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as OrderConfirmationRouteImport } from './routes/order-confirmation'
+import { Route as TrackOrderRouteImport } from './routes/track-order'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
+import { Route as AdminCommissionsRouteImport } from './routes/admin.commissions'
+import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
+import { Route as AdminOverviewRouteImport } from './routes/admin.overview'
+import { Route as AdminPayoutsRouteImport } from './routes/admin.payouts'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminVendorsRouteImport } from './routes/admin.vendors'
+import { Route as PartnerIndexRouteImport } from './routes/partner.index'
+import { Route as PartnerAddProductRouteImport } from './routes/partner.add-product'
+import { Route as PartnerProductsRouteImport } from './routes/partner.products'
+import { Route as PartnerProfileRouteImport } from './routes/partner.profile'
+import { Route as PartnerStockRouteImport } from './routes/partner.stock'
+import { Route as ProductsIndexRouteImport } from './routes/products.index'
+import { Route as ProductsIdRouteImport } from './routes/products.$id'
+import { Route as ServicesIndexRouteImport } from './routes/services.index'
+import { Route as ServicesIdRouteImport } from './routes/services.$id'
+import { Route as VendorIndexRouteImport } from './routes/vendor.index'
+import { Route as VendorCommissionsRouteImport } from './routes/vendor.commissions'
+import { Route as VendorEarningsRouteImport } from './routes/vendor.earnings'
+import { Route as VendorOrdersRouteImport } from './routes/vendor.orders'
+import { Route as VendorPartnersRouteImport } from './routes/vendor.partners'
+import { Route as VendorSettingsRouteImport } from './routes/vendor.settings'
+import { Route as VendorProductsIndexRouteImport } from './routes/vendor.products.index'
+import { Route as VendorProductsNewRouteImport } from './routes/vendor.products.new'
+import { Route as VendorProductsIdEditRouteImport } from './routes/vendor.products.$id.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CartRoute = CartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrderConfirmationRoute = OrderConfirmationRouteImport.update({
+  id: '/order-confirmation',
+  path: '/order-confirmation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackOrderRoute = TrackOrderRouteImport.update({
+  id: '/track-order',
+  path: '/track-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/admin/categories',
+  path: '/admin/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCommissionsRoute = AdminCommissionsRouteImport.update({
+  id: '/admin/commissions',
+  path: '/admin/commissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminOrdersRoute = AdminOrdersRouteImport.update({
+  id: '/admin/orders',
+  path: '/admin/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminOverviewRoute = AdminOverviewRouteImport.update({
+  id: '/admin/overview',
+  path: '/admin/overview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPayoutsRoute = AdminPayoutsRouteImport.update({
+  id: '/admin/payouts',
+  path: '/admin/payouts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminVendorsRoute = AdminVendorsRouteImport.update({
+  id: '/admin/vendors',
+  path: '/admin/vendors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerIndexRoute = PartnerIndexRouteImport.update({
+  id: '/partner/',
+  path: '/partner/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerAddProductRoute = PartnerAddProductRouteImport.update({
+  id: '/partner/add-product',
+  path: '/partner/add-product',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerProductsRoute = PartnerProductsRouteImport.update({
+  id: '/partner/products',
+  path: '/partner/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerProfileRoute = PartnerProfileRouteImport.update({
+  id: '/partner/profile',
+  path: '/partner/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerStockRoute = PartnerStockRouteImport.update({
+  id: '/partner/stock',
+  path: '/partner/stock',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsIndexRoute = ProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsIdRoute = ProductsIdRouteImport.update({
+  id: '/products/$id',
+  path: '/products/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesIndexRoute = ServicesIndexRouteImport.update({
+  id: '/services/',
+  path: '/services/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesIdRoute = ServicesIdRouteImport.update({
+  id: '/services/$id',
+  path: '/services/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorIndexRoute = VendorIndexRouteImport.update({
+  id: '/vendor/',
+  path: '/vendor/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorCommissionsRoute = VendorCommissionsRouteImport.update({
+  id: '/vendor/commissions',
+  path: '/vendor/commissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorEarningsRoute = VendorEarningsRouteImport.update({
+  id: '/vendor/earnings',
+  path: '/vendor/earnings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorOrdersRoute = VendorOrdersRouteImport.update({
+  id: '/vendor/orders',
+  path: '/vendor/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorPartnersRoute = VendorPartnersRouteImport.update({
+  id: '/vendor/partners',
+  path: '/vendor/partners',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorSettingsRoute = VendorSettingsRouteImport.update({
+  id: '/vendor/settings',
+  path: '/vendor/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorProductsIndexRoute = VendorProductsIndexRouteImport.update({
+  id: '/vendor/products/',
+  path: '/vendor/products/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorProductsNewRoute = VendorProductsNewRouteImport.update({
+  id: '/vendor/products/new',
+  path: '/vendor/products/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorProductsIdEditRoute = VendorProductsIdEditRouteImport.update({
+  id: '/vendor/products/$id/edit',
+  path: '/vendor/products/$id/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
+  '/login': typeof LoginRoute
+  '/order-confirmation': typeof OrderConfirmationRoute
+  '/track-order': typeof TrackOrderRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/commissions': typeof AdminCommissionsRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/overview': typeof AdminOverviewRoute
+  '/admin/payouts': typeof AdminPayoutsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/vendors': typeof AdminVendorsRoute
+  '/partner/add-product': typeof PartnerAddProductRoute
+  '/partner/products': typeof PartnerProductsRoute
+  '/partner/profile': typeof PartnerProfileRoute
+  '/partner/stock': typeof PartnerStockRoute
+  '/products/$id': typeof ProductsIdRoute
+  '/services/$id': typeof ServicesIdRoute
+  '/vendor/commissions': typeof VendorCommissionsRoute
+  '/vendor/earnings': typeof VendorEarningsRoute
+  '/vendor/orders': typeof VendorOrdersRoute
+  '/vendor/partners': typeof VendorPartnersRoute
+  '/vendor/settings': typeof VendorSettingsRoute
+  '/admin/': typeof AdminIndexRoute
+  '/partner/': typeof PartnerIndexRoute
+  '/products/': typeof ProductsIndexRoute
+  '/services/': typeof ServicesIndexRoute
+  '/vendor/': typeof VendorIndexRoute
+  '/vendor/products/new': typeof VendorProductsNewRoute
+  '/vendor/products/': typeof VendorProductsIndexRoute
+  '/vendor/products/$id/edit': typeof VendorProductsIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
+  '/login': typeof LoginRoute
+  '/order-confirmation': typeof OrderConfirmationRoute
+  '/track-order': typeof TrackOrderRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/commissions': typeof AdminCommissionsRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/overview': typeof AdminOverviewRoute
+  '/admin/payouts': typeof AdminPayoutsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/vendors': typeof AdminVendorsRoute
+  '/partner/add-product': typeof PartnerAddProductRoute
+  '/partner/products': typeof PartnerProductsRoute
+  '/partner/profile': typeof PartnerProfileRoute
+  '/partner/stock': typeof PartnerStockRoute
+  '/products/$id': typeof ProductsIdRoute
+  '/services/$id': typeof ServicesIdRoute
+  '/vendor/commissions': typeof VendorCommissionsRoute
+  '/vendor/earnings': typeof VendorEarningsRoute
+  '/vendor/orders': typeof VendorOrdersRoute
+  '/vendor/partners': typeof VendorPartnersRoute
+  '/vendor/settings': typeof VendorSettingsRoute
+  '/admin': typeof AdminIndexRoute
+  '/partner': typeof PartnerIndexRoute
+  '/products': typeof ProductsIndexRoute
+  '/services': typeof ServicesIndexRoute
+  '/vendor': typeof VendorIndexRoute
+  '/vendor/products/new': typeof VendorProductsNewRoute
+  '/vendor/products': typeof VendorProductsIndexRoute
+  '/vendor/products/$id/edit': typeof VendorProductsIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
+  '/login': typeof LoginRoute
+  '/order-confirmation': typeof OrderConfirmationRoute
+  '/track-order': typeof TrackOrderRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/commissions': typeof AdminCommissionsRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/overview': typeof AdminOverviewRoute
+  '/admin/payouts': typeof AdminPayoutsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/vendors': typeof AdminVendorsRoute
+  '/partner/add-product': typeof PartnerAddProductRoute
+  '/partner/products': typeof PartnerProductsRoute
+  '/partner/profile': typeof PartnerProfileRoute
+  '/partner/stock': typeof PartnerStockRoute
+  '/products/$id': typeof ProductsIdRoute
+  '/services/$id': typeof ServicesIdRoute
+  '/vendor/commissions': typeof VendorCommissionsRoute
+  '/vendor/earnings': typeof VendorEarningsRoute
+  '/vendor/orders': typeof VendorOrdersRoute
+  '/vendor/partners': typeof VendorPartnersRoute
+  '/vendor/settings': typeof VendorSettingsRoute
+  '/admin/': typeof AdminIndexRoute
+  '/partner/': typeof PartnerIndexRoute
+  '/products/': typeof ProductsIndexRoute
+  '/services/': typeof ServicesIndexRoute
+  '/vendor/': typeof VendorIndexRoute
+  '/vendor/products/new': typeof VendorProductsNewRoute
+  '/vendor/products/': typeof VendorProductsIndexRoute
+  '/vendor/products/$id/edit': typeof VendorProductsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/cart'
+    | '/checkout'
+    | '/login'
+    | '/order-confirmation'
+    | '/track-order'
+    | '/admin/categories'
+    | '/admin/commissions'
+    | '/admin/orders'
+    | '/admin/overview'
+    | '/admin/payouts'
+    | '/admin/settings'
+    | '/admin/users'
+    | '/admin/vendors'
+    | '/partner/add-product'
+    | '/partner/products'
+    | '/partner/profile'
+    | '/partner/stock'
+    | '/products/$id'
+    | '/services/$id'
+    | '/vendor/commissions'
+    | '/vendor/earnings'
+    | '/vendor/orders'
+    | '/vendor/partners'
+    | '/vendor/settings'
+    | '/admin/'
+    | '/partner/'
+    | '/products/'
+    | '/services/'
+    | '/vendor/'
+    | '/vendor/products/new'
+    | '/vendor/products/'
+    | '/vendor/products/$id/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/cart'
+    | '/checkout'
+    | '/login'
+    | '/order-confirmation'
+    | '/track-order'
+    | '/admin/categories'
+    | '/admin/commissions'
+    | '/admin/orders'
+    | '/admin/overview'
+    | '/admin/payouts'
+    | '/admin/settings'
+    | '/admin/users'
+    | '/admin/vendors'
+    | '/partner/add-product'
+    | '/partner/products'
+    | '/partner/profile'
+    | '/partner/stock'
+    | '/products/$id'
+    | '/services/$id'
+    | '/vendor/commissions'
+    | '/vendor/earnings'
+    | '/vendor/orders'
+    | '/vendor/partners'
+    | '/vendor/settings'
+    | '/admin'
+    | '/partner'
+    | '/products'
+    | '/services'
+    | '/vendor'
+    | '/vendor/products/new'
+    | '/vendor/products'
+    | '/vendor/products/$id/edit'
+  id:
+    | '__root__'
+    | '/'
+    | '/cart'
+    | '/checkout'
+    | '/login'
+    | '/order-confirmation'
+    | '/track-order'
+    | '/admin/categories'
+    | '/admin/commissions'
+    | '/admin/orders'
+    | '/admin/overview'
+    | '/admin/payouts'
+    | '/admin/settings'
+    | '/admin/users'
+    | '/admin/vendors'
+    | '/partner/add-product'
+    | '/partner/products'
+    | '/partner/profile'
+    | '/partner/stock'
+    | '/products/$id'
+    | '/services/$id'
+    | '/vendor/commissions'
+    | '/vendor/earnings'
+    | '/vendor/orders'
+    | '/vendor/partners'
+    | '/vendor/settings'
+    | '/admin/'
+    | '/partner/'
+    | '/products/'
+    | '/services/'
+    | '/vendor/'
+    | '/vendor/products/new'
+    | '/vendor/products/'
+    | '/vendor/products/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CartRoute: typeof CartRoute
+  CheckoutRoute: typeof CheckoutRoute
+  LoginRoute: typeof LoginRoute
+  OrderConfirmationRoute: typeof OrderConfirmationRoute
+  TrackOrderRoute: typeof TrackOrderRoute
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminCommissionsRoute: typeof AdminCommissionsRoute
+  AdminOrdersRoute: typeof AdminOrdersRoute
+  AdminOverviewRoute: typeof AdminOverviewRoute
+  AdminPayoutsRoute: typeof AdminPayoutsRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminVendorsRoute: typeof AdminVendorsRoute
+  PartnerAddProductRoute: typeof PartnerAddProductRoute
+  PartnerProductsRoute: typeof PartnerProductsRoute
+  PartnerProfileRoute: typeof PartnerProfileRoute
+  PartnerStockRoute: typeof PartnerStockRoute
+  ProductsIdRoute: typeof ProductsIdRoute
+  ServicesIdRoute: typeof ServicesIdRoute
+  VendorCommissionsRoute: typeof VendorCommissionsRoute
+  VendorEarningsRoute: typeof VendorEarningsRoute
+  VendorOrdersRoute: typeof VendorOrdersRoute
+  VendorPartnersRoute: typeof VendorPartnersRoute
+  VendorSettingsRoute: typeof VendorSettingsRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  PartnerIndexRoute: typeof PartnerIndexRoute
+  ProductsIndexRoute: typeof ProductsIndexRoute
+  ServicesIndexRoute: typeof ServicesIndexRoute
+  VendorIndexRoute: typeof VendorIndexRoute
+  VendorProductsNewRoute: typeof VendorProductsNewRoute
+  VendorProductsIndexRoute: typeof VendorProductsIndexRoute
+  VendorProductsIdEditRoute: typeof VendorProductsIdEditRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +468,268 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cart': {
+      id: '/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/order-confirmation': {
+      id: '/order-confirmation'
+      path: '/order-confirmation'
+      fullPath: '/order-confirmation'
+      preLoaderRoute: typeof OrderConfirmationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track-order': {
+      id: '/track-order'
+      path: '/track-order'
+      fullPath: '/track-order'
+      preLoaderRoute: typeof TrackOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/admin/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/commissions': {
+      id: '/admin/commissions'
+      path: '/admin/commissions'
+      fullPath: '/admin/commissions'
+      preLoaderRoute: typeof AdminCommissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/orders': {
+      id: '/admin/orders'
+      path: '/admin/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/overview': {
+      id: '/admin/overview'
+      path: '/admin/overview'
+      fullPath: '/admin/overview'
+      preLoaderRoute: typeof AdminOverviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/payouts': {
+      id: '/admin/payouts'
+      path: '/admin/payouts'
+      fullPath: '/admin/payouts'
+      preLoaderRoute: typeof AdminPayoutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/vendors': {
+      id: '/admin/vendors'
+      path: '/admin/vendors'
+      fullPath: '/admin/vendors'
+      preLoaderRoute: typeof AdminVendorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partner/': {
+      id: '/partner/'
+      path: '/partner'
+      fullPath: '/partner/'
+      preLoaderRoute: typeof PartnerIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partner/add-product': {
+      id: '/partner/add-product'
+      path: '/partner/add-product'
+      fullPath: '/partner/add-product'
+      preLoaderRoute: typeof PartnerAddProductRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partner/products': {
+      id: '/partner/products'
+      path: '/partner/products'
+      fullPath: '/partner/products'
+      preLoaderRoute: typeof PartnerProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partner/profile': {
+      id: '/partner/profile'
+      path: '/partner/profile'
+      fullPath: '/partner/profile'
+      preLoaderRoute: typeof PartnerProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partner/stock': {
+      id: '/partner/stock'
+      path: '/partner/stock'
+      fullPath: '/partner/stock'
+      preLoaderRoute: typeof PartnerStockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products/': {
+      id: '/products/'
+      path: '/products'
+      fullPath: '/products/'
+      preLoaderRoute: typeof ProductsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products/$id': {
+      id: '/products/$id'
+      path: '/products/$id'
+      fullPath: '/products/$id'
+      preLoaderRoute: typeof ProductsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/': {
+      id: '/services/'
+      path: '/services'
+      fullPath: '/services/'
+      preLoaderRoute: typeof ServicesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/$id': {
+      id: '/services/$id'
+      path: '/services/$id'
+      fullPath: '/services/$id'
+      preLoaderRoute: typeof ServicesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendor/': {
+      id: '/vendor/'
+      path: '/vendor'
+      fullPath: '/vendor/'
+      preLoaderRoute: typeof VendorIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendor/commissions': {
+      id: '/vendor/commissions'
+      path: '/vendor/commissions'
+      fullPath: '/vendor/commissions'
+      preLoaderRoute: typeof VendorCommissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendor/earnings': {
+      id: '/vendor/earnings'
+      path: '/vendor/earnings'
+      fullPath: '/vendor/earnings'
+      preLoaderRoute: typeof VendorEarningsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendor/orders': {
+      id: '/vendor/orders'
+      path: '/vendor/orders'
+      fullPath: '/vendor/orders'
+      preLoaderRoute: typeof VendorOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendor/partners': {
+      id: '/vendor/partners'
+      path: '/vendor/partners'
+      fullPath: '/vendor/partners'
+      preLoaderRoute: typeof VendorPartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendor/settings': {
+      id: '/vendor/settings'
+      path: '/vendor/settings'
+      fullPath: '/vendor/settings'
+      preLoaderRoute: typeof VendorSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendor/products/': {
+      id: '/vendor/products/'
+      path: '/vendor/products'
+      fullPath: '/vendor/products/'
+      preLoaderRoute: typeof VendorProductsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendor/products/new': {
+      id: '/vendor/products/new'
+      path: '/vendor/products/new'
+      fullPath: '/vendor/products/new'
+      preLoaderRoute: typeof VendorProductsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendor/products/$id/edit': {
+      id: '/vendor/products/$id/edit'
+      path: '/vendor/products/$id/edit'
+      fullPath: '/vendor/products/$id/edit'
+      preLoaderRoute: typeof VendorProductsIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CartRoute: CartRoute,
+  CheckoutRoute: CheckoutRoute,
+  LoginRoute: LoginRoute,
+  OrderConfirmationRoute: OrderConfirmationRoute,
+  TrackOrderRoute: TrackOrderRoute,
+  AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminCommissionsRoute: AdminCommissionsRoute,
+  AdminOrdersRoute: AdminOrdersRoute,
+  AdminOverviewRoute: AdminOverviewRoute,
+  AdminPayoutsRoute: AdminPayoutsRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminVendorsRoute: AdminVendorsRoute,
+  PartnerAddProductRoute: PartnerAddProductRoute,
+  PartnerProductsRoute: PartnerProductsRoute,
+  PartnerProfileRoute: PartnerProfileRoute,
+  PartnerStockRoute: PartnerStockRoute,
+  ProductsIdRoute: ProductsIdRoute,
+  ServicesIdRoute: ServicesIdRoute,
+  VendorCommissionsRoute: VendorCommissionsRoute,
+  VendorEarningsRoute: VendorEarningsRoute,
+  VendorOrdersRoute: VendorOrdersRoute,
+  VendorPartnersRoute: VendorPartnersRoute,
+  VendorSettingsRoute: VendorSettingsRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  PartnerIndexRoute: PartnerIndexRoute,
+  ProductsIndexRoute: ProductsIndexRoute,
+  ServicesIndexRoute: ServicesIndexRoute,
+  VendorIndexRoute: VendorIndexRoute,
+  VendorProductsNewRoute: VendorProductsNewRoute,
+  VendorProductsIndexRoute: VendorProductsIndexRoute,
+  VendorProductsIdEditRoute: VendorProductsIdEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
