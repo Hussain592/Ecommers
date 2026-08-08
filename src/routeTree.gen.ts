@@ -19,6 +19,10 @@ import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ServicesIdRouteImport } from './routes/services.$id'
+import { Route as VendorIndexRouteImport } from './routes/vendor.index'
+import { Route as VendorProductsIndexRouteImport } from './routes/vendor.products.index'
+import { Route as VendorProductsNewRouteImport } from './routes/vendor.products.new'
+import { Route as VendorProductsIdEditRouteImport } from './routes/vendor.products.$id.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -70,6 +74,26 @@ const ServicesIdRoute = ServicesIdRouteImport.update({
   path: '/services/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VendorIndexRoute = VendorIndexRouteImport.update({
+  id: '/vendor/',
+  path: '/vendor/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorProductsIndexRoute = VendorProductsIndexRouteImport.update({
+  id: '/vendor/products/',
+  path: '/vendor/products/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorProductsNewRoute = VendorProductsNewRouteImport.update({
+  id: '/vendor/products/new',
+  path: '/vendor/products/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorProductsIdEditRoute = VendorProductsIdEditRouteImport.update({
+  id: '/vendor/products/$id/edit',
+  path: '/vendor/products/$id/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -82,6 +106,10 @@ export interface FileRoutesByFullPath {
   '/services/$id': typeof ServicesIdRoute
   '/products/': typeof ProductsIndexRoute
   '/services/': typeof ServicesIndexRoute
+  '/vendor/': typeof VendorIndexRoute
+  '/vendor/products/new': typeof VendorProductsNewRoute
+  '/vendor/products/': typeof VendorProductsIndexRoute
+  '/vendor/products/$id/edit': typeof VendorProductsIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,6 +122,10 @@ export interface FileRoutesByTo {
   '/services/$id': typeof ServicesIdRoute
   '/products': typeof ProductsIndexRoute
   '/services': typeof ServicesIndexRoute
+  '/vendor': typeof VendorIndexRoute
+  '/vendor/products/new': typeof VendorProductsNewRoute
+  '/vendor/products': typeof VendorProductsIndexRoute
+  '/vendor/products/$id/edit': typeof VendorProductsIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,6 +139,10 @@ export interface FileRoutesById {
   '/services/$id': typeof ServicesIdRoute
   '/products/': typeof ProductsIndexRoute
   '/services/': typeof ServicesIndexRoute
+  '/vendor/': typeof VendorIndexRoute
+  '/vendor/products/new': typeof VendorProductsNewRoute
+  '/vendor/products/': typeof VendorProductsIndexRoute
+  '/vendor/products/$id/edit': typeof VendorProductsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +157,10 @@ export interface FileRouteTypes {
     | '/services/$id'
     | '/products/'
     | '/services/'
+    | '/vendor/'
+    | '/vendor/products/new'
+    | '/vendor/products/'
+    | '/vendor/products/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +173,10 @@ export interface FileRouteTypes {
     | '/services/$id'
     | '/products'
     | '/services'
+    | '/vendor'
+    | '/vendor/products/new'
+    | '/vendor/products'
+    | '/vendor/products/$id/edit'
   id:
     | '__root__'
     | '/'
@@ -145,6 +189,10 @@ export interface FileRouteTypes {
     | '/services/$id'
     | '/products/'
     | '/services/'
+    | '/vendor/'
+    | '/vendor/products/new'
+    | '/vendor/products/'
+    | '/vendor/products/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -158,6 +206,10 @@ export interface RootRouteChildren {
   ServicesIdRoute: typeof ServicesIdRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
+  VendorIndexRoute: typeof VendorIndexRoute
+  VendorProductsNewRoute: typeof VendorProductsNewRoute
+  VendorProductsIndexRoute: typeof VendorProductsIndexRoute
+  VendorProductsIdEditRoute: typeof VendorProductsIdEditRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -232,6 +284,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vendor/': {
+      id: '/vendor/'
+      path: '/vendor'
+      fullPath: '/vendor/'
+      preLoaderRoute: typeof VendorIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendor/products/': {
+      id: '/vendor/products/'
+      path: '/vendor/products'
+      fullPath: '/vendor/products/'
+      preLoaderRoute: typeof VendorProductsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendor/products/new': {
+      id: '/vendor/products/new'
+      path: '/vendor/products/new'
+      fullPath: '/vendor/products/new'
+      preLoaderRoute: typeof VendorProductsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendor/products/$id/edit': {
+      id: '/vendor/products/$id/edit'
+      path: '/vendor/products/$id/edit'
+      fullPath: '/vendor/products/$id/edit'
+      preLoaderRoute: typeof VendorProductsIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -246,6 +326,10 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesIdRoute: ServicesIdRoute,
   ProductsIndexRoute: ProductsIndexRoute,
   ServicesIndexRoute: ServicesIndexRoute,
+  VendorIndexRoute: VendorIndexRoute,
+  VendorProductsNewRoute: VendorProductsNewRoute,
+  VendorProductsIndexRoute: VendorProductsIndexRoute,
+  VendorProductsIdEditRoute: VendorProductsIdEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

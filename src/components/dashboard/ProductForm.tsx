@@ -48,7 +48,7 @@ export function ProductForm({
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="pcat">Category *</Label>
-              <Select defaultValue={product?.category ?? categories[0]}>
+              <Select defaultValue={product?.category ?? categories[0]!}>
                 <SelectTrigger id="pcat" className="rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
