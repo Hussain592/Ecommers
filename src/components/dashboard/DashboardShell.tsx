@@ -37,7 +37,7 @@ export function DashboardShell({ title, subtitle, brand, role, nav, actions, chi
           return (
             <Link
               key={item.to}
-              to={item.to}
+              to={item.to as "/"}
               onClick={() => setOpen(false)}
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
