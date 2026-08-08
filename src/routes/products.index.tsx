@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { categories, products } from "@/data/mock";
 
-export const Route = createFileRoute("/products")({
+export const Route = createFileRoute("/products/")({
   head: () => ({
     meta: [
       { title: "All Products — Dukaan.pk Online Shopping Pakistan" },
