@@ -16,9 +16,13 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as OrderConfirmationRouteImport } from './routes/order-confirmation'
 import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCommissionsRouteImport } from './routes/admin.commissions'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminOverviewRouteImport } from './routes/admin.overview'
+import { Route as AdminPayoutsRouteImport } from './routes/admin.payouts'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminVendorsRouteImport } from './routes/admin.vendors'
 import { Route as PartnerIndexRouteImport } from './routes/partner.index'
 import { Route as PartnerAddProductRouteImport } from './routes/partner.add-product'
@@ -74,6 +78,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/admin/categories',
+  path: '/admin/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCommissionsRoute = AdminCommissionsRouteImport.update({
   id: '/admin/commissions',
   path: '/admin/commissions',
@@ -87,6 +96,21 @@ const AdminOrdersRoute = AdminOrdersRouteImport.update({
 const AdminOverviewRoute = AdminOverviewRouteImport.update({
   id: '/admin/overview',
   path: '/admin/overview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPayoutsRoute = AdminPayoutsRouteImport.update({
+  id: '/admin/payouts',
+  path: '/admin/payouts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminVendorsRoute = AdminVendorsRouteImport.update({
@@ -192,9 +216,13 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/order-confirmation': typeof OrderConfirmationRoute
   '/track-order': typeof TrackOrderRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/commissions': typeof AdminCommissionsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/overview': typeof AdminOverviewRoute
+  '/admin/payouts': typeof AdminPayoutsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin/vendors': typeof AdminVendorsRoute
   '/partner/add-product': typeof PartnerAddProductRoute
   '/partner/products': typeof PartnerProductsRoute
@@ -223,9 +251,13 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/order-confirmation': typeof OrderConfirmationRoute
   '/track-order': typeof TrackOrderRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/commissions': typeof AdminCommissionsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/overview': typeof AdminOverviewRoute
+  '/admin/payouts': typeof AdminPayoutsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin/vendors': typeof AdminVendorsRoute
   '/partner/add-product': typeof PartnerAddProductRoute
   '/partner/products': typeof PartnerProductsRoute
@@ -255,9 +287,13 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/order-confirmation': typeof OrderConfirmationRoute
   '/track-order': typeof TrackOrderRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/commissions': typeof AdminCommissionsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/overview': typeof AdminOverviewRoute
+  '/admin/payouts': typeof AdminPayoutsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin/vendors': typeof AdminVendorsRoute
   '/partner/add-product': typeof PartnerAddProductRoute
   '/partner/products': typeof PartnerProductsRoute
@@ -288,9 +324,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/order-confirmation'
     | '/track-order'
+    | '/admin/categories'
     | '/admin/commissions'
     | '/admin/orders'
     | '/admin/overview'
+    | '/admin/payouts'
+    | '/admin/settings'
+    | '/admin/users'
     | '/admin/vendors'
     | '/partner/add-product'
     | '/partner/products'
@@ -319,9 +359,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/order-confirmation'
     | '/track-order'
+    | '/admin/categories'
     | '/admin/commissions'
     | '/admin/orders'
     | '/admin/overview'
+    | '/admin/payouts'
+    | '/admin/settings'
+    | '/admin/users'
     | '/admin/vendors'
     | '/partner/add-product'
     | '/partner/products'
@@ -350,9 +394,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/order-confirmation'
     | '/track-order'
+    | '/admin/categories'
     | '/admin/commissions'
     | '/admin/orders'
     | '/admin/overview'
+    | '/admin/payouts'
+    | '/admin/settings'
+    | '/admin/users'
     | '/admin/vendors'
     | '/partner/add-product'
     | '/partner/products'
@@ -382,9 +430,13 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   OrderConfirmationRoute: typeof OrderConfirmationRoute
   TrackOrderRoute: typeof TrackOrderRoute
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCommissionsRoute: typeof AdminCommissionsRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminOverviewRoute: typeof AdminOverviewRoute
+  AdminPayoutsRoute: typeof AdminPayoutsRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
   AdminVendorsRoute: typeof AdminVendorsRoute
   PartnerAddProductRoute: typeof PartnerAddProductRoute
   PartnerProductsRoute: typeof PartnerProductsRoute
@@ -458,6 +510,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/admin/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/commissions': {
       id: '/admin/commissions'
       path: '/admin/commissions'
@@ -477,6 +536,27 @@ declare module '@tanstack/react-router' {
       path: '/admin/overview'
       fullPath: '/admin/overview'
       preLoaderRoute: typeof AdminOverviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/payouts': {
+      id: '/admin/payouts'
+      path: '/admin/payouts'
+      fullPath: '/admin/payouts'
+      preLoaderRoute: typeof AdminPayoutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/vendors': {
@@ -622,9 +702,13 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   OrderConfirmationRoute: OrderConfirmationRoute,
   TrackOrderRoute: TrackOrderRoute,
+  AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCommissionsRoute: AdminCommissionsRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminOverviewRoute: AdminOverviewRoute,
+  AdminPayoutsRoute: AdminPayoutsRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminUsersRoute: AdminUsersRoute,
   AdminVendorsRoute: AdminVendorsRoute,
   PartnerAddProductRoute: PartnerAddProductRoute,
   PartnerProductsRoute: PartnerProductsRoute,
