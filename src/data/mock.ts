@@ -8,7 +8,7 @@ export type Product = {
   slug: string;
   category: string;
   price: number;
-  oldPrice?: number;
+  oldPrice?: number | undefined;
   stock: number;
   active: boolean;
   vendor: string;
@@ -61,7 +61,7 @@ const seed: Array<Partial<Product> & { name: string; category: string; price: nu
 const vendors = ["Al-Madina Traders", "Karachi Mart", "Lahore Bazaar", "Peshawar Store"];
 const cities = ["Karachi", "Lahore", "Islamabad", "Faisalabad"];
 
-export const products: Product[] = seed.map((p, i) => ({
+export const products: Product[] = seed.map((p, i): Product => ({
   id: `PRD-${1000 + i}`,
   slug: p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
   name: p.name,
@@ -70,11 +70,11 @@ export const products: Product[] = seed.map((p, i) => ({
   oldPrice: p.oldPrice,
   stock: p.stock ?? 10,
   active: p.active ?? true,
-  vendor: vendors[i % vendors.length],
-  city: cities[i % cities.length],
+  vendor: vendors[i % vendors.length]!,
+  city: cities[i % cities.length]!,
   rating: 4 + ((i % 10) / 10),
   reviews: 12 + i * 7,
-  image: images[i % images.length],
+  image: images[i % images.length]!,
   description:
     "Original quality product with 7-day return policy. Cash on Delivery available all over Pakistan. Fast dispatch within 24 hours from verified Dukaan.pk sellers.",
 }));
