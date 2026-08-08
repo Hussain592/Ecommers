@@ -10,6 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CartRouteImport } from './routes/cart'
+import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as OrderConfirmationRouteImport } from './routes/order-confirmation'
+import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
@@ -18,6 +23,31 @@ import { Route as ServicesIdRouteImport } from './routes/services.$id'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CartRoute = CartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrderConfirmationRoute = OrderConfirmationRouteImport.update({
+  id: '/order-confirmation',
+  path: '/order-confirmation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackOrderRoute = TrackOrderRouteImport.update({
+  id: '/track-order',
+  path: '/track-order',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsIndexRoute = ProductsIndexRouteImport.update({
@@ -43,6 +73,11 @@ const ServicesIdRoute = ServicesIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
+  '/login': typeof LoginRoute
+  '/order-confirmation': typeof OrderConfirmationRoute
+  '/track-order': typeof TrackOrderRoute
   '/products/$id': typeof ProductsIdRoute
   '/services/$id': typeof ServicesIdRoute
   '/products/': typeof ProductsIndexRoute
@@ -50,6 +85,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
+  '/login': typeof LoginRoute
+  '/order-confirmation': typeof OrderConfirmationRoute
+  '/track-order': typeof TrackOrderRoute
   '/products/$id': typeof ProductsIdRoute
   '/services/$id': typeof ServicesIdRoute
   '/products': typeof ProductsIndexRoute
@@ -58,6 +98,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
+  '/login': typeof LoginRoute
+  '/order-confirmation': typeof OrderConfirmationRoute
+  '/track-order': typeof TrackOrderRoute
   '/products/$id': typeof ProductsIdRoute
   '/services/$id': typeof ServicesIdRoute
   '/products/': typeof ProductsIndexRoute
@@ -66,12 +111,36 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/products/$id' | '/services/$id' | '/products/' | '/services/'
+    | '/'
+    | '/cart'
+    | '/checkout'
+    | '/login'
+    | '/order-confirmation'
+    | '/track-order'
+    | '/products/$id'
+    | '/services/$id'
+    | '/products/'
+    | '/services/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/products/$id' | '/services/$id' | '/products' | '/services'
+  to:
+    | '/'
+    | '/cart'
+    | '/checkout'
+    | '/login'
+    | '/order-confirmation'
+    | '/track-order'
+    | '/products/$id'
+    | '/services/$id'
+    | '/products'
+    | '/services'
   id:
     | '__root__'
     | '/'
+    | '/cart'
+    | '/checkout'
+    | '/login'
+    | '/order-confirmation'
+    | '/track-order'
     | '/products/$id'
     | '/services/$id'
     | '/products/'
@@ -80,6 +149,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CartRoute: typeof CartRoute
+  CheckoutRoute: typeof CheckoutRoute
+  LoginRoute: typeof LoginRoute
+  OrderConfirmationRoute: typeof OrderConfirmationRoute
+  TrackOrderRoute: typeof TrackOrderRoute
   ProductsIdRoute: typeof ProductsIdRoute
   ServicesIdRoute: typeof ServicesIdRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
@@ -93,6 +167,41 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cart': {
+      id: '/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/order-confirmation': {
+      id: '/order-confirmation'
+      path: '/order-confirmation'
+      fullPath: '/order-confirmation'
+      preLoaderRoute: typeof OrderConfirmationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track-order': {
+      id: '/track-order'
+      path: '/track-order'
+      fullPath: '/track-order'
+      preLoaderRoute: typeof TrackOrderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products/': {
@@ -128,6 +237,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CartRoute: CartRoute,
+  CheckoutRoute: CheckoutRoute,
+  LoginRoute: LoginRoute,
+  OrderConfirmationRoute: OrderConfirmationRoute,
+  TrackOrderRoute: TrackOrderRoute,
   ProductsIdRoute: ProductsIdRoute,
   ServicesIdRoute: ServicesIdRoute,
   ProductsIndexRoute: ProductsIndexRoute,
