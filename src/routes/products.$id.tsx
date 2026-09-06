@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { Minus, Plus, ShieldCheck, Star, Truck, Undo2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CheckCircle2, Heart, Minus, Plus, ShieldCheck, ShoppingCart, Star, Store, Truck, Undo2, Wallet, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { ShopLayout } from "@/components/shop/ShopLayout";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { formatPKR, products } from "@/data/mock";
+import { formatPKR, getVendorProfile, productReviews, type VendorProfile } from "@/data/mock";
 import { useCart } from "@/lib/cart";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/products/$id")({
   head: () => ({
@@ -23,9 +24,27 @@ export const Route = createFileRoute("/products/$id")({
 
 function ProductDetail() {
   const { id } = Route.useParams();
-  const product = products.find((p) => p.id === id);
-  const { add } = useCart();
+  const { add, catalog } = useCart();
+  const product = catalog.find((p) => p.id === id);
   const [qty, setQty] = useState(1);
+  const [liked, setLiked] = useState(false);
+  const [activeTab, setActiveTab] = useState<"details" | "reviews" | "seller">("details");
+  const [backendVendor, setBackendVendor] = useState<Partial<VendorProfile> | null>(null);
+
+  useEffect(() => {
+    if (!product?.vendorId) return;
+    const loadVendor = async () => {
+      const { data } = await supabase.from("vendors").select("name, address, description, created_at").eq("id", product.vendorId).maybeSingle();
+      if (!data) return;
+      setBackendVendor({
+        name: data.name,
+        city: data.address ?? "Pakistan",
+        description: data.description ?? undefined,
+        joined: data.created_at ? new Date(data.created_at).toLocaleDateString("en-PK", { month: "long", year: "numeric" }) : undefined,
+      });
+    };
+    void loadVendor();
+  }, [product?.vendorId]);
 
   if (!product) {
     return (
@@ -40,7 +59,12 @@ function ProductDetail() {
     );
   }
 
-  const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
+  const related = catalog.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
+  const reviewCount = product.reviews || 128;
+  const rating = product.rating || 4.7;
+  const soldCount = Math.max(reviewCount * 3, 240);
+  const vendor = { ...getVendorProfile(product.vendor, product.city || "Pakistan"), ...backendVendor };
+  const discount = product.oldPrice ? Math.round((1 - product.price / product.oldPrice) * 100) : 0;
 
   return (
     <ShopLayout>
@@ -51,8 +75,9 @@ function ProductDetail() {
           <span className="text-foreground">{product.name}</span>
         </nav>
 
-        <div className="mt-6 grid gap-8 lg:grid-cols-2">
-          <div className="surface-card overflow-hidden">
+        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(380px,0.92fr)]">
+          <div className="space-y-3">
+            <div className="surface-card overflow-hidden bg-white">
             <img
               src={product.image}
               alt={product.name}
@@ -60,48 +85,56 @@ function ProductDetail() {
               height={800}
               className="aspect-square w-full object-cover"
             />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {[product.image, product.image, product.image].map((image, index) => (
+                <button key={`${image}-${index}`} type="button" className={`overflow-hidden rounded-xl border-2 bg-card ${index === 0 ? "border-primary" : "border-border"}`} aria-label={`Product image ${index + 1}`}>
+                  <img src={image} alt="" width={160} height={160} className="aspect-square w-full object-cover" />
+                </button>
+              ))}
+            </div>
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary">{product.category}</p>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary">{product.category}</p>
+              <Button variant="outline" size="icon" className={`rounded-full ${liked ? "text-destructive" : ""}`} aria-label="Save product" onClick={() => setLiked((value) => !value)}>
+                <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
+              </Button>
+            </div>
             <h1 className="mt-2 text-2xl font-extrabold sm:text-3xl">{product.name}</h1>
-            <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <Star className="h-4 w-4 fill-warning text-warning" />
-              {product.rating.toFixed(1)} ({product.reviews} reviews) · Sold by{" "}
-              <span className="font-medium text-foreground">{product.vendor}</span>
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1 font-semibold text-foreground"><Star className="h-4 w-4 fill-warning text-warning" /> {rating.toFixed(1)}</span>
+              <a href="#reviews" className="text-primary underline-offset-4 hover:underline">{reviewCount} ratings</a>
+              <span>{soldCount.toLocaleString("en-PK")} sold</span>
             </div>
-
             <div className="mt-4 flex items-baseline gap-3">
-              <span className="font-display text-3xl font-extrabold text-primary">
-                {formatPKR(product.price)}
-              </span>
-              {product.oldPrice && (
-                <span className="text-base text-muted-foreground line-through">
-                  {formatPKR(product.oldPrice)}
-                </span>
-              )}
+              <span className="font-display text-3xl font-extrabold text-primary">{formatPKR(product.price)}</span>
+              {product.oldPrice && <span className="text-base text-muted-foreground line-through">{formatPKR(product.oldPrice)}</span>}
+              {discount > 0 && <span className="rounded-md bg-destructive/10 px-2 py-1 text-xs font-bold text-destructive">-{discount}%</span>}
             </div>
-            <p className="mt-1 text-sm">
-              {product.stock > 0 ? (
-                <span className="font-medium text-success">In stock ({product.stock} available)</span>
-              ) : (
-                <span className="font-medium text-destructive">Out of stock</span>
-              )}
-            </p>
-
+            <div className="mt-3 rounded-xl border border-success/20 bg-success/5 p-3 text-sm">
+              <p className="font-semibold text-success">Flash deal price</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Limited stock offer. Price checkout par lock ho jayegi.</p>
+            </div>
+            <div className="mt-4 flex items-center gap-2 text-sm">
+              <span className="h-2 w-2 rounded-full bg-success" />
+              {product.stock > 0 ? <span><strong>{product.stock} pieces</strong> available</span> : <span className="font-medium text-destructive">Out of stock</span>}
+            </div>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{product.description}</p>
+
+            <div className="mt-5 grid gap-2 sm:grid-cols-2">
+              <div className="flex items-center gap-3 rounded-xl bg-muted/60 p-3"><Truck className="h-5 w-5 text-primary" /><div><p className="text-xs font-semibold">Delivery</p><p className="text-xs text-muted-foreground">2-4 days nationwide</p></div></div>
+              <div className="flex items-center gap-3 rounded-xl bg-muted/60 p-3"><Wallet className="h-5 w-5 text-primary" /><div><p className="text-xs font-semibold">Payment</p><p className="text-xs text-muted-foreground">Cash on Delivery</p></div></div>
+            </div>
 
             <Separator className="my-6" />
 
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center rounded-xl border border-border">
-                <Button variant="ghost" size="icon" onClick={() => setQty((q) => Math.max(1, q - 1))}>
-                  <Minus className="h-4 w-4" />
-                </Button>
+                <Button variant="ghost" size="icon" onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease quantity"><Minus className="h-4 w-4" /></Button>
                 <span className="w-10 text-center text-sm font-semibold">{qty}</span>
-                <Button variant="ghost" size="icon" onClick={() => setQty((q) => q + 1)}>
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <Button variant="ghost" size="icon" onClick={() => setQty((q) => Math.min(product.stock || 1, q + 1))} aria-label="Increase quantity"><Plus className="h-4 w-4" /></Button>
               </div>
               <Button
                 size="lg"
@@ -112,29 +145,50 @@ function ProductDetail() {
                   toast.success("Cart mein add ho gaya", { description: product.name });
                 }}
               >
-                Add to Cart
+                <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
               </Button>
               <Button asChild size="lg" variant="outline" className="flex-1 rounded-xl">
                 <Link to="/checkout" onClick={() => add(product.id, qty)}>
-                  Order with COD
+                  <Zap className="mr-2 h-4 w-4" /> Buy Now
                 </Link>
               </Button>
             </div>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              {[
-                { icon: Truck, text: "Delivery 2-4 days" },
-                { icon: ShieldCheck, text: "Verified seller" },
-                { icon: Undo2, text: "7-day return" },
-              ].map((f) => (
-                <div key={f.text} className="surface-card flex items-center gap-2 p-3 text-xs font-medium">
-                  <f.icon className="h-4 w-4 text-primary" />
-                  {f.text}
-                </div>
-              ))}
+            <div className="mt-5 rounded-2xl border border-border p-4">
+              <div className="flex items-center gap-3">
+                <div className="grid h-11 w-11 place-items-center rounded-full bg-primary-soft text-primary"><Store className="h-5 w-5" /></div>
+                <div className="min-w-0 flex-1"><p className="text-xs text-muted-foreground">Sold by</p><Link to="/store/$vendorId" params={{ vendorId: product.vendorId ?? product.vendor }} className="font-bold text-primary hover:underline">{vendor.name}</Link><p className="text-xs text-muted-foreground">{vendor.city} · Joined {vendor.joined}</p></div>
+                <Button asChild variant="outline" size="sm" className="rounded-lg"><Link to="/store/$vendorId" params={{ vendorId: product.vendorId ?? product.vendor }}>View Store</Link></Button>
+              </div>
+              <div className="mt-4 grid grid-cols-3 divide-x border-t pt-3 text-center"><div><p className="text-sm font-bold">{vendor.rating}</p><p className="text-[11px] text-muted-foreground">Seller rating</p></div><div><p className="text-sm font-bold">{vendor.responseRate}</p><p className="text-[11px] text-muted-foreground">Chat response</p></div><div><p className="text-sm font-bold">{vendor.responseTime}</p><p className="text-[11px] text-muted-foreground">Response time</p></div></div>
             </div>
+
           </div>
         </div>
+
+        <section id="reviews" className="mt-12">
+          <div className="flex flex-wrap gap-2 border-b border-border">
+            {[{ id: "details", label: "Product Details" }, { id: "reviews", label: `Ratings & Reviews (${reviewCount})` }, { id: "seller", label: "Seller Information" }].map((tab) => (
+              <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id as typeof activeTab)} className={`border-b-2 px-3 py-3 text-sm font-semibold ${activeTab === tab.id ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}>{tab.label}</button>
+            ))}
+          </div>
+
+          {activeTab === "details" && (
+            <div className="grid gap-4 py-6 md:grid-cols-2">
+              <div><h2 className="text-lg font-bold">About this product</h2><p className="mt-2 text-sm leading-7 text-muted-foreground">{product.description} Yeh item carefully selected hai taa-ke aapko quality, value aur reliable delivery ek hi order mein mil sake.</p></div>
+              <div className="rounded-2xl bg-muted/60 p-4"><h3 className="font-bold">Why buy from Dukaan.pk?</h3><div className="mt-3 space-y-3 text-sm"><p className="flex gap-2"><ShieldCheck className="h-4 w-4 shrink-0 text-success" /> Verified sellers aur transparent ratings</p><p className="flex gap-2"><Undo2 className="h-4 w-4 shrink-0 text-success" /> 7-day return policy</p><p className="flex gap-2"><CheckCircle2 className="h-4 w-4 shrink-0 text-success" /> Secure COD delivery across Pakistan</p></div></div>
+            </div>
+          )}
+
+          {activeTab === "reviews" && (
+            <div className="grid gap-6 py-6 lg:grid-cols-[260px_1fr]">
+              <div className="rounded-2xl bg-muted/60 p-5 text-center"><p className="font-display text-5xl font-extrabold">{rating.toFixed(1)}</p><div className="mt-2 flex justify-center text-warning">{[1, 2, 3, 4, 5].map((star) => <Star key={star} className="h-4 w-4 fill-current" />)}</div><p className="mt-2 text-xs text-muted-foreground">Based on {reviewCount} verified ratings</p><div className="mt-5 space-y-2 text-xs"><p className="flex items-center gap-2"><span>5</span><span className="h-2 flex-1 rounded-full bg-success" /><span>82%</span></p><p className="flex items-center gap-2"><span>4</span><span className="h-2 flex-1 rounded-full bg-warning" /><span>12%</span></p><p className="flex items-center gap-2"><span>3</span><span className="h-2 flex-1 rounded-full bg-muted-foreground/40" /><span>6%</span></p></div></div>
+              <div className="space-y-4">{productReviews.map((review) => <article key={review.name} className="border-b border-border pb-4"><div className="flex flex-wrap items-center justify-between gap-2"><div><p className="font-semibold">{review.name} <span className="text-xs font-normal text-muted-foreground">· {review.city}</span></p><div className="flex items-center gap-2 text-warning">{[1, 2, 3, 4, 5].map((star) => <Star key={star} className={`h-3.5 w-3.5 ${star <= review.rating ? "fill-current" : "text-border"}`} />)}<span className="text-xs text-muted-foreground">{review.date}</span></div></div>{review.verified && <span className="flex items-center gap-1 text-xs text-success"><CheckCircle2 className="h-3.5 w-3.5" /> Verified purchase</span>}</div><h3 className="mt-3 text-sm font-bold">{review.title}</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">{review.body}</p></article>)}</div>
+            </div>
+          )}
+
+          {activeTab === "seller" && <div className="grid gap-6 py-6 md:grid-cols-[auto_1fr]"><div className="grid h-20 w-20 place-items-center rounded-full bg-primary-soft text-primary"><Store className="h-8 w-8" /></div><div><h2 className="text-xl font-bold">{vendor.name}</h2><p className="mt-1 text-sm text-muted-foreground">{vendor.description}</p><div className="mt-4 flex flex-wrap gap-3 text-xs"><span className="rounded-full bg-success/10 px-3 py-1.5 font-semibold text-success">Verified seller</span><span className="rounded-full bg-muted px-3 py-1.5">{vendor.followers.toLocaleString("en-PK")} followers</span><span className="rounded-full bg-muted px-3 py-1.5">{vendor.city}</span></div></div></div>}
+        </section>
 
         {related.length > 0 && (
           <section className="mt-14">

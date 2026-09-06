@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal, PackageSearch } from "lucide-react";
 import { ShopLayout } from "@/components/shop/ShopLayout";
 import { ProductCard } from "@/components/shop/ProductCard";
@@ -13,9 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { categories, products } from "@/data/mock";
+import { categories as mockCategories } from "@/data/mock";
+import { useCart } from "@/lib/cart";
 
 export const Route = createFileRoute("/products/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    category: typeof search["category"] === "string" ? search["category"] : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "All Products — Dukaan.pk Online Shopping Pakistan" },
@@ -32,12 +36,21 @@ export const Route = createFileRoute("/products/")({
 });
 
 function ProductsPage() {
+  const { category } = Route.useSearch();
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState("all");
+  const [cat, setCat] = useState(category ?? "all");
   const [sort, setSort] = useState("popular");
+  const { catalog, catalogLoadingMore, catalogHasMore, loadMoreCatalog } = useCart();
+
+  // Agar koi category ke sath link se aaye (jaise homepage se), usay apply karein
+  useEffect(() => {
+    if (category) setCat(category);
+  }, [category]);
+
+  const categories = mockCategories;
 
   const list = useMemo(() => {
-    let items = products.filter(
+    let items = catalog.filter(
       (p) =>
         p.name.toLowerCase().includes(q.toLowerCase()) && (cat === "all" || p.category === cat),
     );
@@ -45,12 +58,14 @@ function ProductsPage() {
     if (sort === "high") items = [...items].sort((a, b) => b.price - a.price);
     if (sort === "rating") items = [...items].sort((a, b) => b.rating - a.rating);
     return items;
-  }, [q, cat, sort]);
+  }, [catalog, q, cat, sort]);
 
   return (
     <ShopLayout>
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <h1 className="text-2xl font-extrabold sm:text-3xl">All Products</h1>
+        <h1 className="text-2xl font-extrabold sm:text-3xl">
+          {cat === "all" ? "All Products" : cat}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {list.length} products available with Cash on Delivery
         </p>
@@ -113,11 +128,20 @@ function ProductsPage() {
             />
           </div>
         ) : (
-          <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {list.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <>
+            <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              {list.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+            {catalogHasMore && (
+              <div className="mt-8 flex justify-center">
+                <Button variant="outline" className="rounded-xl px-8" disabled={catalogLoadingMore} onClick={() => void loadMoreCatalog()}>
+                  {catalogLoadingMore ? "Loading products..." : "Load more products"}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </ShopLayout>

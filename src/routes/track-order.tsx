@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { trackingSteps } from "@/data/mock";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/track-order")({
   head: () => ({
@@ -22,7 +23,10 @@ export const Route = createFileRoute("/track-order")({
 });
 
 function TrackOrder() {
-  const [state, setState] = useState<"idle" | "loading" | "found">("idle");
+  const [state, setState] = useState<"idle" | "loading" | "found" | "missing">("idle");
+  const [order, setOrder] = useState<{ id: string; status: string } | null>(null);
+
+  const statusIndex: Record<string, number> = { Pending: 0, Confirmed: 1, Dispatched: 2, Delivered: 3, Cancelled: 0 };
 
   return (
     <ShopLayout>
@@ -34,19 +38,26 @@ function TrackOrder() {
 
         <form
           className="surface-card mt-6 grid gap-4 p-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
             setState("loading");
-            setTimeout(() => setState("found"), 900);
+            const formData = new FormData(e.currentTarget);
+            const orderId = String(formData.get("orderId") ?? "").trim();
+            const phone = String(formData.get("phone") ?? "").trim();
+            const { data, error } = await supabase.rpc("track_order", { order_id: orderId, order_phone: phone });
+            const found = data?.[0];
+            if (error || !found) { setOrder(null); setState("missing"); return; }
+            setOrder({ id: found.id, status: found.status });
+            setState("found");
           }}
         >
           <div className="space-y-1.5">
             <Label htmlFor="oid">Order ID</Label>
-            <Input id="oid" required defaultValue="DKN-90232" className="rounded-xl" />
+            <Input id="oid" name="orderId" required placeholder="DKN-XXXXXXXXXX" className="rounded-xl" />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="ophone">Mobile Number</Label>
-            <Input id="ophone" required placeholder="03XX-XXXXXXX" className="rounded-xl" />
+            <Input id="ophone" name="phone" required placeholder="03XX-XXXXXXX" className="rounded-xl" />
           </div>
           <Button type="submit" className="rounded-xl" disabled={state === "loading"}>
             {state === "loading" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
@@ -78,42 +89,49 @@ function TrackOrder() {
           </div>
         )}
 
-        {state === "found" && (
+        {state === "missing" && (
+          <div className="mt-6"><EmptyState icon={Truck} title="Order nahi mila" description="Order ID aur wahi mobile number check karein jo checkout mein diya tha." /></div>
+        )}
+
+        {state === "found" && order && (
           <div className="surface-card mt-6 p-6">
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Order ID</p>
-                <p className="font-display text-lg font-bold">DKN-90232</p>
+                <p className="font-display text-lg font-bold">{order.id}</p>
               </div>
               <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">
-                Dispatched
+                {order.status}
               </span>
             </div>
 
             <ol className="mt-6 space-y-0">
-              {trackingSteps.map((s, i) => (
+              {trackingSteps.map((s, i) => {
+                const done = i <= (statusIndex[order.status] ?? 0);
+                return (
                 <li key={s.label} className="grid grid-cols-[36px_minmax(0,1fr)] gap-3">
                   <div className="flex flex-col items-center">
                     <span
                       className={cn(
                         "grid h-9 w-9 place-items-center rounded-full border-2 text-xs font-bold",
-                        s.done
+                        done
                           ? "border-primary bg-primary text-primary-foreground"
                           : "border-border bg-card text-muted-foreground",
                       )}
                     >
-                      {s.done ? <Check className="h-4 w-4" /> : i + 1}
+                      {done ? <Check className="h-4 w-4" /> : i + 1}
                     </span>
                     {i < trackingSteps.length - 1 && (
-                      <span className={cn("min-h-10 w-0.5 flex-1", s.done ? "bg-primary" : "bg-border")} />
+                      <span className={cn("min-h-10 w-0.5 flex-1", done ? "bg-primary" : "bg-border")} />
                     )}
                   </div>
                   <div className="pb-6">
-                    <p className={cn("text-sm font-semibold", !s.done && "text-muted-foreground")}>{s.label}</p>
+                    <p className={cn("text-sm font-semibold", !done && "text-muted-foreground")}>{s.label}</p>
                     <p className="text-xs text-muted-foreground">{s.time}</p>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ol>
           </div>
         )}

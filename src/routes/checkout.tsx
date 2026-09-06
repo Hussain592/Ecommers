@@ -16,6 +16,10 @@ import {
 } from "@/components/ui/select";
 import { formatPKR } from "@/data/mock";
 import { useCart } from "@/lib/cart";
+import { randomId } from "@/lib/id";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -33,17 +37,49 @@ const cities = ["Karachi", "Lahore", "Islamabad", "Rawalpindi", "Faisalabad", "M
 
 function CheckoutPage() {
   const { detailed, subtotal, clear } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const delivery = subtotal > 3000 || subtotal === 0 ? 0 : 250;
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const formData = new FormData(e.currentTarget);
+      const payload = {
+        customer_name: String(formData.get("name") ?? "").trim(),
+        phone: String(formData.get("phone") ?? "").trim(),
+        city: String(formData.get("city") ?? "").trim(),
+        alternate_phone: String(formData.get("alternatePhone") ?? "").trim() || null,
+        address: String(formData.get("address") ?? "").trim(),
+        notes: String(formData.get("notes") ?? "").trim() || null,
+      };
+      const byVendor = new Map<string, typeof detailed>();
+      detailed.forEach((line) => {
+        const key = line.product.vendorId ?? "unassigned";
+        byVendor.set(key, [...(byVendor.get(key) ?? []), line]);
+      });
+      const ordersToCreate = [...byVendor.entries()].map(([vendorId, lines]) => ({
+        id: `DKN-${randomId(10)}`,
+        ...payload,
+        vendor_id: vendorId === "unassigned" ? null : vendorId,
+        customer_id: user?.id ?? null,
+        total: lines.reduce((sum, line) => sum + line.product.price * line.qty, 0) + (byVendor.size === 1 ? delivery : 0),
+        status: "Pending",
+        items: lines.map(({ product, qty }) => ({ id: product.id, name: product.name, image: product.image, price: product.price, quantity: qty })),
+      }));
+      const { error } = await supabase.from("orders").insert(ordersToCreate);
+      if (error) throw error;
+      sessionStorage.setItem("dukaan_last_order_ids", JSON.stringify(ordersToCreate.map((order) => order.id)));
       clear();
-      navigate({ to: "/order-confirmation" });
-    }, 1200);
+      await navigate({ to: "/order-confirmation" });
+    } catch (error) {
+      console.error("Unable to place order", error);
+      toast.error(error instanceof Error ? error.message : "Order place nahi ho saka.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -61,15 +97,15 @@ function CheckoutPage() {
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="name">Full Name *</Label>
-                  <Input id="name" required placeholder="Ahmed Raza" className="rounded-xl" />
+                  <Input id="name" name="name" required placeholder="Ahmed Raza" className="rounded-xl" />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="phone">Mobile Number *</Label>
-                  <Input id="phone" required placeholder="03XX-XXXXXXX" className="rounded-xl" />
+                  <Input id="phone" name="phone" required placeholder="03XX-XXXXXXX" className="rounded-xl" />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="city">City *</Label>
-                  <Select defaultValue="Karachi">
+                  <Select name="city" defaultValue="Karachi">
                     <SelectTrigger id="city" className="rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
@@ -82,15 +118,15 @@ function CheckoutPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="alt">Alternate Number</Label>
-                  <Input id="alt" placeholder="Optional" className="rounded-xl" />
+                  <Input id="alt" name="alternatePhone" placeholder="Optional" className="rounded-xl" />
                 </div>
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label htmlFor="address">Complete Address *</Label>
-                  <Textarea id="address" required placeholder="House #, street, area, landmark" className="rounded-xl" />
+                  <Textarea id="address" name="address" required placeholder="House #, street, area, landmark" className="rounded-xl" />
                 </div>
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label htmlFor="notes">Order Notes</Label>
-                  <Textarea id="notes" placeholder="Delivery ke liye koi hidayat?" className="rounded-xl" />
+                  <Textarea id="notes" name="notes" placeholder="Delivery ke liye koi hidayat?" className="rounded-xl" />
                 </div>
               </div>
             </section>

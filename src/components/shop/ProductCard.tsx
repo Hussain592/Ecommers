@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router";
+ import { Link } from "@tanstack/react-router";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { formatPKR, type Product } from "@/data/mock";
+import { formatPKR, productImageFallback, type Product } from "@/data/mock";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 
@@ -19,9 +19,12 @@ export function ProductCard({ product }: { product: Product }) {
             loading="lazy"
             width={800}
             height={800}
+            onError={(event) => {
+              event.currentTarget.src = productImageFallback(product.name, product.image);
+            }}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
-          {product.oldPrice && (
+          {product.oldPrice && product.oldPrice > product.price && (
             <span className="absolute left-2 top-2 rounded-lg bg-destructive px-2 py-1 text-[11px] font-bold text-destructive-foreground">
               -{Math.round((1 - product.price / product.oldPrice) * 100)}%
             </span>
@@ -48,7 +51,7 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
         <div className="flex items-baseline gap-2">
           <span className="font-display text-base font-bold text-primary">{formatPKR(product.price)}</span>
-          {product.oldPrice && (
+          {product.oldPrice && product.oldPrice > product.price && (
             <span className="text-xs text-muted-foreground line-through">{formatPKR(product.oldPrice)}</span>
           )}
         </div>

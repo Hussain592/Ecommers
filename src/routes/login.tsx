@@ -1,32 +1,27 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Loader2, ShoppingBag, Store, Users } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Login — Dukaan.pk Vendor & Partner Portal" },
-      { name: "description", content: "Sign in to your Dukaan.pk customer, vendor or partner account." },
+      { title: "Login — Dukaan.pk" },
+      { name: "description", content: "Sign in to your Dukaan.pk account." },
       { property: "og:title", content: "Login — Dukaan.pk" },
-      { property: "og:description", content: "Access your Dukaan.pk dashboard as customer, vendor or partner." },
+      { property: "og:description", content: "Access your Dukaan.pk account." },
     ],
   }),
   component: LoginPage,
 });
 
-const roles = [
-  { key: "customer", label: "Customer", icon: ShoppingBag, to: "/", hint: "Shop & track orders" },
-  { key: "vendor", label: "Vendor", icon: Store, to: "/vendor", hint: "Manage store & orders" },
-  { key: "partner", label: "Partner", icon: Users, to: "/partner", hint: "Add products & stock" },
-] as const;
-
 function LoginPage() {
-  const [role, setRole] = useState<(typeof roles)[number]["key"]>("customer");
   const [loading, setLoading] = useState(false);
+  const [creatingAccount, setCreatingAccount] = useState(false);
   const navigate = useNavigate();
 
   return (
@@ -55,52 +50,106 @@ function LoginPage() {
           </Link>
 
           <h1 className="text-2xl font-extrabold">Welcome back</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Demo login — koi real authentication nahi hai.</p>
-
-          <div className="mt-6 grid grid-cols-3 gap-2">
-            {roles.map((r) => (
-              <button
-                key={r.key}
-                type="button"
-                onClick={() => setRole(r.key)}
-                className={cn(
-                  "rounded-xl border p-3 text-center transition-colors",
-                  role === r.key
-                    ? "border-primary bg-primary-soft text-primary"
-                    : "border-border bg-card text-muted-foreground hover:border-primary/40",
-                )}
-              >
-                <r.icon className="mx-auto h-5 w-5" />
-                <span className="mt-1.5 block text-xs font-semibold">{r.label}</span>
-              </button>
-            ))}
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            {roles.find((r) => r.key === role)?.hint}
+          <p className="mt-1 text-sm text-muted-foreground">
+            {creatingAccount ? "Naya account banayein." : "Apne account mein sign in karein."}
           </p>
 
           <form
             className="mt-6 space-y-4"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               setLoading(true);
-              const target = roles.find((r) => r.key === role)!.to;
-              setTimeout(() => navigate({ to: target }), 800);
+              try {
+                const formData = new FormData(e.currentTarget);
+                const email = String(formData.get("email") ?? "").trim();
+                const password = String(formData.get("password") ?? "");
+
+                if (creatingAccount) {
+                  const name = String(formData.get("name") ?? "").trim();
+
+                  const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: { data: { name, role: "customer" } },
+                  });
+                  if (error) throw error;
+                  if (!data.user) throw new Error("Account create nahi ho saka.");
+
+                  if (!data.session) {
+                    toast.success("Account ban gaya. Email confirm karke phir sign in karein.");
+                  } else {
+                    toast.success("Account ban gaya!");
+                    await navigate({ to: "/" });
+                  }
+                } else {
+                  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                  if (error) throw error;
+
+                  const { data: profile } = await supabase
+                    .from("users")
+                    .select("role, status")
+                    .eq("auth_id", data.user.id)
+                    .maybeSingle();
+
+                  let target = "/";
+
+                  if (profile?.role === "admin") {
+                    target = "/admin";
+                  } else if (profile?.role === "vendor") {
+                    const { data: vendorRow } = await supabase
+                      .from("vendors")
+                      .select("status")
+                      .eq("owner_id", data.user.id)
+                      .maybeSingle();
+                    if (vendorRow?.status !== "Active") {
+                      toast.error("Aapka vendor account abhi active nahi hai. Admin se rabta karein.");
+                      setLoading(false);
+                      return;
+                    }
+                    target = "/vendor";
+                  } else if (profile?.role === "partner") {
+                    if (profile?.status !== "Active") {
+                      toast.error("Aapka partner account abhi active nahi hai. Admin se rabta karein.");
+                      setLoading(false);
+                      return;
+                    }
+                    target = "/partner";
+                  }
+
+                  toast.success("Welcome back!");
+                  window.location.href = target;
+                }
+              } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Login complete nahi ho saka.");
+              } finally {
+                setLoading(false);
+              }
             }}
           >
+            {creatingAccount && (
+              <div className="space-y-1.5">
+                <Label htmlFor="name">Full Name</Label>
+                <Input id="name" name="name" required placeholder="Ahmed Raza" className="h-11 rounded-xl" />
+              </div>
+            )}
+
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email or Phone</Label>
-              <Input id="email" required defaultValue="demo@dukaan.pk" className="h-11 rounded-xl" />
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" name="email" type="email" required placeholder="you@example.com" className="h-11 rounded-xl" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required defaultValue="demo1234" className="h-11 rounded-xl" />
+              <Input id="password" name="password" type="password" minLength={6} required placeholder="At least 6 characters" className="h-11 rounded-xl" />
             </div>
             <Button type="submit" size="lg" className="w-full rounded-xl" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sign in as {roles.find((r) => r.key === role)?.label}
+              {creatingAccount ? "Create Account" : "Sign In"}
             </Button>
           </form>
+
+          <button type="button" className="mt-4 w-full text-center text-sm text-primary underline" onClick={() => setCreatingAccount((value) => !value)}>
+            {creatingAccount ? "Already have an account? Sign in" : "New here? Create an account"}
+          </button>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
             Customer ho? <Link to="/products" className="text-primary underline">Guest checkout</Link> se bina account

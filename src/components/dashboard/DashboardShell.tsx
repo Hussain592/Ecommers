@@ -1,8 +1,9 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Bell, LogOut, Menu, X } from "lucide-react";
-import { useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
 
 export type NavItem = { to: string; label: string; icon: ComponentType<{ className?: string }> };
 
@@ -19,6 +20,21 @@ type Props = {
 export function DashboardShell({ title, subtitle, brand, role, nav, actions, children }: Props) {
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const { user, profile, loading, signOut } = useAuth();
+  const portalRole = nav[0]?.to.startsWith("/admin") ? "admin" : nav[0]?.to.startsWith("/partner") ? "partner" : "vendor";
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      void navigate({ to: "/login" });
+      return;
+    }
+    if (profile && profile.role !== portalRole) {
+      void navigate({ to: profile.role === "admin" ? "/admin/overview" : profile.role === "partner" ? "/partner" : "/vendor" });
+    }
+  }, [loading, navigate, portalRole, profile, user]);
+  if (loading || !user) return <div className="grid min-h-screen place-items-center text-sm text-muted-foreground">Loading account...</div>;
+  const displayBrand = profile?.name || brand;
 
   const SidebarBody = (
     <div className="flex h-full flex-col">
@@ -27,13 +43,15 @@ export function DashboardShell({ title, subtitle, brand, role, nav, actions, chi
           D
         </span>
         <div className="min-w-0">
-          <p className="truncate font-display text-sm font-bold">{brand}</p>
-          <p className="truncate text-[11px] text-muted-foreground">{role}</p>
+          <p className="truncate font-display text-sm font-bold">{displayBrand}</p>
+          <p className="truncate text-[11px] text-muted-foreground">{profile?.role || role}</p>
         </div>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         {nav.map((item) => {
-          const active = pathname === item.to || (item.to !== "/" && pathname.startsWith(item.to + "/"));
+          const isMatch = pathname === item.to || (item.to !== "/" && pathname.startsWith(item.to + "/"));
+          const hasMoreSpecificMatch = nav.some((candidate) => candidate.to !== item.to && candidate.to.startsWith(item.to + "/") && (pathname === candidate.to || pathname.startsWith(candidate.to + "/")));
+          const active = isMatch && !hasMoreSpecificMatch;
           return (
             <Link
               key={item.to}
@@ -53,10 +71,8 @@ export function DashboardShell({ title, subtitle, brand, role, nav, actions, chi
         })}
       </nav>
       <div className="border-t border-sidebar-border p-3">
-        <Button asChild variant="ghost" className="w-full justify-start gap-3 text-muted-foreground">
-          <Link to="/login">
-            <LogOut className="h-4 w-4" /> Logout
-          </Link>
+        <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground" onClick={() => void signOut()}>
+          <LogOut className="h-4 w-4" /> Logout
         </Button>
       </div>
     </div>
@@ -104,7 +120,7 @@ export function DashboardShell({ title, subtitle, brand, role, nav, actions, chi
               <Bell className="h-4 w-4" />
             </Button>
             <span className="hidden h-9 w-9 place-items-center rounded-full bg-primary-soft text-sm font-bold text-primary sm:grid">
-              {brand.charAt(0)}
+              {displayBrand.charAt(0)}
             </span>
           </div>
         </header>

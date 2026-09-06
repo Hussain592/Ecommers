@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Loader2, Lock, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
@@ -35,19 +37,45 @@ function AdminLogin() {
 
         <form
           className="mt-6 space-y-4"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
             setLoading(true);
-            setTimeout(() => navigate({ to: "/admin/overview" }), 800);
+            try {
+              const formData = new FormData(e.currentTarget);
+              const email = String(formData.get("email") ?? "").trim();
+              const password = String(formData.get("password") ?? "");
+
+              const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+              if (error) throw error;
+
+              const { data: profile } = await supabase
+                .from("users")
+                .select("role")
+                .eq("auth_id", data.user.id)
+                .maybeSingle();
+
+              if (profile?.role !== "admin") {
+                await supabase.auth.signOut();
+                toast.error("Ye account Admin nahi hai. Sirf Admin yahan se login kar sakta hai.");
+                setLoading(false);
+                return;
+              }
+
+              toast.success("Welcome back, Admin!");
+              window.location.href = "/admin/overview";
+            } catch (error) {
+              toast.error(error instanceof Error ? error.message : "Login complete nahi ho saka.");
+              setLoading(false);
+            }
           }}
         >
           <div className="space-y-1.5">
             <Label htmlFor="ae">Admin Email</Label>
-            <Input id="ae" required defaultValue="owner@dukaan.pk" className="h-11 rounded-xl" />
+            <Input id="ae" name="email" type="email" required placeholder="owner@dukaan.pk" className="h-11 rounded-xl" />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="ap">Password</Label>
-            <Input id="ap" type="password" required defaultValue="admin1234" className="h-11 rounded-xl" />
+            <Input id="ap" name="password" type="password" required placeholder="Aapka password" className="h-11 rounded-xl" />
           </div>
           <Button type="submit" size="lg" className="w-full rounded-xl" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -56,7 +84,7 @@ function AdminLogin() {
         </form>
 
         <p className="mt-6 flex items-center justify-center gap-2 text-center text-xs text-muted-foreground">
-          <ShieldCheck className="h-3.5 w-3.5" /> Mock login — real authentication baad mein connect hogi.
+          <ShieldCheck className="h-3.5 w-3.5" /> Secure admin-only access.
         </p>
       </div>
     </div>

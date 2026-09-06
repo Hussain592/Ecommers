@@ -12,11 +12,36 @@ export type Product = {
   stock: number;
   active: boolean;
   vendor: string;
+  vendorId?: string | undefined;
   city: string;
   rating: number;
   reviews: number;
   image: string;
   description: string;
+  featured?: boolean;
+  salesCount?: number;
+};
+
+export type VendorProfile = {
+  name: string;
+  city: string;
+  joined: string;
+  responseRate: string;
+  responseTime: string;
+  followers: number;
+  rating: number;
+  verified: boolean;
+  description: string;
+};
+
+export type ProductReview = {
+  name: string;
+  city: string;
+  rating: number;
+  date: string;
+  title: string;
+  body: string;
+  verified: boolean;
 };
 
 export type Service = {
@@ -42,6 +67,21 @@ export const categories = [
 ];
 
 const images = [earbuds, kurta, watch];
+export function resolveProductImage(image: string | null | undefined) {
+  if (!image) return earbuds;
+  if (/^https?:\/\//i.test(image)) return image;
+  if (image.startsWith("/assets/") && image.includes("earbuds")) return earbuds;
+  if (image.startsWith("/assets/") && image.includes("kurta")) return kurta;
+  if (image.startsWith("/assets/") && image.includes("watch")) return watch;
+  return image;
+}
+
+export function productImageFallback(name: string, image?: string | null) {
+  const source = `${name} ${image ?? ""}`.toLowerCase();
+  if (source.includes("kurta") || source.includes("fashion")) return kurta;
+  if (source.includes("watch") || source.includes("fitness")) return watch;
+  return earbuds;
+}
 
 const seed: Array<Partial<Product> & { name: string; category: string; price: number }> = [
   { name: "TWS Bluetooth Earbuds Pro", category: "Electronics", price: 3499, oldPrice: 4999, stock: 42 },
@@ -78,6 +118,24 @@ export const products: Product[] = seed.map((p, i): Product => ({
   description:
     "Original quality product with 7-day return policy. Cash on Delivery available all over Pakistan. Fast dispatch within 24 hours from verified Dukaan.pk sellers.",
 }));
+
+export const getVendorProfile = (vendor: string, city: string): VendorProfile => ({
+  name: vendor,
+  city,
+  joined: "November 2024",
+  responseRate: "98%",
+  responseTime: "within 1 hour",
+  followers: 1200 + vendor.length * 37,
+  rating: 4.7,
+  verified: true,
+  description: `${vendor} Pakistan bhar mein original products aur reliable Cash on Delivery service provide karta hai. Har order dispatch se pehle quality check hota hai.`,
+});
+
+export const productReviews: ProductReview[] = [
+  { name: "Hassan R.", city: "Karachi", rating: 5, date: "2 days ago", title: "Bilkul waisa hi jaisa photo mein tha", body: "Packing achi thi aur delivery bhi time par hui. Product ki quality price ke hisaab se bohat achi hai.", verified: true },
+  { name: "Ayesha K.", city: "Lahore", rating: 4, date: "1 week ago", title: "Good value for money", body: "Product theek mila, seller ne call bhi confirm ki. Overall experience smooth raha.", verified: true },
+  { name: "Usman T.", city: "Islamabad", rating: 5, date: "2 weeks ago", title: "Recommended seller", body: "Fast dispatch aur secure packing. Dobara bhi isi store se order karunga.", verified: true },
+];
 
 export const services: Service[] = [
   {

@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { PackageSearch, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, PackageSearch, Search } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { partnerNav } from "@/components/dashboard/nav-config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { products } from "@/data/mock";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/partner/products")({
   head: () => ({
@@ -21,13 +21,56 @@ export const Route = createFileRoute("/partner/products")({
   component: PartnerProducts,
 });
 
+type ProductRow = {
+  id: string;
+  name: string;
+  image: string | null;
+  category: string;
+  stock: number;
+  active: boolean;
+};
+
 function PartnerProducts() {
   const [q, setQ] = useState("");
-  const list = products.slice(0, 8).filter((p) => p.name.toLowerCase().includes(q.toLowerCase()));
+  const [partnerName, setPartnerName] = useState("Partner");
+  const [products, setProducts] = useState<ProductRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) {
+        setLoading(false);
+        return;
+      }
+
+      const { data: profile } = await supabase.from("users").select("name").eq("auth_id", authData.user.id).maybeSingle();
+      if (profile?.name) setPartnerName(profile.name);
+
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, image, category, stock, active")
+        .eq("created_by", authData.user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Unable to load partner products", error);
+        setLoading(false);
+        return;
+      }
+
+      setProducts(data ?? []);
+      setLoading(false);
+    };
+
+    void loadProducts();
+  }, []);
+
+  const list = products.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()));
 
   return (
     <DashboardShell
-      brand="Zeeshan Ali"
+      brand={partnerName}
       role="Partner Account"
       title="My Products"
       subtitle={`${list.length} listings`}
@@ -40,7 +83,11 @@ function PartnerProducts() {
         </div>
       </div>
 
-      {list.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center p-10">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : list.length === 0 ? (
         <EmptyState
           icon={PackageSearch}
           title="Koi listing nahi mili"
@@ -56,7 +103,7 @@ function PartnerProducts() {
           {list.map((p) => (
             <div key={p.id} className="surface-card p-4">
               <div className="flex gap-3">
-                <img src={p.image} alt={p.name} loading="lazy" width={800} height={800} className="h-16 w-16 rounded-xl object-cover" />
+                <img src={p.image ?? ""} alt={p.name} loading="lazy" width={800} height={800} className="h-16 w-16 rounded-xl bg-muted object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{p.name}</p>
                   <p className="text-xs text-muted-foreground">{p.category}</p>

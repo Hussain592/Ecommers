@@ -37,6 +37,7 @@ export const partnerNav: NavItem[] = [
 export const adminNav: NavItem[] = [
   { to: "/admin/overview", label: "Overview", icon: LayoutDashboard },
   { to: "/admin/vendors", label: "Vendors", icon: Store },
+  { to: "/admin/products", label: "Product Review", icon: Package },
   { to: "/admin/orders", label: "Orders", icon: ClipboardList },
   { to: "/admin/commissions", label: "Commissions", icon: BadgePercent },
   { to: "/admin/payouts", label: "Payouts", icon: Wallet },

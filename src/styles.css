@@ -180,3 +180,15 @@
 @utility gradient-primary {
   background-image: var(--gradient-primary);
 }
+
+@layer base {
+  button,
+  a {
+    transition: transform 160ms ease, opacity 160ms ease, background-color 160ms ease, color 160ms ease;
+  }
+
+  button:active:not(:disabled),
+  a:active {
+    transform: scale(0.98);
+  }
+}

@@ -1,61 +1,77 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BadgePercent, Percent, Wallet } from "lucide-react";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { BadgePercent, Loader2, Percent, Wallet } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { adminNav } from "@/components/dashboard/nav-config";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { commissions, formatPKR } from "@/data/mock";
+import { formatPKR } from "@/data/mock";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin/commissions")({
   head: () => ({
     meta: [
       { title: "Commissions — Dukaan.pk Admin" },
-      { name: "description", content: "Set platform commission rates and review commission records." },
+      { name: "description", content: "Review commission records across the marketplace." },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Commissions — Dukaan.pk Admin" },
-      { property: "og:description", content: "Commission configuration and history." },
+      { property: "og:description", content: "Commission history." },
     ],
   }),
   component: AdminCommissions,
 });
 
+type CommissionRow = {
+  id: string;
+  order_id: string | null;
+  partner_name: string;
+  amount: number;
+  status: string;
+  created_at: string;
+};
+
 function AdminCommissions() {
-  const total = commissions.reduce((s, c) => s + c.amount, 0);
+  const [commissions, setCommissions] = useState<CommissionRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data, error } = await supabase
+        .from("commissions")
+        .select("id, order_id, partner_name, amount, status, created_at")
+        .order("created_at", { ascending: false });
+      if (!error && data) setCommissions(data);
+      setLoading(false);
+    };
+    void load();
+  }, []);
+
+  const total = commissions.reduce((s, c) => s + Number(c.amount), 0);
+  const thisMonth = commissions
+    .filter((c) => {
+      const d = new Date(c.created_at);
+      const now = new Date();
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    })
+    .reduce((s, c) => s + Number(c.amount), 0);
+
+  if (loading) {
+    return (
+      <DashboardShell brand="Dukaan.pk" role="Owner / Admin" title="Commissions" subtitle="Platform aur partner commission" nav={adminNav}>
+        <div className="flex justify-center p-10">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell brand="Dukaan.pk" role="Owner / Admin" title="Commissions" subtitle="Platform aur partner commission" nav={adminNav}>
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Platform Commission" value={formatPKR(184300)} hint="This month" icon={BadgePercent} />
-        <StatCard label="Partner Commission" value={formatPKR(total)} icon={Wallet} tone="success" />
-        <StatCard label="Default Rate" value="10%" hint="Applies to new vendors" icon={Percent} tone="warning" />
+        <StatCard label="This Month" value={formatPKR(thisMonth)} hint="Total commissions" icon={BadgePercent} />
+        <StatCard label="Total (All Time)" value={formatPKR(total)} icon={Wallet} tone="success" />
+        <StatCard label="Total Records" value={String(commissions.length)} icon={Percent} tone="warning" />
       </div>
-
-      <section className="surface-card p-5">
-        <h2 className="font-bold">Commission Settings</h2>
-        <form
-          className="mt-4 grid gap-4 sm:grid-cols-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            toast.success("Commission rates update (demo)");
-          }}
-        >
-          <div className="space-y-1.5">
-            <Label htmlFor="pr">Platform Rate (%)</Label>
-            <Input id="pr" type="number" defaultValue={8} className="rounded-xl" />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="ptr">Partner Rate (%)</Label>
-            <Input id="ptr" type="number" defaultValue={10} className="rounded-xl" />
-          </div>
-          <div className="flex items-end">
-            <Button type="submit" className="w-full rounded-xl">Save Rates</Button>
-          </div>
-        </form>
-      </section>
 
       <section className="surface-card overflow-hidden">
         <h2 className="px-5 pt-5 font-bold">Commission Records</h2>
@@ -66,22 +82,26 @@ function AdminCommissions() {
                 <th className="px-4 py-3 font-semibold">ID</th>
                 <th className="px-4 py-3 font-semibold">Order</th>
                 <th className="px-4 py-3 font-semibold">Partner</th>
-                <th className="px-4 py-3 font-semibold">Rate</th>
                 <th className="px-4 py-3 font-semibold">Amount</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {commissions.map((c) => (
-                <tr key={c.id} className="hover:bg-muted/40">
-                  <td className="px-4 py-3 font-medium">{c.id}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{c.order}</td>
-                  <td className="px-4 py-3">{c.partner}</td>
-                  <td className="px-4 py-3">{c.rate}</td>
-                  <td className="px-4 py-3 font-medium">{formatPKR(c.amount)}</td>
-                  <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
+              {commissions.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Koi commission record nahi.</td>
                 </tr>
-              ))}
+              ) : (
+                commissions.map((c) => (
+                  <tr key={c.id} className="hover:bg-muted/40">
+                    <td className="px-4 py-3 font-medium">{c.id}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{c.order_id ?? "-"}</td>
+                    <td className="px-4 py-3">{c.partner_name}</td>
+                    <td className="px-4 py-3 font-medium">{formatPKR(Number(c.amount))}</td>
+                    <td className="px-4 py-3"><StatusBadge status={c.status as never} /></td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

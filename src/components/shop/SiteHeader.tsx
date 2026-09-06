@@ -31,7 +31,7 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <div className="order-3 col-span-2 w-full sm:order-none sm:max-w-md">
+        <div className="order-3 col-span-2 w-full sm:order-0 sm:max-w-md">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Search products, services, brands..." className="h-10 rounded-xl pl-9" />
@@ -53,6 +53,9 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Link to="/orders">My Orders</Link>
+          </Button>
           <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
             <Link to="/login">Login</Link>
           </Button>

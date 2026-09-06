@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { PackagePlus, PackageSearch, Pencil, Search, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Loader2, PackagePlus, PackageSearch, Pencil, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
@@ -26,7 +26,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { categories, formatPKR, products } from "@/data/mock";
+import { formatPKR } from "@/data/mock";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/vendor/products/")({
   head: () => ({
@@ -40,25 +41,105 @@ export const Route = createFileRoute("/vendor/products/")({
   component: VendorProducts,
 });
 
+type ProductRow = {
+  id: string;
+  name: string;
+  image: string | null;
+  price: number;
+  stock: number;
+  category: string;
+  active: boolean;
+};
+
 function VendorProducts() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
   const [status, setStatus] = useState("all");
+  const [storeName, setStoreName] = useState("My Store");
+  const [productList, setProductList] = useState<ProductRow[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) {
+        setLoading(false);
+        return;
+      }
+
+      const { data: vendor } = await supabase.from("vendors").select("id, name").eq("owner_id", authData.user.id).maybeSingle();
+      if (!vendor) {
+        setLoading(false);
+        return;
+      }
+      setStoreName(vendor.name);
+
+      const [productsRes, categoriesRes] = await Promise.all([
+        supabase
+          .from("products")
+          .select("id, name, image, price, stock, category, active")
+          .eq("vendor_id", vendor.id)
+          .order("created_at", { ascending: false }),
+        supabase.from("categories").select("name").eq("active", true).order("name"),
+      ]);
+
+      if (productsRes.error) {
+        console.error("Unable to load products", productsRes.error);
+        toast.error("Products load nahi ho sake.");
+        setLoading(false);
+        return;
+      }
+
+      setProductList(productsRes.data ?? []);
+      setCategoryOptions((categoriesRes.data ?? []).map((c) => c.name));
+      setLoading(false);
+    };
+
+    void loadProducts();
+  }, []);
 
   const list = useMemo(
     () =>
-      products.filter(
+      productList.filter(
         (p) =>
           p.name.toLowerCase().includes(q.toLowerCase()) &&
           (cat === "all" || p.category === cat) &&
           (status === "all" || (status === "active" ? p.active : !p.active)),
       ),
-    [q, cat, status],
+    [productList, q, cat, status],
   );
+
+  const toggleActive = async (id: string, active: boolean) => {
+    setBusyId(id);
+    const { data, error } = await supabase.from("products").update({ active }).eq("id", id).select();
+    setBusyId(null);
+
+    if (error || !data || data.length === 0) {
+      toast.error("Status update nahi ho saka.");
+      return;
+    }
+    toast.success(active ? "Product active ho gaya." : "Product inactive ho gaya.");
+    setProductList((prev) => prev.map((p) => (p.id === id ? { ...p, active } : p)));
+  };
+
+  const deleteProduct = async (id: string, name: string) => {
+    setBusyId(id);
+    const { data, error } = await supabase.from("products").delete().eq("id", id).select();
+    setBusyId(null);
+
+    if (error || !data || data.length === 0) {
+      toast.error("Product delete nahi ho saka.");
+      return;
+    }
+    toast.success(`"${name}" delete ho gaya.`);
+    setProductList((prev) => prev.filter((p) => p.id !== id));
+  };
 
   return (
     <DashboardShell
-      brand="Al-Madina Traders"
+      brand={storeName}
       role="Vendor Account"
       title="Products"
       subtitle={`${list.length} products in your catalog`}
@@ -80,7 +161,7 @@ function VendorProducts() {
           <SelectTrigger className="h-10 w-full rounded-xl sm:w-48"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
-            {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            {categoryOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={status} onValueChange={setStatus}>
@@ -93,7 +174,11 @@ function VendorProducts() {
         </Select>
       </div>
 
-      {list.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center p-10">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : list.length === 0 ? (
         <EmptyState
           icon={PackageSearch}
           title="Koi product nahi mila"
@@ -123,7 +208,7 @@ function VendorProducts() {
                   <tr key={p.id} className="hover:bg-muted/40">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <img src={p.image} alt={p.name} loading="lazy" width={800} height={800} className="h-11 w-11 rounded-xl object-cover" />
+                        <img src={p.image ?? ""} alt={p.name} loading="lazy" width={800} height={800} className="h-11 w-11 rounded-xl bg-muted object-cover" />
                         <div className="min-w-0">
                           <p className="truncate font-medium">{p.name}</p>
                           <p className="text-xs text-muted-foreground">{p.id}</p>
@@ -138,7 +223,11 @@ function VendorProducts() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <Switch defaultChecked={p.active} onCheckedChange={() => toast.success("Status update (demo)")} />
+                      <Switch
+                        checked={p.active}
+                        disabled={busyId === p.id}
+                        onCheckedChange={(checked) => toggleActive(p.id, checked)}
+                      />
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
@@ -149,7 +238,7 @@ function VendorProducts() {
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg text-destructive">
+                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg text-destructive" disabled={busyId === p.id}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </AlertDialogTrigger>
@@ -157,12 +246,12 @@ function VendorProducts() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Product delete karein?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                "{p.name}" permanently remove ho jayega. Ye demo hai, real data delete nahi hoga.
+                                "{p.name}" permanently remove ho jayega. Ye wapas nahi hoga.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => toast.success("Product deleted (demo)")}>
+                              <AlertDialogAction onClick={() => deleteProduct(p.id, p.name)}>
                                 Delete
                               </AlertDialogAction>
                             </AlertDialogFooter>

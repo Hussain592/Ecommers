@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { CheckCircle2, Package, Phone } from "lucide-react";
 import { ShopLayout } from "@/components/shop/ShopLayout";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,17 @@ export const Route = createFileRoute("/order-confirmation")({
 });
 
 function OrderConfirmation() {
+  const [orderIds, setOrderIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("dukaan_last_order_ids");
+      if (raw) setOrderIds(JSON.parse(raw));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   return (
     <ShopLayout>
       <div className="mx-auto max-w-2xl px-4 py-14">
@@ -31,8 +43,10 @@ function OrderConfirmation() {
 
           <div className="mt-6 rounded-2xl bg-muted p-5 text-left">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Order ID</span>
-              <span className="font-display font-bold">DKN-90232</span>
+              <span className="text-muted-foreground">{orderIds.length > 1 ? "Order IDs" : "Order ID"}</span>
+              <span className="font-display font-bold">
+                {orderIds.length > 0 ? orderIds.join(", ") : "—"}
+              </span>
             </div>
             <Separator className="my-3" />
             <div className="flex items-center justify-between text-sm">
