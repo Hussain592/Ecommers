@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { products, resolveProductImage, type Product } from "@/data/mock";
+import { type Product } from "@/data/mock";
 import { supabase } from "@/lib/supabase";
 
 export type CartLine = { id: string; qty: number };
@@ -15,22 +15,15 @@ type CartCtx = {
   subtotal: number;
   catalog: Product[];
   catalogLoading: boolean;
-  catalogLoadingMore: boolean;
-  catalogHasMore: boolean;
-  loadMoreCatalog: () => Promise<void>;
 };
 
 const Ctx = createContext<CartCtx | null>(null);
 const KEY = "dukaan_cart";
-const PAGE_SIZE = 20;
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
-  const [catalog, setCatalog] = useState<Product[]>(products);
+  const [catalog, setCatalog] = useState<Product[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
-  const [catalogLoadingMore, setCatalogLoadingMore] = useState(false);
-  const [catalogHasMore, setCatalogHasMore] = useState(true);
-  const [backendLoaded, setBackendLoaded] = useState(0);
 
   useEffect(() => {
     try {
@@ -43,22 +36,35 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const loadCatalog = async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("id, name, description, image, price, compare_price, stock, category, vendor_id, featured, sales_count, vendors(name, address)")
-        .eq("active", true)
-        .order("featured", { ascending: false })
-        .order("sales_count", { ascending: false })
-        .order("created_at", { ascending: false })
-        .range(0, PAGE_SIZE - 1);
+      // Supabase ek dafa mein sirf 1000 rows deta hai, isliye page-by-page (batch mein) saare products lete hain
+      let allData: Array<Record<string, unknown>> = [];
+      let from = 0;
+      const batchSize = 1000;
+      let keepGoing = true;
 
-      if (error || !data || data.length === 0) {
-        setCatalogHasMore(false);
-        setCatalogLoading(false);
-        return;
+      while (keepGoing) {
+        const { data, error } = await supabase
+          .from("products")
+          .select("id, name, description, image, price, compare_price, stock, category, vendor_id, vendors(name)")
+          .eq("active", true)
+          .order("created_at", { ascending: false })
+          .range(from, from + batchSize - 1);
+
+        if (error) {
+          console.error("Unable to load catalog", error);
+          keepGoing = false;
+          break;
+        }
+
+        allData = allData.concat(data ?? []);
+        if (!data || data.length < batchSize) {
+          keepGoing = false;
+        } else {
+          from += batchSize;
+        }
       }
 
-      const backendProducts = data.map((item) => ({
+      setCatalog(allData.map((item: any) => ({
         id: item.id,
         name: item.name,
         slug: item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
@@ -69,61 +75,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
         active: true,
         vendor: item.vendors?.[0]?.name ?? "Dukaan.pk Seller",
         vendorId: item.vendor_id ?? undefined,
-        city: item.vendors?.[0]?.address ?? "Pakistan",
+        city: "",
         rating: 0,
         reviews: 0,
-        image: resolveProductImage(item.image),
+        image: item.image || "/favicon.ico",
         description: item.description ?? "",
-        featured: item.featured ?? false,
-        salesCount: item.sales_count ?? 0,
-      }));
-      const backendIds = new Set(backendProducts.map((product) => product.id));
-      setCatalog([...backendProducts, ...products.filter((product) => !backendIds.has(product.id))]);
-      setBackendLoaded(data.length);
-      setCatalogHasMore(data.length === PAGE_SIZE);
+      })));
       setCatalogLoading(false);
     };
     void loadCatalog();
   }, []);
-
-  const loadMoreCatalog = async () => {
-    if (catalogLoading || catalogLoadingMore || !catalogHasMore) return;
-    setCatalogLoadingMore(true);
-    const { data, error } = await supabase
-      .from("products")
-      .select("id, name, description, image, price, compare_price, stock, category, vendor_id, featured, sales_count, vendors(name, address)")
-      .eq("active", true)
-      .order("featured", { ascending: false })
-      .order("sales_count", { ascending: false })
-      .order("created_at", { ascending: false })
-      .range(backendLoaded, backendLoaded + PAGE_SIZE - 1);
-
-    if (!error && data) {
-      const backendProducts = data.map((item) => ({
-        id: item.id,
-        name: item.name,
-        slug: item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
-        category: item.category ?? "Uncategorized",
-        price: Number(item.price),
-        oldPrice: item.compare_price ? Number(item.compare_price) : undefined,
-        stock: item.stock,
-        active: true,
-        vendor: item.vendors?.[0]?.name ?? "Dukaan.pk Seller",
-        vendorId: item.vendor_id ?? undefined,
-        city: item.vendors?.[0]?.address ?? "Pakistan",
-        rating: 0,
-        reviews: 0,
-        image: resolveProductImage(item.image),
-        description: item.description ?? "",
-        featured: item.featured ?? false,
-        salesCount: item.sales_count ?? 0,
-      }));
-      setCatalog((current) => [...current, ...backendProducts]);
-      setBackendLoaded((current) => current + data.length);
-      setCatalogHasMore(data.length === PAGE_SIZE);
-    }
-    setCatalogLoadingMore(false);
-  };
 
   useEffect(() => {
     try {
@@ -162,11 +123,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       subtotal: detailed.reduce((s, d) => s + d.product.price * d.qty, 0),
       catalog,
       catalogLoading,
-      catalogLoadingMore,
-      catalogHasMore,
-      loadMoreCatalog,
     };
-  }, [backendLoaded, catalog, catalogHasMore, catalogLoading, catalogLoadingMore, lines]);
+  }, [catalog, lines, catalogLoading]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

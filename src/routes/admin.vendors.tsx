@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Check, Search, Ban, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -34,6 +34,11 @@ type Vendor = {
 };
 
 function AdminVendors() {
+  return <VendorList />;
+}
+
+function VendorList() {
+  const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,11 +78,16 @@ function AdminVendors() {
 
   const updateStatus = async (id: string, status: "Active" | "Suspended") => {
     setBusyId(id);
-    const { error } = await supabase.from("vendors").update({ status }).eq("id", id);
+    const { data, error } = await supabase.from("vendors").update({ status }).eq("id", id).select();
     setBusyId(null);
 
     if (error) {
       toast.error(error.message);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      toast.error("Permission nahi mili. Admin account se login karein.");
       return;
     }
 
@@ -116,9 +126,24 @@ function AdminVendors() {
               </thead>
               <tbody className="divide-y divide-border">
                 {list.map((v) => (
-                  <tr key={v.id} className="hover:bg-muted/40">
+                  <tr
+                    key={v.id}
+                    className="cursor-pointer transition-colors hover:bg-muted/40 focus-within:bg-muted/40"
+                    tabIndex={0}
+                    role="link"
+                    aria-label={`${v.name} ki details dekhein`}
+                    onClick={() => navigate({ to: "/admin/vendors/$vendorId", params: { vendorId: v.id } })}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        navigate({ to: "/admin/vendors/$vendorId", params: { vendorId: v.id } });
+                      }
+                    }}
+                  >
                     <td className="px-4 py-3">
-                      <p className="font-medium">{v.name}</p>
+                      <Link to="/admin/vendors/$vendorId" params={{ vendorId: v.id }} className="font-medium text-primary hover:underline">
+                        {v.name}
+                      </Link>
                       <p className="text-xs text-muted-foreground">{v.email}</p>
                     </td>
                     <td className="px-4 py-3">{v.contact}</td>
@@ -132,7 +157,10 @@ function AdminVendors() {
                           size="icon"
                           className="h-8 w-8 rounded-lg text-success"
                           disabled={busyId === v.id || v.status === "Active"}
-                          onClick={() => updateStatus(v.id, "Active")}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void updateStatus(v.id, "Active");
+                          }}
                         >
                           <Check className="h-3.5 w-3.5" />
                         </Button>
@@ -141,7 +169,10 @@ function AdminVendors() {
                           size="icon"
                           className="h-8 w-8 rounded-lg text-destructive"
                           disabled={busyId === v.id || v.status === "Suspended"}
-                          onClick={() => updateStatus(v.id, "Suspended")}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void updateStatus(v.id, "Suspended");
+                          }}
                         >
                           <Ban className="h-3.5 w-3.5" />
                         </Button>

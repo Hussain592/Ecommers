@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, Package, ShoppingBag, Store, TrendingUp } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { toast } from "sonner";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -43,24 +44,31 @@ function AdminOverview() {
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [vendors, setVendors] = useState<VendorRow[]>([]);
-  const [productCount, setProductCount] = useState(0);
-  const [categoryCount, setCategoryCount] = useState(0);
+  const [productCount, setProductCount] = useState<number | null>(null);
+  const [activeProductCount, setActiveProductCount] = useState<number | null>(null);
+  const [categoryCount, setCategoryCount] = useState<number | null>(null);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
 
-      const [ordersRes, vendorsRes, productsRes, categoriesRes] = await Promise.all([
+      const [ordersRes, vendorsRes, productsRes, activeProductsRes, categoriesRes] = await Promise.all([
         supabase.from("orders").select("id, customer_name, vendor_id, total, status, created_at").order("created_at", { ascending: false }),
         supabase.from("vendors").select("id, name, status"),
         supabase.from("products").select("id", { count: "exact", head: true }),
+        supabase.from("products").select("id", { count: "exact", head: true }).eq("active", true),
         supabase.from("categories").select("id", { count: "exact", head: true }).eq("active", true),
       ]);
 
       if (ordersRes.data) setOrders(ordersRes.data);
       if (vendorsRes.data) setVendors(vendorsRes.data);
-      setProductCount(productsRes.count ?? 0);
-      setCategoryCount(categoriesRes.count ?? 0);
+      if (!productsRes.error) setProductCount(productsRes.count ?? 0);
+      if (!activeProductsRes.error) setActiveProductCount(activeProductsRes.count ?? 0);
+      if (!categoriesRes.error) setCategoryCount(categoriesRes.count ?? 0);
+
+      if (ordersRes.error || vendorsRes.error || productsRes.error || activeProductsRes.error || categoriesRes.error) {
+        toast.error("Kuch live dashboard data load nahi ho saka. Dobara refresh karein.");
+      }
 
       setLoading(false);
     };
@@ -122,7 +130,16 @@ function AdminOverview() {
         <StatCard label="GMV (This Month)" value={formatPKR(gmvThisMonth)} hint={`${orders.length} total orders lifetime`} icon={TrendingUp} />
         <StatCard label="Total Orders" value={String(orders.length)} hint={`${pendingOrders} pending confirmation`} icon={ShoppingBag} tone="warning" />
         <StatCard label="Active Vendors" value={String(activeVendors)} hint={`${pendingVendors} approval pending`} icon={Store} tone="success" />
-        <StatCard label="Listed Products" value={String(productCount)} hint={`Across ${categoryCount} categories`} icon={Package} />
+        <StatCard
+          label="Listed Products"
+          value={productCount === null ? "-" : String(productCount)}
+          hint={
+            activeProductCount === null || categoryCount === null
+              ? "Live data unavailable"
+              : `${activeProductCount} live across ${categoryCount} categories`
+          }
+          icon={Package}
+        />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">

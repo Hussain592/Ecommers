@@ -40,6 +40,7 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const errorMessage = error instanceof Error ? error.message : String(error);
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -52,6 +53,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. You can try refreshing or head back home.
+        </p>
+        <p className="mt-3 break-words rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-left font-mono text-xs text-destructive">
+          Error: {errorMessage}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button

@@ -2,8 +2,10 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Bell, LogOut, Menu, X } from "lucide-react";
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 
 export type NavItem = { to: string; label: string; icon: ComponentType<{ className?: string }> };
 
@@ -19,10 +21,14 @@ type Props = {
 
 export function DashboardShell({ title, subtitle, brand, role, nav, actions, children }: Props) {
   const [open, setOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<string[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const { user, profile, loading, signOut } = useAuth();
   const portalRole = nav[0]?.to.startsWith("/admin") ? "admin" : nav[0]?.to.startsWith("/partner") ? "partner" : "vendor";
+  const profilePath = portalRole === "admin" ? "/admin/profile" : portalRole === "partner" ? "/partner/profile" : "/vendor/settings";
   useEffect(() => {
     if (loading) return;
     if (!user) {
@@ -33,6 +39,28 @@ export function DashboardShell({ title, subtitle, brand, role, nav, actions, chi
       void navigate({ to: profile.role === "admin" ? "/admin/overview" : profile.role === "partner" ? "/partner" : "/vendor" });
     }
   }, [loading, navigate, portalRole, profile, user]);
+
+  useEffect(() => {
+    if (!notificationsOpen || portalRole !== "admin") return;
+
+    const loadNotifications = async () => {
+      setNotificationsLoading(true);
+      const [ordersRes, vendorsRes, productsRes] = await Promise.all([
+        supabase.from("orders").select("id", { count: "exact", head: true }).eq("status", "Pending"),
+        supabase.from("vendors").select("id", { count: "exact", head: true }).eq("status", "Pending"),
+        supabase.from("products").select("id", { count: "exact", head: true }).lt("stock", 10).eq("active", true),
+      ]);
+
+      const next: string[] = [];
+      if (!ordersRes.error && (ordersRes.count ?? 0) > 0) next.push(`${ordersRes.count} pending orders need review`);
+      if (!vendorsRes.error && (vendorsRes.count ?? 0) > 0) next.push(`${vendorsRes.count} vendor approvals are pending`);
+      if (!productsRes.error && (productsRes.count ?? 0) > 0) next.push(`${productsRes.count} active products are low in stock`);
+      setNotifications(next);
+      setNotificationsLoading(false);
+    };
+
+    void loadNotifications();
+  }, [notificationsOpen, portalRole]);
   if (loading || !user) return <div className="grid min-h-screen place-items-center text-sm text-muted-foreground">Loading account...</div>;
   const displayBrand = profile?.name || brand;
 
@@ -116,12 +144,34 @@ export function DashboardShell({ title, subtitle, brand, role, nav, actions, chi
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {actions}
-            <Button variant="outline" size="icon" className="rounded-xl" aria-label="Notifications">
-              <Bell className="h-4 w-4" />
+            <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="relative rounded-xl" aria-label="Notifications">
+                  <Bell className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-0">
+                <div className="border-b px-4 py-3">
+                  <p className="text-sm font-semibold">Notifications</p>
+                </div>
+                <div className="p-2">
+                  {notificationsLoading ? (
+                    <p className="px-2 py-3 text-sm text-muted-foreground">Loading notifications...</p>
+                  ) : notifications.length === 0 ? (
+                    <p className="px-2 py-3 text-sm text-muted-foreground">You are all caught up.</p>
+                  ) : (
+                    notifications.map((notification) => (
+                      <p key={notification} className="rounded-lg px-2 py-2.5 text-sm hover:bg-muted">
+                        {notification}
+                      </p>
+                    ))
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Button asChild variant="ghost" size="icon" className="hidden rounded-full bg-primary-soft text-sm font-bold text-primary hover:bg-primary-soft sm:inline-flex" aria-label="Open profile">
+              <Link to={profilePath as "/"}>{displayBrand.charAt(0).toLowerCase()}</Link>
             </Button>
-            <span className="hidden h-9 w-9 place-items-center rounded-full bg-primary-soft text-sm font-bold text-primary sm:grid">
-              {displayBrand.charAt(0)}
-            </span>
           </div>
         </header>
         <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">{children}</div>

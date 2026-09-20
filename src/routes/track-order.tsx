@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Check, Loader2, Search, Truck } from "lucide-react";
+import { toast } from "sonner";
 import { ShopLayout } from "@/components/shop/ShopLayout";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { trackingSteps } from "@/data/mock";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/track-order")({
   head: () => ({
@@ -25,6 +27,7 @@ export const Route = createFileRoute("/track-order")({
 function TrackOrder() {
   const [state, setState] = useState<"idle" | "loading" | "found" | "missing">("idle");
   const [order, setOrder] = useState<{ id: string; status: string } | null>(null);
+  const { user } = useAuth();
 
   const statusIndex: Record<string, number> = { Pending: 0, Confirmed: 1, Dispatched: 2, Delivered: 3, Cancelled: 0 };
 
@@ -36,28 +39,55 @@ function TrackOrder() {
           Order ID aur mobile number daal kar apne parcel ka status dekhein.
         </p>
 
+        {!user && (
+          <div className="mt-4 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm">
+            <p className="font-semibold">Pehle apna account banayein</p>
+            <p className="mt-1 text-muted-foreground">
+              Order track karne ke liye login zaroori hai.{" "}
+              <Link to="/login" className="font-medium text-primary underline">Account banayein ya sign in karein</Link>
+            </p>
+          </div>
+        )}
+
         <form
           className="surface-card mt-6 grid gap-4 p-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"
           onSubmit={async (e) => {
             e.preventDefault();
-            setState("loading");
+
+            // Agar login nahi hai to pehle account banane ko kahein
+            if (!user) {
+              toast.error("Pehle apna account banayein, phir order track karein.");
+              return;
+            }
+
             const formData = new FormData(e.currentTarget);
             const orderId = String(formData.get("orderId") ?? "").trim();
             const phone = String(formData.get("phone") ?? "").trim();
-            const { data, error } = await supabase.rpc("track_order", { order_id: orderId, order_phone: phone });
-            const found = data?.[0];
-            if (error || !found) { setOrder(null); setState("missing"); return; }
-            setOrder({ id: found.id, status: found.status });
+
+            if (!orderId || !phone) {
+              toast.error("Pehle apni Order ID aur Mobile Number dono daalein.");
+              return;
+            }
+
+            setState("loading");
+            const { data, error } = await supabase
+              .from("orders")
+              .select("id, status")
+              .eq("id", orderId)
+              .eq("phone", phone)
+              .maybeSingle();
+            if (error || !data) { setOrder(null); setState("missing"); return; }
+            setOrder(data);
             setState("found");
           }}
         >
           <div className="space-y-1.5">
             <Label htmlFor="oid">Order ID</Label>
-            <Input id="oid" name="orderId" required placeholder="DKN-XXXXXXXXXX" className="rounded-xl" />
+            <Input id="oid" name="orderId" placeholder="DKN-XXXXXXXXXX" className="rounded-xl" />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="ophone">Mobile Number</Label>
-            <Input id="ophone" name="phone" required placeholder="03XX-XXXXXXX" className="rounded-xl" />
+            <Input id="ophone" name="phone" placeholder="03XX-XXXXXXX" className="rounded-xl" />
           </div>
           <Button type="submit" className="rounded-xl" disabled={state === "loading"}>
             {state === "loading" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
