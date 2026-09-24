@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+
 import {
   Check,
   Loader2,
@@ -7,6 +8,7 @@ import {
   Truck,
   XCircle,
 } from "lucide-react";
+
 import { toast } from "sonner";
 
 import { ShopLayout } from "@/components/shop/ShopLayout";
@@ -49,7 +51,8 @@ type TrackState =
   | "idle"
   | "loading"
   | "found"
-  | "missing";
+  | "missing"
+  | "error";
 
 type TrackedOrder = {
   id: string;
@@ -79,7 +82,7 @@ function TrackOrder() {
   };
 
   const handleSubmit = async (
-    event: React.FormEvent<HTMLFormElement>,
+    event: FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
 
@@ -88,7 +91,9 @@ function TrackOrder() {
 
     const orderId = String(
       formData.get("orderId") ?? "",
-    ).trim();
+    )
+      .trim()
+      .toUpperCase();
 
     const phone = String(
       formData.get("phone") ?? "",
@@ -109,41 +114,87 @@ function TrackOrder() {
       /*
        * IMPORTANT:
        *
-       * Order tabhi milega jab:
+       * Hum orders table ko directly read nahi kar rahe.
        *
-       * Order ID match kare
+       * Guest user ke liye Supabase mein
+       * public.track_order() RPC/function bani hui hai.
+       *
+       * Function internally:
+       *
+       * Order ID
        * +
-       * Mobile Number match kare
+       * Mobile Number
        *
-       * Sirf Order ID se tracking nahi hogi.
+       * dono check karti hai.
        */
-      const { data, error } = await supabase
-        .from("orders")
-        .select("id, status")
-        .eq("id", orderId)
-        .eq("phone", phone)
-        .maybeSingle();
+      const {
+        data,
+        error,
+      } = await supabase.rpc(
+        "track_order",
+        {
+          p_order_id: orderId,
+          p_phone: phone,
+        },
+      );
 
+      /*
+       * Database / network / permission error
+       */
       if (error) {
         console.error(
           "Unable to track order:",
           error,
         );
 
+        toast.error(
+          "Order track nahi ho saka. Dobara try karein.",
+        );
+
+        setState("error");
+
+        return;
+      }
+
+      /*
+       * SQL function RETURNS TABLE use karti hai,
+       * isliye Supabase array return karega.
+       *
+       * Example:
+       *
+       * [
+       *   {
+       *     id: "DKN-XXXXXXXX",
+       *     status: "Pending"
+       *   }
+       * ]
+       */
+      const trackedOrder =
+        Array.isArray(data)
+          ? data[0]
+          : null;
+
+      /*
+       * ID + phone match nahi hua
+       */
+      if (!trackedOrder) {
+        setOrder(null);
         setState("missing");
 
         return;
       }
 
-      if (!data) {
-        setState("missing");
-
-        return;
-      }
-
+      /*
+       * Order mil gaya
+       */
       setOrder({
-        id: data.id,
-        status: data.status,
+        id: String(
+          trackedOrder.id,
+        ),
+
+        status: String(
+          trackedOrder.status,
+        ),
       });
 
       setState("found");
@@ -157,7 +208,8 @@ function TrackOrder() {
         "Order track nahi ho saka. Dobara try karein.",
       );
 
-      setState("missing");
+      setOrder(null);
+      setState("error");
     }
   };
 
@@ -165,6 +217,7 @@ function TrackOrder() {
     <ShopLayout>
       <div className="mx-auto max-w-3xl px-4 py-10">
         {/* Heading */}
+
         <h1 className="text-2xl font-extrabold sm:text-3xl">
           Track Your Order
         </h1>
@@ -175,11 +228,13 @@ function TrackOrder() {
         </p>
 
         {/* Tracking Form */}
+
         <form
           className="surface-card mt-6 grid gap-4 p-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"
           onSubmit={handleSubmit}
         >
           {/* Order ID */}
+
           <div className="space-y-1.5">
             <Label htmlFor="oid">
               Order ID
@@ -196,6 +251,7 @@ function TrackOrder() {
           </div>
 
           {/* Phone */}
+
           <div className="space-y-1.5">
             <Label htmlFor="ophone">
               Mobile Number
@@ -213,6 +269,7 @@ function TrackOrder() {
           </div>
 
           {/* Track Button */}
+
           <Button
             type="submit"
             className="rounded-xl"
@@ -231,6 +288,7 @@ function TrackOrder() {
         </form>
 
         {/* Initial State */}
+
         {state === "idle" && (
           <div className="mt-6">
             <EmptyState
@@ -242,6 +300,7 @@ function TrackOrder() {
         )}
 
         {/* Loading */}
+
         {state === "loading" && (
           <div className="surface-card mt-6 space-y-4 p-6">
             {[0, 1, 2, 3].map(
@@ -263,7 +322,8 @@ function TrackOrder() {
           </div>
         )}
 
-        {/* Missing */}
+        {/* Order Not Found */}
+
         {state === "missing" && (
           <div className="mt-6">
             <EmptyState
@@ -274,10 +334,24 @@ function TrackOrder() {
           </div>
         )}
 
-        {/* Found */}
+        {/* Real Error */}
+
+        {state === "error" && (
+          <div className="mt-6">
+            <EmptyState
+              icon={XCircle}
+              title="Tracking mein problem aa gayi"
+              description="Order tracking service se connection nahi ho saka. Thori dair baad dobara try karein."
+            />
+          </div>
+        )}
+
+        {/* Order Found */}
+
         {state === "found" && order && (
           <div className="surface-card mt-6 p-6">
             {/* Order Header */}
+
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">
@@ -292,8 +366,8 @@ function TrackOrder() {
               <span
                 className={cn(
                   "rounded-full px-3 py-1 text-xs font-semibold",
-                  order.status ===
-                    "Cancelled"
+
+                  order.status === "Cancelled"
                     ? "bg-red-100 text-red-700"
                     : "bg-primary-soft text-primary",
                 )}
@@ -303,8 +377,8 @@ function TrackOrder() {
             </div>
 
             {/* Cancelled Order */}
-            {order.status ===
-            "Cancelled" ? (
+
+            {order.status === "Cancelled" ? (
               <div className="mt-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
                 <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
 
@@ -314,14 +388,14 @@ function TrackOrder() {
                   </p>
 
                   <p className="mt-1 text-xs text-red-600">
-                    Ye order cancel ho chuka
-                    hai aur delivery process
-                    mein nahi hai.
+                    Ye order cancel ho chuka hai
+                    aur delivery process mein nahi hai.
                   </p>
                 </div>
               </div>
             ) : (
               /* Tracking Timeline */
+
               <ol className="mt-6 space-y-0">
                 {trackingSteps.map(
                   (step, index) => {
@@ -336,15 +410,14 @@ function TrackOrder() {
 
                     return (
                       <li
-                        key={
-                          step.label
-                        }
+                        key={step.label}
                         className="grid grid-cols-[36px_minmax(0,1fr)] gap-3"
                       >
                         <div className="flex flex-col items-center">
                           <span
                             className={cn(
                               "grid h-9 w-9 place-items-center rounded-full border-2 text-xs font-bold",
+
                               done
                                 ? "border-primary bg-primary text-primary-foreground"
                                 : "border-border bg-card text-muted-foreground",
@@ -363,6 +436,7 @@ function TrackOrder() {
                             <span
                               className={cn(
                                 "min-h-10 w-0.5 flex-1",
+
                                 index <
                                   currentIndex
                                   ? "bg-primary"
@@ -376,13 +450,12 @@ function TrackOrder() {
                           <p
                             className={cn(
                               "text-sm font-semibold",
+
                               !done &&
                                 "text-muted-foreground",
                             )}
                           >
-                            {
-                              step.label
-                            }
+                            {step.label}
                           </p>
 
                           <p className="text-xs text-muted-foreground">
