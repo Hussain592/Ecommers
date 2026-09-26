@@ -11,11 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as BecomeVendorRouteImport } from './routes/become-vendor'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OrderConfirmationRouteImport } from './routes/order-confirmation'
 import { Route as OrdersRouteImport } from './routes/orders'
+import { Route as SellRouteImport } from './routes/sell'
 import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as VendorRouteImport } from './routes/vendor'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -43,7 +45,6 @@ import { Route as VendorIndexRouteImport } from './routes/vendor.index'
 import { Route as VendorCommissionsRouteImport } from './routes/vendor.commissions'
 import { Route as VendorEarningsRouteImport } from './routes/vendor.earnings'
 import { Route as VendorOrdersRouteImport } from './routes/vendor.orders'
-import { Route as VendorPartnersRouteImport } from './routes/vendor.partners'
 import { Route as VendorSettingsRouteImport } from './routes/vendor.settings'
 import { Route as AdminVendorsVendorIdRouteImport } from './routes/admin.vendors_.$vendorId'
 import { Route as VendorProductsIndexRouteImport } from './routes/vendor.products.index'
@@ -58,6 +59,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BecomeVendorRoute = BecomeVendorRouteImport.update({
+  id: '/become-vendor',
+  path: '/become-vendor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -83,6 +89,11 @@ const OrderConfirmationRoute = OrderConfirmationRouteImport.update({
 const OrdersRoute = OrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SellRoute = SellRouteImport.update({
+  id: '/sell',
+  path: '/sell',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrackOrderRoute = TrackOrderRouteImport.update({
@@ -220,11 +231,6 @@ const VendorOrdersRoute = VendorOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => VendorRoute,
 } as any)
-const VendorPartnersRoute = VendorPartnersRouteImport.update({
-  id: '/partners',
-  path: '/partners',
-  getParentRoute: () => VendorRoute,
-} as any)
 const VendorSettingsRoute = VendorSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -254,11 +260,13 @@ const VendorProductsIdEditRoute = VendorProductsIdEditRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/become-vendor': typeof BecomeVendorRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/login': typeof LoginRoute
   '/order-confirmation': typeof OrderConfirmationRoute
   '/orders': typeof OrdersRoute
+  '/sell': typeof SellRoute
   '/track-order': typeof TrackOrderRoute
   '/vendor': typeof VendorRouteWithChildren
   '/admin/categories': typeof AdminCategoriesRoute
@@ -281,7 +289,6 @@ export interface FileRoutesByFullPath {
   '/vendor/commissions': typeof VendorCommissionsRoute
   '/vendor/earnings': typeof VendorEarningsRoute
   '/vendor/orders': typeof VendorOrdersRoute
-  '/vendor/partners': typeof VendorPartnersRoute
   '/vendor/settings': typeof VendorSettingsRoute
   '/admin/': typeof AdminIndexRoute
   '/partner/': typeof PartnerIndexRoute
@@ -295,11 +302,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/become-vendor': typeof BecomeVendorRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/login': typeof LoginRoute
   '/order-confirmation': typeof OrderConfirmationRoute
   '/orders': typeof OrdersRoute
+  '/sell': typeof SellRoute
   '/track-order': typeof TrackOrderRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/commissions': typeof AdminCommissionsRoute
@@ -321,7 +330,6 @@ export interface FileRoutesByTo {
   '/vendor/commissions': typeof VendorCommissionsRoute
   '/vendor/earnings': typeof VendorEarningsRoute
   '/vendor/orders': typeof VendorOrdersRoute
-  '/vendor/partners': typeof VendorPartnersRoute
   '/vendor/settings': typeof VendorSettingsRoute
   '/admin': typeof AdminIndexRoute
   '/partner': typeof PartnerIndexRoute
@@ -337,11 +345,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/become-vendor': typeof BecomeVendorRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/login': typeof LoginRoute
   '/order-confirmation': typeof OrderConfirmationRoute
   '/orders': typeof OrdersRoute
+  '/sell': typeof SellRoute
   '/track-order': typeof TrackOrderRoute
   '/vendor': typeof VendorRouteWithChildren
   '/admin/categories': typeof AdminCategoriesRoute
@@ -364,7 +374,6 @@ export interface FileRoutesById {
   '/vendor/commissions': typeof VendorCommissionsRoute
   '/vendor/earnings': typeof VendorEarningsRoute
   '/vendor/orders': typeof VendorOrdersRoute
-  '/vendor/partners': typeof VendorPartnersRoute
   '/vendor/settings': typeof VendorSettingsRoute
   '/admin/': typeof AdminIndexRoute
   '/partner/': typeof PartnerIndexRoute
@@ -381,11 +390,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/become-vendor'
     | '/cart'
     | '/checkout'
     | '/login'
     | '/order-confirmation'
     | '/orders'
+    | '/sell'
     | '/track-order'
     | '/vendor'
     | '/admin/categories'
@@ -408,7 +419,6 @@ export interface FileRouteTypes {
     | '/vendor/commissions'
     | '/vendor/earnings'
     | '/vendor/orders'
-    | '/vendor/partners'
     | '/vendor/settings'
     | '/admin/'
     | '/partner/'
@@ -422,11 +432,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/become-vendor'
     | '/cart'
     | '/checkout'
     | '/login'
     | '/order-confirmation'
     | '/orders'
+    | '/sell'
     | '/track-order'
     | '/admin/categories'
     | '/admin/commissions'
@@ -448,7 +460,6 @@ export interface FileRouteTypes {
     | '/vendor/commissions'
     | '/vendor/earnings'
     | '/vendor/orders'
-    | '/vendor/partners'
     | '/vendor/settings'
     | '/admin'
     | '/partner'
@@ -463,11 +474,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/become-vendor'
     | '/cart'
     | '/checkout'
     | '/login'
     | '/order-confirmation'
     | '/orders'
+    | '/sell'
     | '/track-order'
     | '/vendor'
     | '/admin/categories'
@@ -490,7 +503,6 @@ export interface FileRouteTypes {
     | '/vendor/commissions'
     | '/vendor/earnings'
     | '/vendor/orders'
-    | '/vendor/partners'
     | '/vendor/settings'
     | '/admin/'
     | '/partner/'
@@ -506,11 +518,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  BecomeVendorRoute: typeof BecomeVendorRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   LoginRoute: typeof LoginRoute
   OrderConfirmationRoute: typeof OrderConfirmationRoute
   OrdersRoute: typeof OrdersRoute
+  SellRoute: typeof SellRoute
   TrackOrderRoute: typeof TrackOrderRoute
   VendorRoute: typeof VendorRouteWithChildren
   PartnerAddProductRoute: typeof PartnerAddProductRoute
@@ -539,6 +553,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/become-vendor': {
+      id: '/become-vendor'
+      path: '/become-vendor'
+      fullPath: '/become-vendor'
+      preLoaderRoute: typeof BecomeVendorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart': {
@@ -574,6 +595,13 @@ declare module '@tanstack/react-router' {
       path: '/orders'
       fullPath: '/orders'
       preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sell': {
+      id: '/sell'
+      path: '/sell'
+      fullPath: '/sell'
+      preLoaderRoute: typeof SellRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/track-order': {
@@ -765,13 +793,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VendorOrdersRouteImport
       parentRoute: typeof VendorRoute
     }
-    '/vendor/partners': {
-      id: '/vendor/partners'
-      path: '/partners'
-      fullPath: '/vendor/partners'
-      preLoaderRoute: typeof VendorPartnersRouteImport
-      parentRoute: typeof VendorRoute
-    }
     '/vendor/settings': {
       id: '/vendor/settings'
       path: '/settings'
@@ -846,7 +867,6 @@ interface VendorRouteChildren {
   VendorCommissionsRoute: typeof VendorCommissionsRoute
   VendorEarningsRoute: typeof VendorEarningsRoute
   VendorOrdersRoute: typeof VendorOrdersRoute
-  VendorPartnersRoute: typeof VendorPartnersRoute
   VendorSettingsRoute: typeof VendorSettingsRoute
   VendorIndexRoute: typeof VendorIndexRoute
   VendorProductsNewRoute: typeof VendorProductsNewRoute
@@ -858,7 +878,6 @@ const VendorRouteChildren: VendorRouteChildren = {
   VendorCommissionsRoute: VendorCommissionsRoute,
   VendorEarningsRoute: VendorEarningsRoute,
   VendorOrdersRoute: VendorOrdersRoute,
-  VendorPartnersRoute: VendorPartnersRoute,
   VendorSettingsRoute: VendorSettingsRoute,
   VendorIndexRoute: VendorIndexRoute,
   VendorProductsNewRoute: VendorProductsNewRoute,
@@ -872,11 +891,13 @@ const VendorRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  BecomeVendorRoute: BecomeVendorRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   LoginRoute: LoginRoute,
   OrderConfirmationRoute: OrderConfirmationRoute,
   OrdersRoute: OrdersRoute,
+  SellRoute: SellRoute,
   TrackOrderRoute: TrackOrderRoute,
   VendorRoute: VendorRouteWithChildren,
   PartnerAddProductRoute: PartnerAddProductRoute,

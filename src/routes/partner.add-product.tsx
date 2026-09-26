@@ -24,7 +24,11 @@ function PartnerAddProduct() {
       subtitle="Product submit karein — vendor approve karega"
       nav={partnerNav}
     >
-      <ProductForm mode="create" showStatus={false} />
+      <ProductForm
+        mode="create"
+        showStatus={false}
+        actorType="partner"
+      />
     </DashboardShell>
   );
 }
