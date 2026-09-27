@@ -27,7 +27,7 @@ export const Route = createFileRoute("/")({
         content:
           "Dukaan.pk is Pakistan's multivendor marketplace. Shop electronics, fashion, home goods and book services — Cash on Delivery, guest checkout.",
       },
-      { property: "og:title", content: "Dukaan.pk — Online Shopping in Pakistan with COD" },
+      { property: "og:title", content: "azadari.store" },
       {
         property: "og:description",
         content: "Thousands of products from verified Pakistani sellers. Cash on Delivery nationwide.",
