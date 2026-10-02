@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -10,9 +10,9 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Login — Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Sign in to your Dukaan.pk account." },
-      { property: "og:title", content: "Login — Dukaan.pk" },
+      { property: "og:title", content: "Login â€” Dukaan.pk" },
       { property: "og:description", content: "Access your Dukaan.pk account." },
     ],
   }),
@@ -36,10 +36,10 @@ function LoginPage() {
             Pakistan ka apna multivendor marketplace
           </h2>
           <p className="mt-3 max-w-sm text-sm opacity-90">
-            COD orders, vendor dashboards, partner tools aur commission tracking — sab ek jagah.
+            COD orders, vendor dashboards, partner tools aur commission tracking â€” sab ek jagah.
           </p>
         </div>
-        <p className="text-xs opacity-70">© 2026 Dukaan.pk</p>
+        <p className="text-xs opacity-70">Â© 2026 Dukaan.pk</p>
       </div>
 
       <div className="flex items-center justify-center p-6">

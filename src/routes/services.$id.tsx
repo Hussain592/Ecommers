@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Clock, MapPin, Star } from "lucide-react";
 import { toast } from "sonner";
 import { ShopLayout } from "@/components/shop/ShopLayout";
@@ -11,9 +11,9 @@ import { formatPKR, services } from "@/data/mock";
 export const Route = createFileRoute("/services/$id")({
   head: () => ({
     meta: [
-      { title: "Service Detail — Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Service details, pricing and booking request form on Dukaan.pk." },
-      { property: "og:title", content: "Service Detail — Dukaan.pk" },
+      { property: "og:title", content: "Service Detail â€” Dukaan.pk" },
       { property: "og:description", content: "Book a verified service provider and pay cash after the job." },
     ],
   }),
@@ -71,7 +71,7 @@ function ServiceDetail() {
             <div className="surface-card mt-8 p-5">
               <h3 className="font-bold">Provider</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                {service.provider} · Verified partner on Dukaan.pk
+                {service.provider} Â· Verified partner on Dukaan.pk
               </p>
             </div>
           </div>

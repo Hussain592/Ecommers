@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Eye, EyeOff, Loader2, Search, Star } from "lucide-react";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import { supabase } from "@/lib/supabase";
 import { formatPKR, resolveProductImage } from "@/data/mock";
 
 export const Route = createFileRoute("/admin/products")({
-  head: () => ({ meta: [{ title: "Product Review — Dukaan.pk Admin" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "azadari.store" }, { name: "robots", content: "noindex" }] }),
   component: AdminProducts,
 });
 
@@ -79,7 +79,7 @@ function AdminProducts() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filtered.map((product) => (
-                  <tr key={product.id} className="hover:bg-muted/40"><td className="px-4 py-3"><div className="flex items-center gap-3"><img src={product.image || "/favicon.ico"} alt="" width={48} height={48} className="h-12 w-12 rounded-lg bg-muted object-cover" /><div><p className="font-semibold">{product.name}</p><p className="text-xs text-muted-foreground">{product.id}</p></div></div></td><td className="px-4 py-3">{product.vendor?.name ?? "Unassigned"}</td><td className="px-4 py-3 text-muted-foreground">{product.category ?? "Uncategorized"}</td><td className="px-4 py-3"><p className="font-semibold">{formatPKR(product.price)}</p><p className="text-xs text-muted-foreground">Stock {product.stock} · {product.sales_count} sold</p></td><td className="px-4 py-3"><StatusBadge status={product.active ? "Active" : "Suspended"} /></td><td className="px-4 py-3"><Button variant={product.featured ? "default" : "outline"} size="sm" className="rounded-lg" disabled={busyId === product.id || !product.active} onClick={() => void toggleFeatured(product)}><Star className={`mr-2 h-4 w-4 ${product.featured ? "fill-current" : ""}`} />{product.featured ? "Featured" : "Feature"}</Button></td><td className="px-4 py-3 text-right"><Button variant={product.active ? "outline" : "default"} size="sm" className="rounded-lg" disabled={busyId === product.id} onClick={() => void setVisibility(product.id, !product.active)}>{product.active ? <><EyeOff className="mr-2 h-4 w-4" /> Hide</> : <><Eye className="mr-2 h-4 w-4" /> Show</>}</Button></td></tr>
+                  <tr key={product.id} className="hover:bg-muted/40"><td className="px-4 py-3"><div className="flex items-center gap-3"><img src={product.image || "/favicon.ico"} alt="" width={48} height={48} className="h-12 w-12 rounded-lg bg-muted object-cover" /><div><p className="font-semibold">{product.name}</p><p className="text-xs text-muted-foreground">{product.id}</p></div></div></td><td className="px-4 py-3">{product.vendor?.name ?? "Unassigned"}</td><td className="px-4 py-3 text-muted-foreground">{product.category ?? "Uncategorized"}</td><td className="px-4 py-3"><p className="font-semibold">{formatPKR(product.price)}</p><p className="text-xs text-muted-foreground">Stock {product.stock} Â· {product.sales_count} sold</p></td><td className="px-4 py-3"><StatusBadge status={product.active ? "Active" : "Suspended"} /></td><td className="px-4 py-3"><Button variant={product.featured ? "default" : "outline"} size="sm" className="rounded-lg" disabled={busyId === product.id || !product.active} onClick={() => void toggleFeatured(product)}><Star className={`mr-2 h-4 w-4 ${product.featured ? "fill-current" : ""}`} />{product.featured ? "Featured" : "Feature"}</Button></td><td className="px-4 py-3 text-right"><Button variant={product.active ? "outline" : "default"} size="sm" className="rounded-lg" disabled={busyId === product.id} onClick={() => void setVisibility(product.id, !product.active)}>{product.active ? <><EyeOff className="mr-2 h-4 w-4" /> Hide</> : <><Eye className="mr-2 h-4 w-4" /> Show</>}</Button></td></tr>
                 ))}
               </tbody>
             </table>
@@ -91,3 +91,4 @@ function AdminProducts() {
     </DashboardShell>
   );
 }
+

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { MapPin, Search, Star, Clock } from "lucide-react";
 import { ShopLayout } from "@/components/shop/ShopLayout";
@@ -9,13 +9,13 @@ import { formatPKR, services } from "@/data/mock";
 export const Route = createFileRoute("/services/")({
   head: () => ({
     meta: [
-      { title: "Home & Repair Services — Dukaan.pk" },
+      { title: "azadari.store" },
       {
         name: "description",
         content:
           "Book AC repair, home cleaning, beauty and auto services from verified providers in Pakistan. Pay cash after service.",
       },
-      { property: "og:title", content: "Services — Dukaan.pk" },
+      { property: "og:title", content: "Services â€” Dukaan.pk" },
       { property: "og:description", content: "Verified service providers across Pakistan, cash payment after service." },
     ],
   }),
@@ -34,7 +34,7 @@ function ServicesPage() {
       <div className="mx-auto max-w-7xl px-4 py-8">
         <h1 className="text-2xl font-extrabold sm:text-3xl">Services</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Verified professionals — payment service ke baad, cash mein.
+          Verified professionals â€” payment service ke baad, cash mein.
         </p>
 
         <div className="relative mt-6 max-w-md">

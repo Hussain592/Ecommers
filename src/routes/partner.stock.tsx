@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Save } from "lucide-react";
 import { toast } from "sonner";
@@ -13,9 +13,9 @@ import { useAuth } from "@/lib/auth";
 export const Route = createFileRoute("/partner/stock")({
   head: () => ({
     meta: [
-      { title: "Stock Update — Partner | Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Update available stock quantities for your Dukaan.pk listings." },
-      { property: "og:title", content: "Stock Update — Dukaan.pk" },
+      { property: "og:title", content: "Stock Update â€” Dukaan.pk" },
       { property: "og:description", content: "Keep your listed product stock accurate." },
     ],
   }),
@@ -102,3 +102,4 @@ function PartnerStock() {
     </DashboardShell>
   );
 }
+

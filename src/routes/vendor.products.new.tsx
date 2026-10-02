@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ProductForm } from "@/components/dashboard/ProductForm";
 import { vendorNav } from "@/components/dashboard/nav-config";
@@ -6,9 +6,9 @@ import { vendorNav } from "@/components/dashboard/nav-config";
 export const Route = createFileRoute("/vendor/products/new")({
   head: () => ({
     meta: [
-      { title: "Add Product — Vendor Dashboard | Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Add a new product to your Dukaan.pk store catalog." },
-      { property: "og:title", content: "Add Product — Dukaan.pk" },
+      { property: "og:title", content: "Add Product â€” Dukaan.pk" },
       { property: "og:description", content: "List a new product for Cash on Delivery orders." },
     ],
   }),

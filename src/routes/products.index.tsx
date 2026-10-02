@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Search, SlidersHorizontal, PackageSearch, Loader2 } from "lucide-react";
 import { ShopLayout } from "@/components/shop/ShopLayout";
@@ -24,13 +24,13 @@ export const Route = createFileRoute("/products/")({
   }),
   head: () => ({
     meta: [
-      { title: "All Products — Dukaan.pk Online Shopping Pakistan" },
+      { title: "azadari.store" },
       {
         name: "description",
         content:
           "Browse thousands of products from verified Pakistani sellers on Dukaan.pk. Cash on Delivery nationwide, no advance payment.",
       },
-      { property: "og:title", content: "All Products — Dukaan.pk" },
+      { property: "og:title", content: "All Products â€” Dukaan.pk" },
       { property: "og:description", content: "Shop electronics, fashion, home and beauty with COD across Pakistan." },
     ],
   }),

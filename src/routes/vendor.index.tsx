@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, Package, PackagePlus, ShoppingBag, TrendingUp, Wallet } from "lucide-react";
 import {
@@ -21,9 +21,9 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/vendor/")({
   head: () => ({
     meta: [
-      { title: "Vendor Dashboard — Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Track your store sales, orders, stock and payouts on Dukaan.pk." },
-      { property: "og:title", content: "Vendor Dashboard — Dukaan.pk" },
+      { property: "og:title", content: "Vendor Dashboard â€” Dukaan.pk" },
       { property: "og:description", content: "Manage your Dukaan.pk store in one place." },
     ],
   }),
@@ -157,7 +157,7 @@ function VendorDashboard() {
                 <div key={o.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl bg-muted/60 p-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold">{o.customer_name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{o.id} · {formatPKR(Number(o.total))}</p>
+                    <p className="truncate text-xs text-muted-foreground">{o.id} Â· {formatPKR(Number(o.total))}</p>
                   </div>
                   <StatusBadge status={o.status as never} />
                 </div>

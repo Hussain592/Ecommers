@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { BadgePercent, Users, Wallet } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -9,9 +9,9 @@ import { commissions, formatPKR } from "@/data/mock";
 export const Route = createFileRoute("/vendor/commissions")({
   head: () => ({
     meta: [
-      { title: "Commissions — Vendor Dashboard | Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Track partner commissions generated from your store orders." },
-      { property: "og:title", content: "Vendor Commissions — Dukaan.pk" },
+      { property: "og:title", content: "Vendor Commissions â€” Dukaan.pk" },
       { property: "og:description", content: "Partner commission breakdown per order." },
     ],
   }),

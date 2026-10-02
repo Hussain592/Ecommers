@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Eye, Loader2, Search } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -21,9 +21,9 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/vendor/orders")({
   head: () => ({
     meta: [
-      { title: "Orders — Vendor Dashboard | Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "View and manage COD orders received by your Dukaan.pk store." },
-      { property: "og:title", content: "Vendor Orders — Dukaan.pk" },
+      { property: "og:title", content: "Vendor Orders â€” Dukaan.pk" },
       { property: "og:description", content: "Track and update your COD order pipeline." },
     ],
   }),

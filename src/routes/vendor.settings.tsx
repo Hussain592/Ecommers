@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -14,9 +14,9 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/vendor/settings")({
   head: () => ({
     meta: [
-      { title: "Store Settings — Vendor Dashboard | Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Update your store profile, contact details and order preferences." },
-      { property: "og:title", content: "Vendor Settings — Dukaan.pk" },
+      { property: "og:title", content: "Vendor Settings â€” Dukaan.pk" },
       { property: "og:description", content: "Configure your Dukaan.pk store." },
     ],
   }),
@@ -126,3 +126,4 @@ function VendorSettings() {
     </DashboardShell>
   );
 }
+

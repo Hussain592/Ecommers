@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Banknote, Clock, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
@@ -13,10 +13,10 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/admin/payouts")({
   head: () => ({
     meta: [
-      { title: "Payouts — Dukaan.pk Admin" },
+      { title: "azadari.store" },
       { name: "description", content: "Process vendor and partner payouts across the marketplace." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Payouts — Dukaan.pk Admin" },
+      { property: "og:title", content: "Payouts â€” Dukaan.pk Admin" },
       { property: "og:description", content: "Payout queue and settlement history." },
     ],
   }),

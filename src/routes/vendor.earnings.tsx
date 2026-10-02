@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Banknote, Clock, Loader2, TrendingUp } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -12,9 +12,9 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/vendor/earnings")({
   head: () => ({
     meta: [
-      { title: "Earnings — Vendor Dashboard | Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Track your store earnings, payouts and settlement history on Dukaan.pk." },
-      { property: "og:title", content: "Vendor Earnings — Dukaan.pk" },
+      { property: "og:title", content: "Vendor Earnings â€” Dukaan.pk" },
       { property: "og:description", content: "Revenue, pending payouts and settlement history." },
     ],
   }),

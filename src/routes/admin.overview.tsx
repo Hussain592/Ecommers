@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, Package, ShoppingBag, Store, TrendingUp } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -13,10 +13,10 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/admin/overview")({
   head: () => ({
     meta: [
-      { title: "Platform Overview — Dukaan.pk Admin" },
+      { title: "azadari.store" },
       { name: "description", content: "Platform-wide sales, vendors and order metrics for Dukaan.pk owners." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Admin Overview — Dukaan.pk" },
+      { property: "og:title", content: "Admin Overview â€” Dukaan.pk" },
       { property: "og:description", content: "Marketplace performance at a glance." },
     ],
   }),
@@ -223,3 +223,4 @@ function AdminOverview() {
     </DashboardShell>
   );
 }
+

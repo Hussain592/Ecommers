@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
@@ -28,7 +28,7 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/admin/vendors_/$vendorId")({
   head: () => ({
     meta: [
-      { title: "Vendor Details — Dukaan.pk Admin" },
+      { title: "azadari.store" },
       { name: "robots", content: "noindex" },
     ],
   }),

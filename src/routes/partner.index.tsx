@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Boxes, CheckCircle2, Loader2, Package, PackagePlus } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -10,9 +10,9 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/partner/")({
   head: () => ({
     meta: [
-      { title: "Partner Dashboard — Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Add products and update stock as a Dukaan.pk listing partner." },
-      { property: "og:title", content: "Partner Dashboard — Dukaan.pk" },
+      { property: "og:title", content: "Partner Dashboard â€” Dukaan.pk" },
       { property: "og:description", content: "Simple tools for partners to manage listings and stock." },
     ],
   }),
@@ -108,7 +108,7 @@ function PartnerDashboard() {
                 <img src={p.image ?? ""} alt={p.name} loading="lazy" width={800} height={800} className="h-11 w-11 rounded-xl bg-muted object-cover" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{p.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{p.category} · Stock {p.stock}</p>
+                  <p className="truncate text-xs text-muted-foreground">{p.category} Â· Stock {p.stock}</p>
                 </div>
                 <Button asChild variant="outline" size="sm" className="rounded-lg">
                   <Link to="/partner/stock">Update Stock</Link>

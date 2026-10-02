@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
@@ -21,11 +21,11 @@ import { useCart } from "@/lib/cart";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dukaan.pk — Online Shopping in Pakistan with COD" },
+      { title: "azadari.store" },
       {
         name: "description",
         content:
-          "Dukaan.pk is Pakistan's multivendor marketplace. Shop electronics, fashion, home goods and book services — Cash on Delivery, guest checkout.",
+          "Dukaan.pk is Pakistan's multivendor marketplace. Shop electronics, fashion, home goods and book services â€” Cash on Delivery, guest checkout.",
       },
       { property: "og:title", content: "azadari.store" },
       {
@@ -44,7 +44,7 @@ const perks = [
   { icon: Headphones, title: "Local Support", text: "Urdu support helpline" },
 ];
 
-// Hero product slider — Daraz jaisa, sabse kam price/discount wale products dikhata hai
+// Hero product slider â€” Daraz jaisa, sabse kam price/discount wale products dikhata hai
 function HeroProductSlider({ deals }: { deals: ReturnType<typeof useCart>["catalog"] }) {
   const [active, setActive] = useState(0);
 
@@ -105,7 +105,7 @@ function Index() {
 
   return (
     <ShopLayout>
-      {/* Hero — ab sabse kam price wale products ka slider hai */}
+      {/* Hero â€” ab sabse kam price wale products ka slider hai */}
       <HeroProductSlider deals={heroDeals} />
 
       {/* Perks */}

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -15,10 +15,10 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/admin/settings")({
   head: () => ({
     meta: [
-      { title: "Platform Settings — Dukaan.pk Admin" },
+      { title: "azadari.store" },
       { name: "description", content: "Configure marketplace-wide settings, delivery charges and policies." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Platform Settings — Dukaan.pk Admin" },
+      { property: "og:title", content: "Platform Settings â€” Dukaan.pk Admin" },
       { property: "og:description", content: "Marketplace configuration." },
     ],
   }),
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/admin/settings")({
 const DEFAULTS = {
   platform_name: "Dukaan.pk",
   support_helpline: "0311-DUKAAN",
-  announcement_bar: "Cash on Delivery all over Pakistan · Free delivery above Rs. 3,000",
+  announcement_bar: "Cash on Delivery all over Pakistan Â· Free delivery above Rs. 3,000",
   delivery_charges: 250,
   free_delivery_threshold: 3000,
   return_window: 7,

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import {
   Menu,
+  MoonStar,
   Search,
   ShoppingCart,
   Truck,
@@ -42,43 +43,70 @@ export function SiteHeader() {
     useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
-      {/* Top Announcement */}
-      <div className="hidden bg-primary py-1.5 text-center text-xs font-medium text-primary-foreground sm:block">
-        Cash on Delivery all over Pakistan · Free delivery on orders above Rs. 3,000
+    <header className="sticky top-0 z-40 border-b border-[#c9a24b]/30 bg-[#082b21]/95 shadow-sm backdrop-blur-xl">
+      {/* =====================================================
+          TOP ANNOUNCEMENT
+      ===================================================== */}
+      <div className="hidden border-b border-[#c9a24b]/20 bg-[#041c15] py-1.5 text-center text-xs font-medium tracking-wide text-[#f8f1df] sm:block">
+        Cash on Delivery all over Pakistan
+        <span className="mx-2 text-[#c9a24b]">
+          •
+        </span>
+        Free delivery on orders above Rs. 3,000
       </div>
 
-      {/* Main Header */}
-      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 sm:flex sm:justify-between">
-        {/* Logo - icon only */}
+      {/* =====================================================
+          MAIN HEADER
+      ===================================================== */}
+      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:flex sm:justify-between sm:gap-4">
+        {/* =================================================
+            BRAND / LOGO
+        ================================================= */}
         <Link
           to="/"
-          aria-label="Dukaan.pk Home"
-          title="Dukaan.pk"
-          className="flex shrink-0 items-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          aria-label="azadari.store home"
+          title="azadari.store"
+          className="group flex shrink-0 items-center gap-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b85c] focus-visible:ring-offset-2 focus-visible:ring-offset-[#082b21]"
         >
-          <span className="grid h-9 w-9 place-items-center rounded-xl gradient-primary text-sm font-bold text-primary-foreground">
-            D
+          <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#d8b85c]/70 bg-[#0d4031] text-[#f2d883] shadow-sm transition-transform group-hover:scale-[1.03]">
+            <MoonStar
+              aria-hidden="true"
+              className="h-5 w-5"
+            />
           </span>
+
+          <div className="hidden xl:block">
+            <p className="text-sm font-extrabold tracking-tight text-[#fffaf0]">
+              azadari.store
+            </p>
+
+            <p className="text-[10px] font-medium tracking-wide text-[#d8cdae]">
+              Islamic Marketplace
+            </p>
+          </div>
         </Link>
 
-        {/* Search */}
+        {/* =================================================
+            SEARCH
+        ================================================= */}
         <div className="order-3 col-span-2 w-full sm:order-0 sm:max-w-md">
           <div className="relative">
             <Search
               aria-hidden="true"
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6b746e]"
             />
 
             <Input
-              aria-label="Search products, services and brands"
-              placeholder="Search products, services, brands..."
-              className="h-10 rounded-xl pl-9"
+              aria-label="Search Islamic products, services and brands"
+              placeholder="Search Islamic products, books, brands..."
+              className="h-10 rounded-xl border-[#d8cdae] bg-[#fffdf7] pl-9 text-[#173229] shadow-sm placeholder:text-[#7d867f] focus-visible:border-[#d8b85c] focus-visible:ring-[#d8b85c]/30"
             />
           </div>
         </div>
 
-        {/* Desktop Navigation */}
+        {/* =================================================
+            DESKTOP NAVIGATION
+        ================================================= */}
         <nav
           className="hidden items-center gap-1 lg:flex"
           aria-label="Main navigation"
@@ -93,33 +121,39 @@ export function SiteHeader() {
               }}
               activeProps={{
                 className:
-                  "bg-primary-soft text-primary",
+                  "bg-[#d8b85c] text-[#09271e] shadow-sm",
+                "aria-current":
+                  "page",
               }}
-              className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold text-[#eee8d8] transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b85c]"
             >
               {item.label}
             </Link>
           ))}
         </nav>
 
-        {/* Right Actions */}
-        <div className="flex shrink-0 items-center gap-2">
+        {/* =================================================
+            RIGHT ACTIONS
+        ================================================= */}
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          {/* My Orders */}
           <Button
             asChild
             variant="ghost"
             size="sm"
-            className="hidden whitespace-nowrap sm:inline-flex"
+            className="hidden whitespace-nowrap rounded-lg text-[#f7f0df] hover:bg-white/10 hover:text-white focus-visible:ring-[#d8b85c] sm:inline-flex"
           >
             <Link to="/orders">
               My Orders
             </Link>
           </Button>
 
+          {/* Login */}
           <Button
             asChild
             variant="ghost"
             size="sm"
-            className="hidden sm:inline-flex"
+            className="hidden rounded-lg text-[#f7f0df] hover:bg-white/10 hover:text-white focus-visible:ring-[#d8b85c] sm:inline-flex"
           >
             <Link to="/login">
               Login
@@ -131,7 +165,7 @@ export function SiteHeader() {
             asChild
             variant="outline"
             size="icon"
-            className="relative shrink-0 rounded-xl"
+            className="relative shrink-0 rounded-xl border-[#d8b85c]/60 bg-[#fffaf0] text-[#16392d] shadow-sm hover:border-[#d8b85c] hover:bg-[#f5ead0] hover:text-[#082b21]"
           >
             <Link
               to="/cart"
@@ -146,7 +180,7 @@ export function SiteHeader() {
               {count > 0 && (
                 <span
                   aria-hidden="true"
-                  className="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground"
+                  className="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-[#a61f2b] px-1 text-[11px] font-bold text-white shadow-sm"
                 >
                   {count}
                 </span>
@@ -154,12 +188,12 @@ export function SiteHeader() {
             </Link>
           </Button>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu */}
           <Button
             type="button"
             variant="outline"
             size="icon"
-            className="shrink-0 rounded-xl lg:hidden"
+            className="shrink-0 rounded-xl border-[#d8b85c]/60 bg-[#fffaf0] text-[#16392d] hover:bg-[#f5ead0] lg:hidden"
             onClick={() =>
               setOpen(
                 (value) =>
@@ -172,6 +206,7 @@ export function SiteHeader() {
                 : "Open navigation menu"
             }
             aria-expanded={open}
+            aria-controls="mobile-navigation"
           >
             {open ? (
               <X className="h-4 w-4" />
@@ -182,53 +217,73 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* =====================================================
+          MOBILE NAVIGATION
+      ===================================================== */}
       {open && (
         <nav
-          className="border-t border-border bg-card px-4 py-2 lg:hidden"
+          id="mobile-navigation"
+          className="border-t border-[#d8b85c]/25 bg-[#061f18] px-4 py-3 shadow-lg lg:hidden"
           aria-label="Mobile navigation"
         >
-          {nav.map((item) => (
+          <div className="space-y-1">
+            {nav.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                activeOptions={{
+                  exact:
+                    item.to === "/",
+                }}
+                activeProps={{
+                  className:
+                    "bg-[#d8b85c] text-[#082b21]",
+                  "aria-current":
+                    "page",
+                }}
+                onClick={() =>
+                  setOpen(false)
+                }
+                className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-[#f2ecdc] transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b85c]"
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            <div className="my-2 border-t border-[#d8b85c]/20" />
+
             <Link
-              key={item.to}
-              to={item.to}
+              to="/orders"
               onClick={() =>
                 setOpen(false)
               }
-              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-[#f2ecdc] transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b85c]"
             >
-              {item.label}
+              My Orders
             </Link>
-          ))}
 
-          <Link
-            to="/orders"
-            onClick={() =>
-              setOpen(false)
-            }
-            className="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
-          >
-            My Orders
-          </Link>
+            <Link
+              to="/login"
+              onClick={() =>
+                setOpen(false)
+              }
+              className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-[#f2ecdc] transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b85c]"
+            >
+              Login
+            </Link>
+          </div>
 
-          <Link
-            to="/login"
-            onClick={() =>
-              setOpen(false)
-            }
-            className="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
-          >
-            Login
-          </Link>
-
-          <p className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
+          {/* Mobile Trust Message */}
+          <div className="mt-3 flex items-center gap-2 rounded-xl border border-[#d8b85c]/20 bg-white/5 px-3 py-2.5 text-xs text-[#d9d1bd]">
             <Truck
               aria-hidden="true"
-              className="h-3.5 w-3.5"
+              className="h-4 w-4 shrink-0 text-[#d8b85c]"
             />
 
-            COD available nationwide
-          </p>
+            <span>
+              Cash on Delivery available nationwide
+            </span>
+          </div>
         </nav>
       )}
     </header>

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { CheckCircle2, Package, Phone } from "lucide-react";
 import { ShopLayout } from "@/components/shop/ShopLayout";
@@ -8,9 +8,9 @@ import { Separator } from "@/components/ui/separator";
 export const Route = createFileRoute("/order-confirmation")({
   head: () => ({
     meta: [
-      { title: "Order Confirmed — Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Your Cash on Delivery order has been placed on Dukaan.pk." },
-      { property: "og:title", content: "Order Confirmed — Dukaan.pk" },
+      { property: "og:title", content: "Order Confirmed â€” Dukaan.pk" },
       { property: "og:description", content: "Order placed successfully with Cash on Delivery." },
     ],
   }),
@@ -45,7 +45,7 @@ function OrderConfirmation() {
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">{orderIds.length > 1 ? "Order IDs" : "Order ID"}</span>
               <span className="font-display font-bold">
-                {orderIds.length > 0 ? orderIds.join(", ") : "—"}
+                {orderIds.length > 0 ? orderIds.join(", ") : "â€”"}
               </span>
             </div>
             <Separator className="my-3" />

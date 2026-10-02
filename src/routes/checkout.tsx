@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { BadgeCheck, Loader2, Wallet } from "lucide-react";
 import { ShopLayout } from "@/components/shop/ShopLayout";
@@ -24,9 +24,9 @@ import { useAuth } from "@/lib/auth";
 export const Route = createFileRoute("/checkout")({
   head: () => ({
     meta: [
-      { title: "Cash on Delivery Checkout — Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Guest checkout with Cash on Delivery. No account or online payment needed." },
-      { property: "og:title", content: "COD Checkout — Dukaan.pk" },
+      { property: "og:title", content: "COD Checkout â€” Dukaan.pk" },
       { property: "og:description", content: "Order as guest and pay cash when your parcel arrives." },
     ],
   }),
@@ -87,7 +87,7 @@ function CheckoutPage() {
       <div className="mx-auto max-w-7xl px-4 py-8">
         <h1 className="text-2xl font-extrabold sm:text-3xl">COD Checkout</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Guest checkout — account banane ki zaroorat nahi.
+          Guest checkout â€” account banane ki zaroorat nahi.
         </p>
 
         <form onSubmit={submit} className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -158,7 +158,7 @@ function CheckoutPage() {
               {detailed.map(({ product, qty }) => (
                 <div key={product.id} className="flex items-center justify-between gap-3 text-sm">
                   <span className="min-w-0 truncate">
-                    {product.name} <span className="text-muted-foreground">× {qty}</span>
+                    {product.name} <span className="text-muted-foreground">Ã— {qty}</span>
                   </span>
                   <span className="shrink-0 font-medium">{formatPKR(product.price * qty)}</span>
                 </div>

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -13,9 +13,9 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/partner/profile")({
   head: () => ({
     meta: [
-      { title: "Profile — Partner | Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Manage your partner profile details on Dukaan.pk." },
-      { property: "og:title", content: "Partner Profile — Dukaan.pk" },
+      { property: "og:title", content: "Partner Profile â€” Dukaan.pk" },
       { property: "og:description", content: "Update your contact and personal details." },
     ],
   }),

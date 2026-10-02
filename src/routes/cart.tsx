@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import { ShopLayout } from "@/components/shop/ShopLayout";
 import { EmptyState } from "@/components/dashboard/EmptyState";
@@ -10,9 +10,9 @@ import { useCart } from "@/lib/cart";
 export const Route = createFileRoute("/cart")({
   head: () => ({
     meta: [
-      { title: "Your Cart — Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Review your Dukaan.pk cart and place a Cash on Delivery order." },
-      { property: "og:title", content: "Your Cart — Dukaan.pk" },
+      { property: "og:title", content: "Your Cart â€” Dukaan.pk" },
       { property: "og:description", content: "Cash on Delivery checkout, no advance payment needed." },
     ],
   }),
@@ -103,7 +103,7 @@ function CartPage() {
                 <Link to="/checkout">Proceed to COD Checkout</Link>
               </Button>
               <p className="mt-2 text-center text-xs text-muted-foreground">
-                Sirf Cash on Delivery — koi online payment nahi.
+                Sirf Cash on Delivery â€” koi online payment nahi.
               </p>
             </aside>
           </div>

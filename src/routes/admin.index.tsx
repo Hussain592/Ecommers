@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Loader2, Lock, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -10,10 +10,10 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
-      { title: "Admin Login — Dukaan.pk Control Panel" },
+      { title: "azadari.store" },
       { name: "description", content: "Restricted admin access for Dukaan.pk platform owners." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Admin Login — Dukaan.pk" },
+      { property: "og:title", content: "Admin Login â€” Dukaan.pk" },
       { property: "og:description", content: "Restricted area for platform administrators." },
     ],
   }),
@@ -32,7 +32,7 @@ function AdminLogin() {
         </span>
         <h1 className="mt-5 text-center text-2xl font-extrabold">Admin Control Panel</h1>
         <p className="mt-1 text-center text-sm text-muted-foreground">
-          Dukaan.pk owner access — sirf authorized staff ke liye.
+          Dukaan.pk owner access â€” sirf authorized staff ke liye.
         </p>
 
         <form

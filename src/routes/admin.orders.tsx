@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -19,10 +19,10 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/admin/orders")({
   head: () => ({
     meta: [
-      { title: "Orders — Dukaan.pk Admin" },
+      { title: "azadari.store" },
       { name: "description", content: "All marketplace COD orders across every vendor." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Orders — Dukaan.pk Admin" },
+      { property: "og:title", content: "Orders â€” Dukaan.pk Admin" },
       { property: "og:description", content: "Full order pipeline across the marketplace." },
     ],
   }),

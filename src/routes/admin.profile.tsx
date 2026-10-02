@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, UserCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin/profile")({
-  head: () => ({ meta: [{ title: "My Profile - Dukaan.pk Admin" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "azadari.store" }, { name: "robots", content: "noindex" }] }),
   component: AdminProfile,
 });
 
@@ -113,3 +113,4 @@ function AdminProfile() {
     </DashboardShell>
   );
 }
+

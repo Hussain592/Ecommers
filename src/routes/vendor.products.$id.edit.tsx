@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ProductForm } from "@/components/dashboard/ProductForm";
@@ -10,9 +10,9 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/vendor/products/$id/edit")({
   head: () => ({
     meta: [
-      { title: "Edit Product — Vendor Dashboard | Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Update product details, price, stock and availability." },
-      { property: "og:title", content: "Edit Product — Dukaan.pk" },
+      { property: "og:title", content: "Edit Product â€” Dukaan.pk" },
       { property: "og:description", content: "Edit your Dukaan.pk product listing." },
     ],
   }),
@@ -79,3 +79,4 @@ function EditProduct() {
     </DashboardShell>
   );
 }
+

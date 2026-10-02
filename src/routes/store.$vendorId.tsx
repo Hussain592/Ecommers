@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { CheckCircle2, Clock3, Loader2, MapPin, MessageCircle, Phone, ShieldCheck, Store, Truck, Undo2, Users } from "lucide-react";
 import { ShopLayout } from "@/components/shop/ShopLayout";
@@ -14,7 +14,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/store/$vendorId")({
   head: () => ({
     meta: [
-      { title: "Vendor Store — Dukaan.pk" },
+      { title: "azadari.store" },
       { name: "description", content: "Browse all products from this Dukaan.pk vendor." },
     ],
   }),
