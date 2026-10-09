@@ -1,8 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useState,
+  type FormEvent,
+} from "react";
 
 import {
   CheckCircle2,
+  ChevronDown,
   Eye,
   EyeOff,
   Loader2,
@@ -79,6 +84,9 @@ type Category = {
   vendor_id: string | null;
   created_at: string;
 
+  parent_id: string | null;
+  sort_order: number;
+
   vendor_name: string | null;
 };
 
@@ -93,9 +101,9 @@ type CategoryProduct = {
 
 function AdminCategories() {
   /*
-   * ------------------------------------------------
+   * =========================================================
    * CATEGORY STATE
-   * ------------------------------------------------
+   * =========================================================
    */
 
   const [
@@ -106,7 +114,9 @@ function AdminCategories() {
   const [
     productCounts,
     setProductCounts,
-  ] = useState<Record<string, number>>({});
+  ] = useState<
+    Record<string, number>
+  >({});
 
   const [
     loading,
@@ -114,9 +124,9 @@ function AdminCategories() {
   ] = useState(true);
 
   /*
-   * ------------------------------------------------
+   * =========================================================
    * ADD CATEGORY
-   * ------------------------------------------------
+   * =========================================================
    */
 
   const [
@@ -129,21 +139,41 @@ function AdminCategories() {
     setNewCategory,
   ] = useState("");
 
+  /*
+   * Admin category banate waqt
+   * uske andar options/subcategories
+   * bhi bana sakta hai.
+   */
+  const [
+    showSubcategories,
+    setShowSubcategories,
+  ] = useState(false);
+
+  const [
+    newSubcategories,
+    setNewSubcategories,
+  ] = useState<string[]>([
+    "",
+  ]);
+
   const [
     saving,
     setSaving,
   ] = useState(false);
 
   /*
-   * ------------------------------------------------
+   * =========================================================
    * EDIT CATEGORY
-   * ------------------------------------------------
+   * =========================================================
    */
 
   const [
     editTarget,
     setEditTarget,
-  ] = useState<Category | null>(null);
+  ] =
+    useState<Category | null>(
+      null,
+    );
 
   const [
     editName,
@@ -156,36 +186,48 @@ function AdminCategories() {
   ] = useState(false);
 
   /*
-   * ------------------------------------------------
+   * =========================================================
    * CATEGORY ACTIONS
-   * ------------------------------------------------
+   * =========================================================
    */
 
   const [
     actionBusyId,
     setActionBusyId,
-  ] = useState<string | null>(null);
+  ] =
+    useState<string | null>(
+      null,
+    );
 
   const [
     deletingId,
     setDeletingId,
-  ] = useState<string | null>(null);
+  ] =
+    useState<string | null>(
+      null,
+    );
 
   /*
-   * ------------------------------------------------
+   * =========================================================
    * CATEGORY PRODUCTS
-   * ------------------------------------------------
+   * =========================================================
    */
 
   const [
     selectedCategory,
     setSelectedCategory,
-  ] = useState<string | null>(null);
+  ] =
+    useState<string | null>(
+      null,
+    );
 
   const [
     categoryProducts,
     setCategoryProducts,
-  ] = useState<CategoryProduct[]>([]);
+  ] =
+    useState<
+      CategoryProduct[]
+    >([]);
 
   const [
     productsLoading,
@@ -195,268 +237,384 @@ function AdminCategories() {
   const [
     productBusyId,
     setProductBusyId,
-  ] = useState<string | null>(null);
+  ] =
+    useState<string | null>(
+      null,
+    );
 
   /*
-   * ------------------------------------------------
+   * =========================================================
    * LOAD CATEGORIES
-   * ------------------------------------------------
+   * =========================================================
    */
 
-  const loadCategories = async () => {
-    setLoading(true);
+  const loadCategories =
+    async () => {
+      setLoading(true);
 
-    /*
-     * IMPORTANT:
-     *
-     * Yahan active = true filter nahi hai.
-     *
-     * Admin ko:
-     *
-     * approved
-     * pending
-     * rejected
-     *
-     * sab categories dekhni hain.
-     */
-    const {
-      data,
-      error,
-    } = await supabase
-      .from("categories")
-      .select(
-        `
-        id,
-        name,
-        active,
-        status,
-        created_by,
-        vendor_id,
-        created_at
-        `,
-      )
-      .order(
-        "created_at",
-        {
-          ascending: false,
+      /*
+       * Admin ko approved,
+       * pending aur rejected
+       * sab categories dekhni hain.
+       */
+
+      const {
+        data,
+        error,
+      } =
+        await supabase
+          .from(
+            "categories",
+          )
+          .select(`
+            id,
+            name,
+            active,
+            status,
+            created_by,
+            vendor_id,
+            created_at,
+            parent_id,
+            sort_order
+          `)
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          );
+
+      if (error) {
+        console.error(
+          "Unable to load categories",
+          error,
+        );
+
+        toast.error(
+          "Categories load nahi ho sakein.",
+        );
+
+        setLoading(false);
+
+        return;
+      }
+
+      const rows =
+        data ?? [];
+
+      /*
+       * Vendor names separately.
+       */
+
+      const vendorIds =
+        Array.from(
+          new Set(
+            rows
+              .map(
+                (
+                  category,
+                ) =>
+                  category.vendor_id,
+              )
+              .filter(
+                (
+                  id,
+                ): id is string =>
+                  Boolean(id),
+              ),
+          ),
+        );
+
+      const vendorNameMap =
+        new Map<
+          string,
+          string
+        >();
+
+      if (
+        vendorIds.length >
+        0
+      ) {
+        const {
+          data:
+            vendorRows,
+
+          error:
+            vendorError,
+        } =
+          await supabase
+            .from(
+              "vendors",
+            )
+            .select(
+              "id, name",
+            )
+            .in(
+              "id",
+              vendorIds,
+            );
+
+        if (
+          vendorError
+        ) {
+          console.error(
+            "Unable to load category vendors",
+            vendorError,
+          );
+        }
+
+        for (
+          const vendor of
+          vendorRows ?? []
+        ) {
+          vendorNameMap.set(
+            vendor.id,
+            vendor.name,
+          );
+        }
+      }
+
+      const mappedCategories: Category[] =
+        rows.map(
+          (
+            category,
+          ) => ({
+            id:
+              category.id,
+
+            name:
+              category.name,
+
+            active:
+              Boolean(
+                category.active,
+              ),
+
+            status:
+              (
+                category.status ??
+                "approved"
+              ) as CategoryStatus,
+
+            created_by:
+              category.created_by,
+
+            vendor_id:
+              category.vendor_id,
+
+            created_at:
+              category.created_at,
+
+            parent_id:
+              category.parent_id ??
+              null,
+
+            sort_order:
+              Number(
+                category.sort_order ??
+                  0,
+              ),
+
+            vendor_name:
+              category.vendor_id
+                ? vendorNameMap.get(
+                    category.vendor_id,
+                  ) ??
+                  null
+                : null,
+          }),
+        );
+
+      /*
+       * Pending first,
+       * approved second,
+       * rejected last.
+       */
+
+      const priority: Record<
+        CategoryStatus,
+        number
+      > = {
+        pending: 0,
+        approved: 1,
+        rejected: 2,
+      };
+
+      mappedCategories.sort(
+        (
+          first,
+          second,
+        ) => {
+          const statusDifference =
+            priority[
+              first.status
+            ] -
+            priority[
+              second.status
+            ];
+
+          if (
+            statusDifference !==
+            0
+          ) {
+            return statusDifference;
+          }
+
+          return first.name.localeCompare(
+            second.name,
+          );
         },
       );
 
-    if (error) {
-      console.error(
-        "Unable to load categories",
-        error,
+      setCategoryList(
+        mappedCategories,
       );
 
-      toast.error(
-        "Categories load nahi ho sakein.",
-      );
+      /*
+       * Product counts.
+       * Products abhi category name
+       * text store karte hain.
+       */
 
-      setLoading(false);
+      const counts =
+        await Promise.all(
+          mappedCategories.map(
+            async (
+              category,
+            ) => {
+              const {
+                count,
+              } =
+                await supabase
+                  .from(
+                    "products",
+                  )
+                  .select(
+                    "id",
+                    {
+                      count:
+                        "exact",
 
-      return;
-    }
+                      head:
+                        true,
+                    },
+                  )
+                  .eq(
+                    "category",
+                    category.name,
+                  );
 
-    const rows =
-      data ?? [];
-
-    /*
-     * Vendor names separately load karte hain.
-     */
-    const vendorIds = Array.from(
-      new Set(
-        rows
-          .map(
-            (category) =>
-              category.vendor_id,
-          )
-          .filter(
-            (
-              id,
-            ): id is string =>
-              Boolean(id),
+              return [
+                category.name,
+                count ?? 0,
+              ] as const;
+            },
           ),
-      ),
-    );
-
-    const vendorNameMap =
-      new Map<string, string>();
-
-    if (
-      vendorIds.length > 0
-    ) {
-      const {
-        data:
-          vendorRows,
-        error:
-          vendorError,
-      } = await supabase
-        .from("vendors")
-        .select("id, name")
-        .in(
-          "id",
-          vendorIds,
         );
 
-      if (vendorError) {
-        console.error(
-          "Unable to load category vendors",
-          vendorError,
-        );
-      }
-
-      for (
-        const vendor of
-        vendorRows ?? []
-      ) {
-        vendorNameMap.set(
-          vendor.id,
-          vendor.name,
-        );
-      }
-    }
-
-    const mappedCategories: Category[] =
-      rows.map(
-        (category) => ({
-          id:
-            category.id,
-
-          name:
-            category.name,
-
-          active:
-            Boolean(
-              category.active,
-            ),
-
-          status:
-            (
-              category.status ??
-              "approved"
-            ) as CategoryStatus,
-
-          created_by:
-            category.created_by,
-
-          vendor_id:
-            category.vendor_id,
-
-          created_at:
-            category.created_at,
-
-          vendor_name:
-            category.vendor_id
-              ? vendorNameMap.get(
-                  category.vendor_id,
-                ) ?? null
-              : null,
-        }),
-      );
-
-    /*
-     * Pending first.
-     * Approved second.
-     * Rejected last.
-     */
-    const priority: Record<
-      CategoryStatus,
-      number
-    > = {
-      pending: 0,
-      approved: 1,
-      rejected: 2,
-    };
-
-    mappedCategories.sort(
-      (
-        first,
-        second,
-      ) => {
-        const statusDifference =
-          priority[
-            first.status
-          ] -
-          priority[
-            second.status
-          ];
-
-        if (
-          statusDifference !==
-          0
-        ) {
-          return statusDifference;
-        }
-
-        return first.name.localeCompare(
-          second.name,
-        );
-      },
-    );
-
-    setCategoryList(
-      mappedCategories,
-    );
-
-    /*
-     * Product counts
-     *
-     * Products abhi category name
-     * text store karte hain.
-     */
-    const counts =
-      await Promise.all(
-        mappedCategories.map(
-          async (
-            category,
-          ) => {
-            const {
-              count,
-            } =
-              await supabase
-                .from(
-                  "products",
-                )
-                .select(
-                  "id",
-                  {
-                    count:
-                      "exact",
-
-                    head:
-                      true,
-                  },
-                )
-                .eq(
-                  "category",
-                  category.name,
-                );
-
-            return [
-              category.name,
-              count ?? 0,
-            ] as const;
-          },
+      setProductCounts(
+        Object.fromEntries(
+          counts,
         ),
       );
 
-    setProductCounts(
-      Object.fromEntries(
-        counts,
-      ),
-    );
-
-    setLoading(false);
-  };
+      setLoading(false);
+    };
 
   useEffect(() => {
     void loadCategories();
   }, []);
 
   /*
-   * ------------------------------------------------
+   * =========================================================
+   * ADD CATEGORY FORM HELPERS
+   * =========================================================
+   */
+
+  const resetAddCategoryForm =
+    () => {
+      setNewCategory(
+        "",
+      );
+
+      setNewSubcategories(
+        [""],
+      );
+
+      setShowSubcategories(
+        false,
+      );
+    };
+
+  const updateSubcategoryField =
+    (
+      index: number,
+      value: string,
+    ) => {
+      setNewSubcategories(
+        (
+          current,
+        ) =>
+          current.map(
+            (
+              item,
+              itemIndex,
+            ) =>
+              itemIndex ===
+              index
+                ? value
+                : item,
+          ),
+      );
+    };
+
+  const addSubcategoryField =
+    () => {
+      setShowSubcategories(
+        true,
+      );
+
+      setNewSubcategories(
+        (
+          current,
+        ) => [
+          ...current,
+          "",
+        ],
+      );
+    };
+
+  const removeSubcategoryField =
+    (
+      index: number,
+    ) => {
+      setNewSubcategories(
+        (
+          current,
+        ) => {
+          const next =
+            current.filter(
+              (
+                _,
+                itemIndex,
+              ) =>
+                itemIndex !==
+                index,
+            );
+
+          return next.length >
+            0
+            ? next
+            : [""];
+        },
+      );
+    };
+
+  /*
+   * =========================================================
    * ADD ADMIN CATEGORY
-   * ------------------------------------------------
+   * =========================================================
    */
 
   const addCategory =
@@ -465,34 +623,122 @@ function AdminCategories() {
     ) => {
       event.preventDefault();
 
+      const normalizeName =
+        (
+          value: string,
+        ) =>
+          value
+            .trim()
+            .replace(
+              /\s+/g,
+              " ",
+            );
+
+      /*
+       * Main category
+       */
       const name =
-        newCategory
-          .trim()
-          .replace(
-            /\s+/g,
-            " ",
-          );
+        normalizeName(
+          newCategory,
+        );
 
       if (!name) {
         return;
       }
 
       /*
-       * Duplicate check
+       * Blank subcategories automatically ignore.
        */
-      const duplicate =
-        categoryList.some(
+      const cleanSubcategories =
+        newSubcategories
+          .map(
+            normalizeName,
+          )
+          .filter(
+            Boolean,
+          );
+
+      const lowerSubcategoryNames =
+        cleanSubcategories.map(
           (
-            category,
+            item,
           ) =>
-            category.name
-              .toLowerCase() ===
-            name.toLowerCase(),
+            item.toLowerCase(),
         );
 
-      if (duplicate) {
+      /*
+       * Same option twice.
+       */
+      if (
+        new Set(
+          lowerSubcategoryNames,
+        ).size !==
+        lowerSubcategoryNames.length
+      ) {
+        toast.error(
+          "Subcategory names repeat ho rahe hain. Duplicate option remove karein.",
+        );
+
+        return;
+      }
+
+      /*
+       * Example:
+       * Janimaz cannot contain
+       * another Janimaz child.
+       */
+      if (
+        lowerSubcategoryNames.includes(
+          name.toLowerCase(),
+        )
+      ) {
+        toast.error(
+          "Main category aur subcategory ka naam same nahi ho sakta.",
+        );
+
+        return;
+      }
+
+      /*
+       * Existing categories.
+       */
+      const existingNames =
+        new Set(
+          categoryList.map(
+            (
+              category,
+            ) =>
+              category.name.toLowerCase(),
+          ),
+        );
+
+      if (
+        existingNames.has(
+          name.toLowerCase(),
+        )
+      ) {
         toast.error(
           "Ye category pehle se mojood hai.",
+        );
+
+        return;
+      }
+
+      const existingChild =
+        cleanSubcategories.find(
+          (
+            item,
+          ) =>
+            existingNames.has(
+              item.toLowerCase(),
+            ),
+        );
+
+      if (
+        existingChild
+      ) {
+        toast.error(
+          `"${existingChild}" category pehle se mojood hai.`,
         );
 
         return;
@@ -501,46 +747,188 @@ function AdminCategories() {
       setSaving(true);
 
       /*
-       * Admin-created categories directly
-       * approved + active hongi.
+       * Main categories ka next order.
        */
+      const nextRootSortOrder =
+        Math.max(
+          0,
+
+          ...categoryList
+            .filter(
+              (
+                category,
+              ) =>
+                !category.parent_id,
+            )
+            .map(
+              (
+                category,
+              ) =>
+                category.sort_order ??
+                0,
+            ),
+        ) + 1;
+
+      /*
+       * STEP 1:
+       * Parent/main category create.
+       *
+       * Example:
+       * Janimaz
+       */
+
       const {
-        error,
-      } = await supabase
-        .from(
-          "categories",
-        )
-        .insert({
-          name,
-          active: true,
-          status:
-            "approved",
-        });
+        data:
+          parentCategory,
 
-      setSaving(false);
+        error:
+          parentError,
+      } =
+        await supabase
+          .from(
+            "categories",
+          )
+          .insert({
+            name,
 
-      if (error) {
+            active:
+              true,
+
+            status:
+              "approved",
+
+            parent_id:
+              null,
+
+            sort_order:
+              nextRootSortOrder,
+          })
+          .select(
+            "id",
+          )
+          .single();
+
+      if (
+        parentError ||
+        !parentCategory
+      ) {
+        setSaving(false);
+
         toast.error(
-          error.message,
+          parentError?.message ??
+            "Category create nahi ho saki.",
         );
 
         return;
       }
 
-      setNewCategory("");
+      /*
+       * STEP 2:
+       * Children/options create.
+       *
+       * Janimaz
+       *  ├ Velvet Janimaz
+       *  ├ Kids Janimaz
+       *  └ Travel Janimaz
+       */
+
+      if (
+        cleanSubcategories.length >
+        0
+      ) {
+        const {
+          error:
+            childError,
+        } =
+          await supabase
+            .from(
+              "categories",
+            )
+            .insert(
+              cleanSubcategories.map(
+                (
+                  childName,
+                  index,
+                ) => ({
+                  name:
+                    childName,
+
+                  active:
+                    true,
+
+                  status:
+                    "approved",
+
+                  parent_id:
+                    parentCategory.id,
+
+                  sort_order:
+                    index +
+                    1,
+                }),
+              ),
+            );
+
+        if (
+          childError
+        ) {
+          /*
+           * Main category create ho gayi
+           * lekin children fail ho gaye,
+           * to incomplete hierarchy
+           * database mein leave nahi karni.
+           */
+
+          await supabase
+            .from(
+              "categories",
+            )
+            .delete()
+            .eq(
+              "parent_id",
+              parentCategory.id,
+            );
+
+          await supabase
+            .from(
+              "categories",
+            )
+            .delete()
+            .eq(
+              "id",
+              parentCategory.id,
+            );
+
+          setSaving(false);
+
+          toast.error(
+            childError.message,
+          );
+
+          return;
+        }
+      }
+
+      setSaving(false);
+
+      resetAddCategoryForm();
+
       setAddOpen(false);
 
       toast.success(
-        "Category add aur approve ho gayi.",
+        cleanSubcategories.length >
+          0
+          ? `Category aur ${cleanSubcategories.length} subcategory option(s) add ho gaye.`
+          : "Category add aur approve ho gayi.",
       );
 
       await loadCategories();
     };
 
   /*
-   * ------------------------------------------------
+   * =========================================================
    * APPROVE CATEGORY
-   * ------------------------------------------------
+   * =========================================================
    */
 
   const approveCategory =
@@ -553,21 +941,22 @@ function AdminCategories() {
 
       const {
         error,
-      } = await supabase
-        .from(
-          "categories",
-        )
-        .update({
-          status:
-            "approved",
+      } =
+        await supabase
+          .from(
+            "categories",
+          )
+          .update({
+            status:
+              "approved",
 
-          active:
-            true,
-        })
-        .eq(
-          "id",
-          category.id,
-        );
+            active:
+              true,
+          })
+          .eq(
+            "id",
+            category.id,
+          );
 
       setActionBusyId(
         null,
@@ -586,7 +975,9 @@ function AdminCategories() {
           current,
         ) =>
           current.map(
-            (item) =>
+            (
+              item,
+            ) =>
               item.id ===
               category.id
                 ? {
@@ -608,9 +999,9 @@ function AdminCategories() {
     };
 
   /*
-   * ------------------------------------------------
+   * =========================================================
    * REJECT CATEGORY
-   * ------------------------------------------------
+   * =========================================================
    */
 
   const rejectCategory =
@@ -622,7 +1013,9 @@ function AdminCategories() {
           `Kya aap "${category.name}" category reject karna chahte hain?`,
         );
 
-      if (!confirmed) {
+      if (
+        !confirmed
+      ) {
         return;
       }
 
@@ -632,21 +1025,22 @@ function AdminCategories() {
 
       const {
         error,
-      } = await supabase
-        .from(
-          "categories",
-        )
-        .update({
-          status:
-            "rejected",
+      } =
+        await supabase
+          .from(
+            "categories",
+          )
+          .update({
+            status:
+              "rejected",
 
-          active:
-            false,
-        })
-        .eq(
-          "id",
-          category.id,
-        );
+            active:
+              false,
+          })
+          .eq(
+            "id",
+            category.id,
+          );
 
       if (error) {
         setActionBusyId(
@@ -661,24 +1055,27 @@ function AdminCategories() {
       }
 
       /*
-       * Agar category mein koi product
-       * already active ho to usko bhi hide.
+       * Category reject ho
+       * to us category ke existing
+       * products bhi hide.
        */
+
       const {
         error:
           productError,
-      } = await supabase
-        .from(
-          "products",
-        )
-        .update({
-          active:
-            false,
-        })
-        .eq(
-          "category",
-          category.name,
-        );
+      } =
+        await supabase
+          .from(
+            "products",
+          )
+          .update({
+            active:
+              false,
+          })
+          .eq(
+            "category",
+            category.name,
+          );
 
       setActionBusyId(
         null,
@@ -698,7 +1095,9 @@ function AdminCategories() {
           current,
         ) =>
           current.map(
-            (item) =>
+            (
+              item,
+            ) =>
               item.id ===
               category.id
                 ? {
@@ -720,22 +1119,23 @@ function AdminCategories() {
     };
 
   /*
-   * ------------------------------------------------
+   * =========================================================
    * EDIT CATEGORY
-   * ------------------------------------------------
+   * =========================================================
    */
 
-  const openEdit = (
-    category: Category,
-  ) => {
-    setEditTarget(
-      category,
-    );
+  const openEdit =
+    (
+      category: Category,
+    ) => {
+      setEditTarget(
+        category,
+      );
 
-    setEditName(
-      category.name,
-    );
-  };
+      setEditName(
+        category.name,
+      );
+    };
 
   const saveEdit =
     async (
@@ -764,6 +1164,7 @@ function AdminCategories() {
       /*
        * Duplicate category check.
        */
+
       const duplicate =
         categoryList.some(
           (
@@ -776,7 +1177,9 @@ function AdminCategories() {
               name.toLowerCase(),
         );
 
-      if (duplicate) {
+      if (
+        duplicate
+      ) {
         toast.error(
           "Is naam ki category pehle se mojood hai.",
         );
@@ -791,22 +1194,20 @@ function AdminCategories() {
       const oldName =
         editTarget.name;
 
-      /*
-       * Category rename.
-       */
       const {
         error,
-      } = await supabase
-        .from(
-          "categories",
-        )
-        .update({
-          name,
-        })
-        .eq(
-          "id",
-          editTarget.id,
-        );
+      } =
+        await supabase
+          .from(
+            "categories",
+          )
+          .update({
+            name,
+          })
+          .eq(
+            "id",
+            editTarget.id,
+          );
 
       if (error) {
         setEditSaving(
@@ -821,32 +1222,32 @@ function AdminCategories() {
       }
 
       /*
-       * IMPORTANT:
+       * Products table abhi category
+       * name store karti hai.
        *
-       * Products table abhi category name
-       * store karti hai.
-       *
-       * Isliye category rename ho to
-       * products bhi rename karne hain.
+       * Isliye category rename ho
+       * to products bhi rename.
        */
+
       if (
         oldName !== name
       ) {
         const {
           error:
             productError,
-        } = await supabase
-          .from(
-            "products",
-          )
-          .update({
-            category:
-              name,
-          })
-          .eq(
-            "category",
-            oldName,
-          );
+        } =
+          await supabase
+            .from(
+              "products",
+            )
+            .update({
+              category:
+                name,
+            })
+            .eq(
+              "category",
+              oldName,
+            );
 
         if (
           productError
@@ -878,9 +1279,9 @@ function AdminCategories() {
     };
 
   /*
-   * ------------------------------------------------
+   * =========================================================
    * DELETE CATEGORY
-   * ------------------------------------------------
+   * =========================================================
    */
 
   const handleDelete =
@@ -893,12 +1294,42 @@ function AdminCategories() {
         ] ?? 0;
 
       /*
-       * Products hon to category
-       * hard-delete nahi karenge.
+       * Products hon to
+       * category delete nahi.
        */
-      if (count > 0) {
+
+      if (
+        count > 0
+      ) {
         toast.error(
           `Is category mein ${count} product(s) hain. Pehle products ko doosri category mein move karein.`,
+        );
+
+        return;
+      }
+
+      /*
+       * Parent category ke children
+       * hon to usko delete nahi karenge.
+       *
+       * Warna children root categories
+       * ban sakte hain.
+       */
+
+      const childCount =
+        categoryList.filter(
+          (
+            item,
+          ) =>
+            item.parent_id ===
+            category.id,
+        ).length;
+
+      if (
+        childCount > 0
+      ) {
+        toast.error(
+          `Is category ke andar ${childCount} subcategory option(s) hain. Pehle unhein delete ya move karein.`,
         );
 
         return;
@@ -909,7 +1340,9 @@ function AdminCategories() {
           `Kya aap "${category.name}" ko permanently delete karna chahte hain?`,
         );
 
-      if (!confirmed) {
+      if (
+        !confirmed
+      ) {
         return;
       }
 
@@ -919,15 +1352,16 @@ function AdminCategories() {
 
       const {
         error,
-      } = await supabase
-        .from(
-          "categories",
-        )
-        .delete()
-        .eq(
-          "id",
-          category.id,
-        );
+      } =
+        await supabase
+          .from(
+            "categories",
+          )
+          .delete()
+          .eq(
+            "id",
+            category.id,
+          );
 
       setDeletingId(
         null,
@@ -960,9 +1394,9 @@ function AdminCategories() {
     };
 
   /*
-   * ------------------------------------------------
+   * =========================================================
    * OPEN CATEGORY PRODUCTS
-   * ------------------------------------------------
+   * =========================================================
    */
 
   const openCategoryProducts =
@@ -995,29 +1429,30 @@ function AdminCategories() {
       const {
         data,
         error,
-      } = await supabase
-        .from("products")
-        .select(
-          `
-          id,
-          name,
-          image,
-          price,
-          stock,
-          active
-          `,
-        )
-        .eq(
-          "category",
-          categoryName,
-        )
-        .order(
-          "created_at",
-          {
-            ascending:
-              false,
-          },
-        );
+      } =
+        await supabase
+          .from(
+            "products",
+          )
+          .select(`
+            id,
+            name,
+            image,
+            price,
+            stock,
+            active
+          `)
+          .eq(
+            "category",
+            categoryName,
+          )
+          .order(
+            "created_at",
+            {
+              ascending:
+                false,
+            },
+          );
 
       if (error) {
         toast.error(
@@ -1058,9 +1493,9 @@ function AdminCategories() {
     };
 
   /*
-   * ------------------------------------------------
+   * =========================================================
    * PRODUCT VISIBILITY
-   * ------------------------------------------------
+   * =========================================================
    */
 
   const toggleProduct =
@@ -1073,18 +1508,19 @@ function AdminCategories() {
 
       const {
         error,
-      } = await supabase
-        .from(
-          "products",
-        )
-        .update({
-          active:
-            !product.active,
-        })
-        .eq(
-          "id",
-          product.id,
-        );
+      } =
+        await supabase
+          .from(
+            "products",
+          )
+          .update({
+            active:
+              !product.active,
+          })
+          .eq(
+            "id",
+            product.id,
+          );
 
       setProductBusyId(
         null,
@@ -1126,9 +1562,9 @@ function AdminCategories() {
     };
 
   /*
-   * ------------------------------------------------
-   * COUNTS
-   * ------------------------------------------------
+   * =========================================================
+   * CATEGORY GROUPS
+   * =========================================================
    */
 
   const pendingCategories =
@@ -1159,340 +1595,371 @@ function AdminCategories() {
     );
 
   /*
-   * ------------------------------------------------
+   * =========================================================
    * STATUS BADGE
-   * ------------------------------------------------
+   * =========================================================
    */
 
-  const renderStatusBadge = (
-    category: Category,
-  ) => {
-    if (
-      category.status ===
-      "pending"
-    ) {
+  const renderStatusBadge =
+    (
+      category: Category,
+    ) => {
+      if (
+        category.status ===
+        "pending"
+      ) {
+        return (
+          <span className="rounded-full bg-warning/10 px-2.5 py-1 text-[11px] font-semibold text-warning">
+            Pending
+          </span>
+        );
+      }
+
+      if (
+        category.status ===
+        "rejected"
+      ) {
+        return (
+          <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-[11px] font-semibold text-destructive">
+            Rejected
+          </span>
+        );
+      }
+
       return (
-        <span className="rounded-full bg-warning/10 px-2.5 py-1 text-[11px] font-semibold text-warning">
-          Pending
+        <span className="rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success">
+          Approved
         </span>
       );
-    }
-
-    if (
-      category.status ===
-      "rejected"
-    ) {
-      return (
-        <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-[11px] font-semibold text-destructive">
-          Rejected
-        </span>
-      );
-    }
-
-    return (
-      <span className="rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success">
-        Approved
-      </span>
-    );
-  };
+    };
 
   /*
-   * ------------------------------------------------
+   * =========================================================
    * CATEGORY CARD
-   * ------------------------------------------------
+   * =========================================================
    */
 
-  const renderCategoryCard = (
-    category: Category,
-  ) => {
-    const busy =
-      actionBusyId ===
-        category.id ||
-      deletingId ===
-        category.id;
+  const renderCategoryCard =
+    (
+      category: Category,
+    ) => {
+      const busy =
+        actionBusyId ===
+          category.id ||
+        deletingId ===
+          category.id;
 
-    return (
-      <div
-        key={
-          category.id
-        }
-        className={`surface-card p-5 ${
-          selectedCategory ===
-          category.name
-            ? "border-primary"
-            : ""
-        }`}
-      >
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-          <button
-            type="button"
-            className="min-w-0 text-left"
-            onClick={() =>
-              void openCategoryProducts(
-                category.name,
-              )
-            }
-          >
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate font-semibold">
-                {
+      const parentCategory =
+        category.parent_id
+          ? categoryList.find(
+              (
+                item,
+              ) =>
+                item.id ===
+                category.parent_id,
+            )
+          : null;
+
+      return (
+        <div
+          key={
+            category.id
+          }
+          className={`surface-card p-5 ${
+            selectedCategory ===
+            category.name
+              ? "border-primary"
+              : ""
+          }`}
+        >
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+            <button
+              type="button"
+              className="min-w-0 text-left"
+              onClick={() =>
+                void openCategoryProducts(
+                  category.name,
+                )
+              }
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="truncate font-semibold">
+                  {
+                    category.name
+                  }
+                </p>
+
+                {renderStatusBadge(
+                  category,
+                )}
+              </div>
+
+              <p className="mt-1 text-xs text-muted-foreground">
+                {productCounts[
                   category.name
-                }
+                ] ?? 0}{" "}
+                products
               </p>
 
-              {renderStatusBadge(
-                category,
-              )}
-            </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {category.vendor_name
+                  ? `Created by ${category.vendor_name}`
+                  : "Created by Admin"}
+              </p>
 
-            <p className="mt-1 text-xs text-muted-foreground">
-              {productCounts[
+              {parentCategory && (
+                <p className="mt-1 text-xs font-medium text-[#9a7927]">
+                  Subcategory
+                  of{" "}
+                  {
+                    parentCategory.name
+                  }
+                </p>
+              )}
+
+              <p className="mt-2 text-xs font-semibold text-primary">
+                {selectedCategory ===
                 category.name
-              ] ?? 0}{" "}
-              products
-            </p>
+                  ? "Close products"
+                  : "View products"}
+              </p>
+            </button>
 
-            <p className="mt-1 text-xs text-muted-foreground">
-              {category.vendor_name
-                ? `Created by ${category.vendor_name}`
-                : "Created by Admin"}
-            </p>
-
-            <p className="mt-2 text-xs font-semibold text-primary">
-              {selectedCategory ===
-              category.name
-                ? "Close products"
-                : "View products"}
-            </p>
-          </button>
-
-          <div className="flex gap-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              disabled={
-                busy
-              }
-              onClick={() =>
-                openEdit(
-                  category,
-                )
-              }
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </Button>
-
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive"
-              disabled={
-                busy
-              }
-              onClick={() =>
-                void handleDelete(
-                  category,
-                )
-              }
-            >
-              {deletingId ===
-              category.id ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Trash2 className="h-3.5 w-3.5" />
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {/* Approval Actions */}
-
-        {category.status !==
-          "approved" && (
-          <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
-            <Button
-              type="button"
-              size="sm"
-              className="rounded-lg"
-              disabled={
-                busy
-              }
-              onClick={() =>
-                void approveCategory(
-                  category,
-                )
-              }
-            >
-              {actionBusyId ===
-              category.id ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-              )}
-
-              Approve
-            </Button>
-
-            {category.status ===
-              "pending" && (
+            <div className="flex gap-1">
               <Button
                 type="button"
-                size="sm"
-                variant="outline"
-                className="rounded-lg text-destructive"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
                 disabled={
                   busy
                 }
                 onClick={() =>
-                  void rejectCategory(
+                  openEdit(
                     category,
                   )
                 }
               >
-                <XCircle className="mr-2 h-4 w-4" />
-
-                Reject
+                <Pencil className="h-3.5 w-3.5" />
               </Button>
-            )}
-          </div>
-        )}
 
-        {category.status ===
-          "approved" &&
-          category.vendor_id && (
-            <div className="mt-4 border-t border-border pt-4">
               <Button
                 type="button"
-                size="sm"
-                variant="outline"
-                className="rounded-lg text-destructive"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-destructive"
                 disabled={
                   busy
                 }
                 onClick={() =>
-                  void rejectCategory(
+                  void handleDelete(
                     category,
                   )
                 }
               >
-                <XCircle className="mr-2 h-4 w-4" />
-
-                Reject Category
+                {deletingId ===
+                category.id ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5" />
+                )}
               </Button>
+            </div>
+          </div>
+
+          {/* Approval Actions */}
+
+          {category.status !==
+            "approved" && (
+            <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
+              <Button
+                type="button"
+                size="sm"
+                className="rounded-lg"
+                disabled={
+                  busy
+                }
+                onClick={() =>
+                  void approveCategory(
+                    category,
+                  )
+                }
+              >
+                {actionBusyId ===
+                category.id ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                )}
+
+                Approve
+              </Button>
+
+              {category.status ===
+                "pending" && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="rounded-lg text-destructive"
+                  disabled={
+                    busy
+                  }
+                  onClick={() =>
+                    void rejectCategory(
+                      category,
+                    )
+                  }
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
+
+                  Reject
+                </Button>
+              )}
             </div>
           )}
 
-        {/* Products */}
+          {category.status ===
+            "approved" &&
+            category.vendor_id && (
+              <div className="mt-4 border-t border-border pt-4">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="rounded-lg text-destructive"
+                  disabled={
+                    busy
+                  }
+                  onClick={() =>
+                    void rejectCategory(
+                      category,
+                    )
+                  }
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
 
-        {selectedCategory ===
-          category.name && (
-          <div className="mt-4 border-t border-border pt-4">
-            {productsLoading ? (
-              <div className="flex justify-center p-4">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              </div>
-            ) : categoryProducts.length ===
-              0 ? (
-              <p className="text-sm text-muted-foreground">
-                Is category mein koi product nahi.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {categoryProducts
-                  .slice(
-                    0,
-                    20,
-                  )
-                  .map(
-                    (
-                      product,
-                    ) => (
-                      <div
-                        key={
-                          product.id
-                        }
-                        className="flex items-center gap-3 rounded-xl bg-muted/60 p-2"
-                      >
-                        <img
-                          src={
-                            product.image ||
-                            "/favicon.ico"
-                          }
-                          alt=""
-                          width={
-                            40
-                          }
-                          height={
-                            40
-                          }
-                          className="h-10 w-10 rounded-lg object-cover"
-                        />
-
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold">
-                            {
-                              product.name
-                            }
-                          </p>
-
-                          <p className="text-xs text-muted-foreground">
-                            Rs.{" "}
-                            {product.price.toLocaleString(
-                              "en-PK",
-                            )}{" "}
-                            · Stock{" "}
-                            {
-                              product.stock
-                            }
-                          </p>
-                        </div>
-
-                        <Button
-                          type="button"
-                          variant={
-                            product.active
-                              ? "outline"
-                              : "default"
-                          }
-                          size="sm"
-                          className="rounded-lg"
-                          disabled={
-                            productBusyId ===
-                            product.id
-                          }
-                          onClick={() =>
-                            void toggleProduct(
-                              product,
-                            )
-                          }
-                        >
-                          {product.active ? (
-                            <>
-                              <EyeOff className="mr-1 h-3.5 w-3.5" />
-
-                              Hide
-                            </>
-                          ) : (
-                            <>
-                              <Eye className="mr-1 h-3.5 w-3.5" />
-
-                              Show
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    ),
-                  )}
+                  Reject Category
+                </Button>
               </div>
             )}
-          </div>
-        )}
-      </div>
-    );
-  };
+
+          {/* Products */}
+
+          {selectedCategory ===
+            category.name && (
+            <div className="mt-4 border-t border-border pt-4">
+              {productsLoading ? (
+                <div className="flex justify-center p-4">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : categoryProducts.length ===
+                0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Is category mein
+                  koi product nahi.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {categoryProducts
+                    .slice(
+                      0,
+                      20,
+                    )
+                    .map(
+                      (
+                        product,
+                      ) => (
+                        <div
+                          key={
+                            product.id
+                          }
+                          className="flex items-center gap-3 rounded-xl bg-muted/60 p-2"
+                        >
+                          <img
+                            src={
+                              product.image ||
+                              "/favicon.ico"
+                            }
+                            alt=""
+                            width={
+                              40
+                            }
+                            height={
+                              40
+                            }
+                            className="h-10 w-10 rounded-lg object-cover"
+                          />
+
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold">
+                              {
+                                product.name
+                              }
+                            </p>
+
+                            <p className="text-xs text-muted-foreground">
+                              Rs.{" "}
+                              {product.price.toLocaleString(
+                                "en-PK",
+                              )}{" "}
+                              ·
+                              Stock{" "}
+                              {
+                                product.stock
+                              }
+                            </p>
+                          </div>
+
+                          <Button
+                            type="button"
+                            variant={
+                              product.active
+                                ? "outline"
+                                : "default"
+                            }
+                            size="sm"
+                            className="rounded-lg"
+                            disabled={
+                              productBusyId ===
+                              product.id
+                            }
+                            onClick={() =>
+                              void toggleProduct(
+                                product,
+                              )
+                            }
+                          >
+                            {product.active ? (
+                              <>
+                                <EyeOff className="mr-1 h-3.5 w-3.5" />
+
+                                Hide
+                              </>
+                            ) : (
+                              <>
+                                <Eye className="mr-1 h-3.5 w-3.5" />
+
+                                Show
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      ),
+                    )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+  /*
+   * =========================================================
+   * PAGE
+   * =========================================================
+   */
 
   return (
     <DashboardShell
@@ -1503,12 +1970,24 @@ function AdminCategories() {
       nav={adminNav}
       actions={
         <Dialog
-          open={
-            addOpen
-          }
-          onOpenChange={
-            setAddOpen
-          }
+          open={addOpen}
+          onOpenChange={(
+            open,
+          ) => {
+            setAddOpen(
+              open,
+            );
+
+            /*
+             * Modal close par form reset.
+             */
+            if (
+              !open &&
+              !saving
+            ) {
+              resetAddCategoryForm();
+            }
+          }}
         >
           <DialogTrigger
             asChild
@@ -1530,7 +2009,11 @@ function AdminCategories() {
               </DialogTitle>
 
               <DialogDescription>
-                Admin-created category directly marketplace mein approve hogi.
+                Main category
+                aur uske
+                subcategory
+                options ek saath
+                add kar sakte hain.
               </DialogDescription>
             </DialogHeader>
 
@@ -1540,6 +2023,8 @@ function AdminCategories() {
                 addCategory
               }
             >
+              {/* Main Category */}
+
               <div className="space-y-1.5">
                 <Label htmlFor="cn">
                   Category Name
@@ -1554,15 +2039,129 @@ function AdminCategories() {
                     event,
                   ) =>
                     setNewCategory(
-                      event
-                        .target
+                      event.target
                         .value,
                     )
                   }
                   required
-                  placeholder="e.g. Sports"
+                  placeholder="e.g. Janimaz"
                   className="rounded-xl"
                 />
+              </div>
+
+              {/* =============================================
+                  SUBCATEGORY DROPDOWN
+              ============================================= */}
+
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowSubcategories(
+                      (
+                        current,
+                      ) =>
+                        !current,
+                    )
+                  }
+                  className="flex min-h-11 w-full items-center justify-between rounded-xl border border-border bg-background px-3 text-left text-sm font-semibold transition-colors hover:bg-muted/50"
+                >
+                  <span>
+                    Subcategories /
+                    Options
+
+                    <span className="ml-1 font-normal text-muted-foreground">
+                      (optional)
+                    </span>
+                  </span>
+
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      showSubcategories
+                        ? "rotate-180"
+                        : ""
+                    }`}
+                  />
+                </button>
+
+                {showSubcategories && (
+                  <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3">
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      Example:
+                      Janimaz ke
+                      andar Velvet
+                      Janimaz, Kids
+                      Janimaz aur
+                      Travel Janimaz
+                      add kar sakte
+                      hain.
+                    </p>
+
+                    <div className="space-y-2">
+                      {newSubcategories.map(
+                        (
+                          value,
+                          index,
+                        ) => (
+                          <div
+                            key={
+                              index
+                            }
+                            className="flex items-center gap-2"
+                          >
+                            <Input
+                              value={
+                                value
+                              }
+                              onChange={(
+                                event,
+                              ) =>
+                                updateSubcategoryField(
+                                  index,
+                                  event
+                                    .target
+                                    .value,
+                                )
+                              }
+                              placeholder={`Subcategory ${index + 1}, e.g. Velvet Janimaz`}
+                              className="rounded-xl"
+                            />
+
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="shrink-0 rounded-xl text-destructive"
+                              onClick={() =>
+                                removeSubcategoryField(
+                                  index,
+                                )
+                              }
+                              aria-label={`Remove subcategory ${index + 1}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ),
+                      )}
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full rounded-xl"
+                      onClick={
+                        addSubcategoryField
+                      }
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+
+                      Add another
+                      subcategory
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <Button
@@ -1598,18 +2197,24 @@ function AdminCategories() {
           <section>
             <div className="mb-4">
               <h2 className="text-lg font-bold">
-                Pending Category Requests
+                Pending Category
+                Requests
               </h2>
 
               <p className="mt-1 text-sm text-muted-foreground">
-                Vendor ki new categories ko approve, edit ya reject karein.
+                Vendor ki new
+                categories ko
+                approve, edit ya
+                reject karein.
               </p>
             </div>
 
             {pendingCategories.length ===
             0 ? (
               <div className="surface-card p-6 text-sm text-muted-foreground">
-                Abhi koi pending category request nahi hai.
+                Abhi koi pending
+                category request
+                nahi hai.
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -1630,18 +2235,22 @@ function AdminCategories() {
           <section>
             <div className="mb-4">
               <h2 className="text-lg font-bold">
-                Approved Categories
+                Approved
+                Categories
               </h2>
 
               <p className="mt-1 text-sm text-muted-foreground">
-                Marketplace ki active approved categories.
+                Marketplace ki
+                active approved
+                categories.
               </p>
             </div>
 
             {approvedCategories.length ===
             0 ? (
               <div className="surface-card p-6 text-sm text-muted-foreground">
-                Koi approved category nahi hai.
+                Koi approved
+                category nahi hai.
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -1664,11 +2273,16 @@ function AdminCategories() {
             <section>
               <div className="mb-4">
                 <h2 className="text-lg font-bold">
-                  Rejected Categories
+                  Rejected
+                  Categories
                 </h2>
 
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Rejected requests ko review ya dobara approve kar sakte hain.
+                  Rejected
+                  requests ko
+                  review ya dobara
+                  approve kar sakte
+                  hain.
                 </p>
               </div>
 
@@ -1687,14 +2301,14 @@ function AdminCategories() {
         </div>
       )}
 
-      {/* Edit Dialog */}
+      {/* =====================================================
+          EDIT DIALOG
+      ===================================================== */}
 
       <Dialog
-        open={
-          Boolean(
-            editTarget,
-          )
-        }
+        open={Boolean(
+          editTarget,
+        )}
         onOpenChange={(
           open,
         ) => {
@@ -1712,7 +2326,11 @@ function AdminCategories() {
             </DialogTitle>
 
             <DialogDescription>
-              Category ka naam update karein. Is category ke products bhi naye naam par move ho jayenge.
+              Category ka naam
+              update karein. Is
+              category ke products
+              bhi naye naam par move
+              ho jayenge.
             </DialogDescription>
           </DialogHeader>
 
@@ -1736,8 +2354,7 @@ function AdminCategories() {
                   event,
                 ) =>
                   setEditName(
-                    event
-                      .target
+                    event.target
                       .value,
                   )
                 }

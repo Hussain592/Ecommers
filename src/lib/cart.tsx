@@ -43,18 +43,47 @@ type CartCtx = {
 
 const Ctx = createContext<CartCtx | null>(null);
 
+/*
+ * Purana key intentionally same rakha hai.
+ * Is se existing users ka cart delete nahi hoga.
+ */
 const KEY = "dukaan_cart";
 
 /*
-  24 isliye:
-  Desktop = 4 × 6
-  Tablet = 3 × 8
-  Mobile = 2 × 12
-*/
-const PAGE_SIZE = 24;
+ * Initial page ko thora halka rakha hai.
+ * 16 products = desktop par 4 x 4.
+ * Baqi products "Load more" se aayenge.
+ */
+const PAGE_SIZE = 16;
 
+/*
+ * Home/catalog ko vendor JOIN ki zarurat nahi.
+ * Vendor detail product page par vendor_id se separately load hoti hai.
+ *
+ * description abhi rakhi hai taa-ke agar product catalog se detail page
+ * khole to existing detail page ka cached-product flow break na ho.
+ */
 const PRODUCT_SELECT =
-  "id, name, description, image, price, compare_price, stock, category, vendor_id, created_at, vendors(name)";
+  "id, name, description, image, price, compare_price, stock, category, vendor_id, created_at";
+
+/*
+ * React dev/StrictMode aur fast route remounts mein same first-page request
+ * dobara fire na ho, isliye short in-memory cache.
+ */
+const FIRST_PAGE_CACHE_TTL = 30_000;
+
+type CatalogRowsResult = {
+  rows: any[];
+};
+
+let firstPageCache:
+  | {
+      expiresAt: number;
+      result: CatalogRowsResult;
+    }
+  | null = null;
+
+let firstPagePending: Promise<CatalogRowsResult> | null = null;
 
 function mapProduct(item: any): Product {
   return {
@@ -81,10 +110,7 @@ function mapProduct(item: any): Product {
 
     active: true,
 
-    vendor:
-      item.vendors?.[0]?.name ??
-      item.vendors?.name ??
-      "Dukaan.pk Seller",
+    vendor: "azadari.store Seller",
 
     vendorId: item.vendor_id ?? undefined,
 
@@ -100,12 +126,81 @@ function mapProduct(item: any): Product {
   };
 }
 
+async function requestCatalogRows(
+  offset: number,
+): Promise<CatalogRowsResult> {
+  const runRequest = async (): Promise<CatalogRowsResult> => {
+    const { data, error } = await supabase
+      .from("products")
+      .select(PRODUCT_SELECT)
+      .eq("active", true)
+      .order("created_at", {
+        ascending: false,
+      })
+      .order("id", {
+        ascending: false,
+      })
+      /*
+       * range inclusive hoti hai.
+       * 16 display + 1 extra hasMore check ke liye.
+       */
+      .range(offset, offset + PAGE_SIZE);
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      rows: data ?? [],
+    };
+  };
+
+  /*
+   * Sirf first page ko short cache karte hain.
+   * Load-more pages fresh fetch hongi.
+   */
+  if (offset === 0) {
+    const now = Date.now();
+
+    if (
+      firstPageCache &&
+      firstPageCache.expiresAt > now
+    ) {
+      return firstPageCache.result;
+    }
+
+    if (firstPagePending) {
+      return firstPagePending;
+    }
+
+    firstPagePending = runRequest()
+      .then((result) => {
+        firstPageCache = {
+          expiresAt: Date.now() + FIRST_PAGE_CACHE_TTL,
+          result,
+        };
+
+        return result;
+      })
+      .finally(() => {
+        firstPagePending = null;
+      });
+
+    return firstPagePending;
+  }
+
+  return runRequest();
+}
+
 export function CartProvider({
   children,
 }: {
   children: ReactNode;
 }) {
   const [lines, setLines] = useState<CartLine[]>([]);
+
+  const [cartHydrated, setCartHydrated] =
+    useState(false);
 
   const [catalog, setCatalog] = useState<Product[]>([]);
 
@@ -128,37 +223,47 @@ export function CartProvider({
     useState(0);
 
   /*
-    Cart localStorage se load
-  */
+   * Cart localStorage se load.
+   *
+   * cartHydrated isliye hai taa-ke first render par empty [] purane
+   * localStorage cart ko accidentally overwrite na kare.
+   */
   useEffect(() => {
     try {
-      const raw =
-        localStorage.getItem(KEY);
+      const raw = localStorage.getItem(KEY);
 
-      if (!raw) return;
+      if (raw) {
+        const parsed = JSON.parse(raw);
 
-      const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          const safeLines = parsed.filter(
+            (line): line is CartLine =>
+              Boolean(
+                line &&
+                  typeof line.id === "string" &&
+                  Number.isFinite(Number(line.qty)) &&
+                  Number(line.qty) > 0,
+              ),
+          );
 
-      if (Array.isArray(parsed)) {
-        setLines(parsed);
+          setLines(
+            safeLines.map((line) => ({
+              id: line.id,
+              qty: Number(line.qty),
+            })),
+          );
+        }
       }
     } catch (error) {
       console.error(
         "Unable to load cart",
         error,
       );
+    } finally {
+      setCartHydrated(true);
     }
   }, []);
 
-  /*
-    Products fetch
-
-    Hum 24 show karte hain
-    lekin database se 25 mangte hain.
-
-    25th product sirf ye check karta hai
-    ke aur products available hain ya nahi.
-  */
   const fetchCatalogPage = useCallback(
     async (
       offset: number,
@@ -171,54 +276,9 @@ export function CartProvider({
       }
 
       try {
-        const { data, error } =
-          await supabase
-            .from("products")
-            .select(PRODUCT_SELECT)
-            .eq("active", true)
+        const { rows } =
+          await requestCatalogRows(offset);
 
-            /*
-              Important:
-
-              created_at ke saath id bhi order
-              kar rahe hain taa-ke same created_at
-              wale demo products pagination mein
-              overlap na karein.
-            */
-            .order("created_at", {
-              ascending: false,
-            })
-            .order("id", {
-              ascending: false,
-            })
-
-            /*
-              range inclusive hoti hai.
-
-              0 → 24 = 25 rows
-
-              first 24 display
-              25th = hasMore check
-            */
-            .range(
-              offset,
-              offset + PAGE_SIZE,
-            );
-
-        if (error) {
-          console.error(
-            "Unable to load catalog",
-            error,
-          );
-
-          return;
-        }
-
-        const rows = data ?? [];
-
-        /*
-          Sirf 24 products display.
-        */
         const pageRows = rows.slice(
           0,
           PAGE_SIZE,
@@ -232,17 +292,11 @@ export function CartProvider({
             return mapped;
           }
 
-          /*
-            Existing + next page
-          */
           const merged = [
             ...previous,
             ...mapped,
           ];
 
-          /*
-            Duplicate IDs remove
-          */
           return Array.from(
             new Map(
               merged.map((product) => [
@@ -253,27 +307,24 @@ export function CartProvider({
           );
         });
 
-        /*
-          25 rows milein to next page exists.
-        */
         setCatalogHasMore(
           rows.length > PAGE_SIZE,
         );
 
-        /*
-          Example:
-          0 → 24
-          24 → 48
-          48 → 72
-        */
         setNextOffset(
           offset + pageRows.length,
         );
       } catch (error) {
         console.error(
-          "Unexpected catalog error",
+          "Unable to load catalog",
           error,
         );
+
+        if (!append) {
+          setCatalog([]);
+        }
+
+        setCatalogHasMore(false);
       } finally {
         setCatalogLoading(false);
         setCatalogLoadingMore(false);
@@ -283,8 +334,8 @@ export function CartProvider({
   );
 
   /*
-    Initial 24 products.
-  */
+   * Initial products.
+   */
   useEffect(() => {
     void fetchCatalogPage(
       0,
@@ -292,9 +343,6 @@ export function CartProvider({
     );
   }, [fetchCatalogPage]);
 
-  /*
-    Load More button.
-  */
   const loadMoreCatalog =
     useCallback(() => {
       if (
@@ -316,8 +364,8 @@ export function CartProvider({
     ]);
 
   /*
-    Cart IDs.
-  */
+   * Cart IDs stable string.
+   */
   const cartIdsKey = useMemo(
     () =>
       lines
@@ -328,13 +376,14 @@ export function CartProvider({
   );
 
   /*
-    Cart products separately fetch.
-
-    Isliye agar Product #800 cart mein
-    hai aur homepage par first 24 hi loaded
-    hain, tab bhi cart mein product show hoga.
-  */
+   * Cart products separately fetch.
+   *
+   * Sirf cart ke actual IDs fetch hote hain.
+   * Puri catalog dobara fetch nahi hoti.
+   */
   useEffect(() => {
+    let cancelled = false;
+
     const loadCartProducts =
       async () => {
         if (!cartIdsKey) {
@@ -345,12 +394,48 @@ export function CartProvider({
         const ids =
           cartIdsKey.split(",");
 
+        /*
+         * Jo products already catalog mein hain unhein pehle reuse karo.
+         * Is se normal home-page products add karne par unnecessary DB
+         * request avoid ho sakti hai.
+         */
+        const catalogById = new Map(
+          catalog.map((product) => [
+            product.id,
+            product,
+          ]),
+        );
+
+        const alreadyAvailable =
+          ids
+            .map((id) =>
+              catalogById.get(id),
+            )
+            .filter(Boolean) as Product[];
+
+        const availableIds = new Set(
+          alreadyAvailable.map(
+            (product) => product.id,
+          ),
+        );
+
+        const missingIds = ids.filter(
+          (id) => !availableIds.has(id),
+        );
+
+        if (missingIds.length === 0) {
+          setCartProducts(
+            alreadyAvailable,
+          );
+          return;
+        }
+
         try {
           const { data, error } =
             await supabase
               .from("products")
               .select(PRODUCT_SELECT)
-              .in("id", ids);
+              .in("id", missingIds);
 
           if (error) {
             console.error(
@@ -358,29 +443,57 @@ export function CartProvider({
               error,
             );
 
+            if (!cancelled) {
+              setCartProducts(
+                alreadyAvailable,
+              );
+            }
+
             return;
           }
 
-          setCartProducts(
+          if (cancelled) {
+            return;
+          }
+
+          const fetched =
             (data ?? []).map(
               mapProduct,
-            ),
-          );
+            );
+
+          setCartProducts([
+            ...alreadyAvailable,
+            ...fetched,
+          ]);
         } catch (error) {
           console.error(
             "Unexpected cart loading error",
             error,
           );
+
+          if (!cancelled) {
+            setCartProducts(
+              alreadyAvailable,
+            );
+          }
         }
       };
 
     void loadCartProducts();
-  }, [cartIdsKey]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cartIdsKey, catalog]);
 
   /*
-    Cart save.
-  */
+   * Cart save.
+   */
   useEffect(() => {
+    if (!cartHydrated) {
+      return;
+    }
+
     try {
       localStorage.setItem(
         KEY,
@@ -392,21 +505,33 @@ export function CartProvider({
         error,
       );
     }
-  }, [lines]);
+  }, [lines, cartHydrated]);
 
   const value =
     useMemo<CartCtx>(() => {
+      const productMap = new Map<
+        string,
+        Product
+      >();
+
+      for (const product of catalog) {
+        productMap.set(
+          product.id,
+          product,
+        );
+      }
+
+      for (const product of cartProducts) {
+        productMap.set(
+          product.id,
+          product,
+        );
+      }
+
       const detailed = lines
         .map((line) => {
           const product =
-            cartProducts.find(
-              (p) =>
-                p.id === line.id,
-            ) ??
-            catalog.find(
-              (p) =>
-                p.id === line.id,
-            );
+            productMap.get(line.id);
 
           if (!product) {
             return null;

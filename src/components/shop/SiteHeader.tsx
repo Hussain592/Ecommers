@@ -39,8 +39,7 @@ const nav = [
 export function SiteHeader() {
   const { count } = useCart();
 
-  const [open, setOpen] =
-    useState(false);
+  const [open, setOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#c9a24b]/30 bg-[#082b21]/95 shadow-sm backdrop-blur-xl">
@@ -49,9 +48,11 @@ export function SiteHeader() {
       ===================================================== */}
       <div className="hidden border-b border-[#c9a24b]/20 bg-[#041c15] py-1.5 text-center text-xs font-medium tracking-wide text-[#f8f1df] sm:block">
         Cash on Delivery all over Pakistan
+
         <span className="mx-2 text-[#c9a24b]">
           •
         </span>
+
         Free delivery on orders above Rs. 3,000
       </div>
 
@@ -116,14 +117,7 @@ export function SiteHeader() {
               key={item.to}
               to={item.to}
               activeOptions={{
-                exact:
-                  item.to === "/",
-              }}
-              activeProps={{
-                className:
-                  "bg-[#d8b85c] text-[#09271e] shadow-sm",
-                "aria-current":
-                  "page",
+                exact: item.to === "/",
               }}
               className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold text-[#eee8d8] transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b85c]"
             >
@@ -195,10 +189,7 @@ export function SiteHeader() {
             size="icon"
             className="shrink-0 rounded-xl border-[#d8b85c]/60 bg-[#fffaf0] text-[#16392d] hover:bg-[#f5ead0] lg:hidden"
             onClick={() =>
-              setOpen(
-                (value) =>
-                  !value,
-              )
+              setOpen((value) => !value)
             }
             aria-label={
               open
@@ -232,14 +223,7 @@ export function SiteHeader() {
                 key={item.to}
                 to={item.to}
                 activeOptions={{
-                  exact:
-                    item.to === "/",
-                }}
-                activeProps={{
-                  className:
-                    "bg-[#d8b85c] text-[#082b21]",
-                  "aria-current":
-                    "page",
+                  exact: item.to === "/",
                 }}
                 onClick={() =>
                   setOpen(false)
