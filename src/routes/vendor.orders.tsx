@@ -1,6 +1,7 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Eye, Loader2, Search } from "lucide-react";
+import { toast } from "sonner";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { vendorNav } from "@/components/dashboard/nav-config";
@@ -31,6 +32,13 @@ export const Route = createFileRoute("/vendor/orders")({
 });
 
 const tabs = ["All", "Pending", "Confirmed", "Dispatched", "Delivered", "Cancelled"];
+const nextStatuses: Record<string, string[]> = {
+  Pending: ["Confirmed", "Cancelled"],
+  Confirmed: ["Dispatched", "Cancelled"],
+  Dispatched: ["Delivered"],
+  Delivered: [],
+  Cancelled: [],
+};
 
 type OrderRow = {
   id: string;
@@ -152,29 +160,28 @@ function VendorOrders() {
                         onChange={async (event) => {
                           const status = event.target.value;
                           const { error } = await supabase.from("orders").update({ status }).eq("id", o.id);
-                          if (error) return;
+                          if (error) {
+                            toast.error("Order status update nahi ho saka.");
+                            return;
+                          }
                           setOrderList((current) => current.map((item) => (item.id === o.id ? { ...item, status } : item)));
+                          toast.success("Order status update ho gaya.");
 
-                          // Order 'Delivered' hone par, apna payout automatically ban jaye
-                          if (status === "Delivered") {
-                            const { data: existing } = await supabase.from("payouts").select("pay_id").eq("pay_id", `PYT-${o.id}`).maybeSingle();
-                            if (!existing) {
-                              const { data: rateRow } = await supabase.from("platform_settings").select("value").eq("key", "commission_rate").maybeSingle();
-                              const rate = rateRow?.value ? Number(rateRow.value) : 8;
-                              const netAmount = Number(o.total) * (1 - rate / 100);
-                              await supabase.from("payouts").insert({
-                                pay_id: `PYT-${o.id}`,
-                                recipient_name: storeName,
-                                recipient_type: "Vendor",
-                                amount: netAmount,
-                                method: "Bank Transfer",
-                                status: "Pending",
-                              });
+                          if (status === "Confirmed") {
+                            const { error: emailError } = await supabase.functions.invoke(
+                              "send-confirmation-email",
+                              { body: { type: "order", id: o.id } },
+                            );
+                            if (emailError) {
+                              console.error("Order confirmed but email notification failed:", emailError);
+                              toast.error("Order confirm ho gaya, lekin email nahi bheji ja saki.");
+                            } else {
+                              toast.success("Customer ko confirmation email bhej di.");
                             }
                           }
                         }}
                       >
-                        {tabs.slice(1).map((status) => <option key={status} value={status}>{status}</option>)}
+                        {[o.status, ...(nextStatuses[o.status] ?? [])].map((status) => <option key={status} value={status}>{status}</option>)}
                       </select>
                       <Dialog>
                         <DialogTrigger asChild>

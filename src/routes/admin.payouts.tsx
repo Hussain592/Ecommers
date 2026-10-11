@@ -24,7 +24,7 @@ export const Route = createFileRoute("/admin/payouts")({
 });
 
 type PayoutRow = {
-  pay_id: string;
+  id: string;
   recipient_name: string;
   recipient_type: string;
   amount: number;
@@ -42,9 +42,14 @@ function AdminPayouts() {
   const loadPayouts = async () => {
     const { data, error } = await supabase
       .from("payouts")
-      .select("pay_id, recipient_name, recipient_type, amount, method, status, created_at, paid_at")
+      .select("id, recipient_name, recipient_type, amount, method, status, created_at, paid_at")
       .order("created_at", { ascending: false });
-    if (!error && data) setPayouts(data);
+    if (error) {
+      console.error("Unable to load payouts:", error);
+      toast.error("Payouts load nahi ho sake.");
+    } else {
+      setPayouts(data ?? []);
+    }
     setLoading(false);
   };
 
@@ -52,12 +57,12 @@ function AdminPayouts() {
     void loadPayouts();
   }, []);
 
-  const release = async (payId: string) => {
-    setBusyId(payId);
+  const release = async (payoutId: string) => {
+    setBusyId(payoutId);
     const { data, error } = await supabase
       .from("payouts")
       .update({ status: "Paid", paid_at: new Date().toISOString() })
-      .eq("pay_id", payId)
+      .eq("id", payoutId)
       .select();
     setBusyId(null);
 
@@ -71,7 +76,7 @@ function AdminPayouts() {
     }
 
     toast.success("Payout release ho gaya.");
-    setPayouts((prev) => prev.map((p) => (p.pay_id === payId ? { ...p, status: "Paid", paid_at: new Date().toISOString() } : p)));
+    setPayouts((prev) => prev.map((p) => (p.id === payoutId ? { ...p, status: "Paid", paid_at: new Date().toISOString() } : p)));
   };
 
   const pending = payouts.filter((p) => p.status === "Pending");
@@ -126,8 +131,8 @@ function AdminPayouts() {
                 </tr>
               ) : (
                 payouts.map((p) => (
-                  <tr key={p.pay_id} className="hover:bg-muted/40">
-                    <td className="px-4 py-3 font-medium">{p.pay_id}</td>
+                  <tr key={p.id} className="hover:bg-muted/40">
+                    <td className="px-4 py-3 font-medium">{p.id}</td>
                     <td className="px-4 py-3">{p.recipient_name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{p.recipient_type}</td>
                     <td className="px-4 py-3">{p.method}</td>
@@ -139,8 +144,8 @@ function AdminPayouts() {
                         size="sm"
                         variant="outline"
                         className="rounded-lg"
-                        disabled={p.status === "Paid" || busyId === p.pay_id}
-                        onClick={() => release(p.pay_id)}
+                        disabled={p.status === "Paid" || busyId === p.id}
+                        onClick={() => release(p.id)}
                       >
                         <Send className="mr-1.5 h-3.5 w-3.5" /> Release
                       </Button>

@@ -64,17 +64,70 @@ const PAGE_SIZE = 16;
  * khole to existing detail page ka cached-product flow break na ho.
  */
 const PRODUCT_SELECT =
-  "id, name, description, image, price, compare_price, stock, category, vendor_id, created_at";
+  "id, name, description, image, images, price, compare_price, stock, category, vendor_id, created_at";
 
 /*
  * React dev/StrictMode aur fast route remounts mein same first-page request
  * dobara fire na ho, isliye short in-memory cache.
  */
 const FIRST_PAGE_CACHE_TTL = 30_000;
+const CATALOG_STORAGE_KEY = "dukaan_catalog_v1";
 
 type CatalogRowsResult = {
   rows: any[];
 };
+
+type StoredCatalog = {
+  products: Product[];
+  hasMore: boolean;
+};
+
+function readStoredCatalog(): StoredCatalog | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(CATALOG_STORAGE_KEY);
+    if (!raw) return null;
+
+    const parsed: unknown = JSON.parse(raw);
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      !("products" in parsed) ||
+      !Array.isArray(parsed.products) ||
+      !("hasMore" in parsed) ||
+      typeof parsed.hasMore !== "boolean"
+    ) {
+      throw new Error("Cached product catalog has an invalid format.");
+    }
+
+    const products = parsed.products.filter(
+      (product): product is Product =>
+        Boolean(
+          product &&
+            typeof product === "object" &&
+            "id" in product &&
+            typeof product.id === "string" &&
+            "name" in product &&
+            typeof product.name === "string" &&
+            "price" in product &&
+            typeof product.price === "number" &&
+            "image" in product &&
+            typeof product.image === "string",
+        ),
+    );
+
+    return {
+      products,
+      hasMore: parsed.hasMore,
+    };
+  } catch (error) {
+    console.error("Unable to read cached product catalog:", error);
+    return null;
+  }
+}
 
 let firstPageCache:
   | {
@@ -121,6 +174,15 @@ function mapProduct(item: any): Product {
     reviews: 0,
 
     image: item.image || "/favicon.ico",
+
+    images: Array.isArray(item.images)
+      ? item.images.filter(
+          (image: unknown): image is string =>
+            typeof image === "string" && image.length > 0,
+        )
+      : item.image
+        ? [item.image]
+        : [],
 
     description: item.description ?? "",
   };
@@ -211,16 +273,14 @@ export function CartProvider({
   const [catalogLoading, setCatalogLoading] =
     useState(true);
 
-  const [catalogHasMore, setCatalogHasMore] =
-    useState(true);
+  const [catalogHasMore, setCatalogHasMore] = useState(true);
 
   const [
     catalogLoadingMore,
     setCatalogLoadingMore,
   ] = useState(false);
 
-  const [nextOffset, setNextOffset] =
-    useState(0);
+  const [nextOffset, setNextOffset] = useState(0);
 
   /*
    * Cart localStorage se load.
@@ -262,6 +322,16 @@ export function CartProvider({
     } finally {
       setCartHydrated(true);
     }
+  }, []);
+
+  useEffect(() => {
+    const storedCatalog = readStoredCatalog();
+    if (!storedCatalog) return;
+
+    setCatalog(storedCatalog.products);
+    setCatalogHasMore(storedCatalog.hasMore);
+    setNextOffset(storedCatalog.products.length);
+    setCatalogLoading(false);
   }, []);
 
   const fetchCatalogPage = useCallback(
@@ -314,15 +384,28 @@ export function CartProvider({
         setNextOffset(
           offset + pageRows.length,
         );
+
+        if (!append && typeof window !== "undefined") {
+          try {
+            window.localStorage.setItem(
+              CATALOG_STORAGE_KEY,
+              JSON.stringify({
+                products: mapped,
+                hasMore: rows.length > PAGE_SIZE,
+              } satisfies StoredCatalog),
+            );
+          } catch (error) {
+            console.error(
+              "Unable to cache product catalog:",
+              error,
+            );
+          }
+        }
       } catch (error) {
         console.error(
           "Unable to load catalog",
           error,
         );
-
-        if (!append) {
-          setCatalog([]);
-        }
 
         setCatalogHasMore(false);
       } finally {

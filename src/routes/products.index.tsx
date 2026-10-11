@@ -42,7 +42,7 @@ import type { Product } from "@/data/mock";
 const PAGE_SIZE = 16;
 
 const PRODUCT_LIST_SELECT =
-  "id, name, image, price, compare_price, stock, category, vendor_id";
+  "id, name, image, images, price, compare_price, stock, category, vendor_id";
 
 const CACHE_TTL = 30_000;
 
@@ -60,6 +60,10 @@ type CategoryRow = {
   name: string;
   parent_id: string | null;
   sort_order: number | null;
+};
+
+type ProductCategoryRow = {
+  category?: string | null;
 };
 
 /* ============================================================
@@ -181,6 +185,15 @@ function mapListProduct(
     image:
       item.image ||
       "/favicon.ico",
+
+    images: Array.isArray(item.images)
+      ? item.images.filter(
+          (image: unknown): image is string =>
+            typeof image === "string" && image.length > 0,
+        )
+      : item.image
+        ? [item.image]
+        : [],
 
     description: "",
   };
@@ -905,8 +918,8 @@ function ProductsPage() {
               throw error;
             }
 
-            const rows =
-              data ?? [];
+            const rows: ProductCategoryRow[] =
+              (data ?? []) as ProductCategoryRow[];
 
             rows.forEach(
               (row) => {
@@ -1642,8 +1655,8 @@ function ProductsPage() {
                 <div
                   className={
                     activeRoot
-                      ? "grid min-h-[360px] max-h-[440px] grid-cols-[minmax(210px,0.9fr)_minmax(260px,1.1fr)]"
-                      : "block max-h-[440px]"
+                      ? "grid min-h-90 max-h-110 grid-cols-[minmax(210px,0.9fr)_minmax(260px,1.1fr)]"
+                      : "block max-h-110"
                   }
                 >
                   {/* LEFT */}
@@ -1651,8 +1664,8 @@ function ProductsPage() {
                   <div
                     className={`overflow-y-auto bg-[#fffdf7] py-2 ${
                       activeRoot
-                        ? "max-h-[440px] border-r border-[#e7e0d1]"
-                        : "max-h-[440px]"
+                        ? "max-h-110 border-r border-[#e7e0d1]"
+                        : "max-h-110"
                     }`}
                   >
                     <button
@@ -1754,7 +1767,7 @@ function ProductsPage() {
                   {/* RIGHT */}
 
                   {activeRoot && (
-                    <div className="max-h-[440px] overflow-y-auto bg-white p-4">
+                    <div className="max-h-110 overflow-y-auto bg-white p-4">
                       <div className="border-b border-[#eee7d8] pb-3">
                         <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#9a7927]">
                           Explore

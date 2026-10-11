@@ -115,31 +115,27 @@ export function ProductForm({
 
 
   const [
-
-    imageFile,
-
-    setImageFile,
-
-  ] = useState<File | null>(
-
-    null,
-
+    imageFiles,
+    setImageFiles,
+  ] = useState<File[]>(
+    [],
   );
-
-
 
   const [
+    imagePreviews,
+    setImagePreviews,
+  ] = useState<string[]>(
+    product?.images?.length
+      ? product.images
+      : product?.image
+        ? [product.image]
+        : [],
+  );
 
-    imagePreview,
-
-    setImagePreview,
-
-  ] = useState(
-
-    product?.image ?? "",
-
-  );
-
+  const remainingImageCount = Math.max(
+    0,
+    3 - imagePreviews.length,
+  );
 
 
   const [
@@ -1062,85 +1058,46 @@ export function ProductForm({
 
    */
 
-  const handleImageChange = (
+  const handleImageChange = (
+    fileList: FileList | null,
+  ) => {
+    if (!fileList?.length) {
+      return;
+    }
 
-    file:
+    const files = Array.from(fileList);
+    const availableSlots =
+      3 - imagePreviews.length;
 
-      | File
+    if (files.length > availableSlots) {
+      toast.error(
+        `Sirf ${availableSlots} aur image${availableSlots === 1 ? "" : "s"} add kar sakte hain.`,
+      );
+      return;
+    }
 
-      | undefined,
+    if (files.some((file) => !file.type.startsWith("image/"))) {
+      toast.error(
+        "Sirf image file upload karein.",
+      );
 
-  ) => {
+      return;
+    }
 
-    if (!file) {
+    if (files.some((file) => file.size > 5 * 1024 * 1024)) {
+      toast.error(
+        "Har image 5 MB se chhoti honi chahiye.",
+      );
 
-      return;
+      return;
+    }
 
-    }
-
-
-
-    if (
-
-      !file.type.startsWith(
-
-        "image/",
-
-      )
-
-    ) {
-
-      toast.error(
-
-        "Sirf image file upload karein.",
-
-      );
-
-
-
-      return;
-
-    }
-
-
-
-    if (
-
-      file.size >
-
-      5 * 1024 * 1024
-
-    ) {
-
-      toast.error(
-
-        "Image 5 MB se chhoti honi chahiye.",
-
-      );
-
-
-
-      return;
-
-    }
-
-
-
-    setImageFile(file);
-
-
-
-    setImagePreview(
-
-      URL.createObjectURL(
-
-        file,
-
-      ),
-
-    );
-
-  };
+    setImageFiles((previous) => [...previous, ...files]);
+    setImagePreviews((previous) => [
+      ...previous,
+      ...files.map((file) => URL.createObjectURL(file)),
+    ]);
+  };
 
 
 
@@ -1154,115 +1111,49 @@ export function ProductForm({
 
    */
 
-  const uploadImage =
+  const uploadImages =
+    async (
+      userId: string,
+    ) => {
+      const existingImages =
+        product?.images?.length
+          ? product.images
+          : product?.image
+            ? [product.image]
+            : [];
 
-    async (
+      if (!imageFiles.length) {
+        return existingImages;
+      }
 
-      userId: string,
+      const imageUrls: string[] = [];
 
-    ) => {
+      for (const file of imageFiles) {
+        const extension =
+          file.name.split(".").pop()?.toLowerCase() || "jpg";
+        const filePath =
+          `${userId}/${randomUuidLike()}.${extension}`;
+        const { error } = await supabase.storage
+          .from("product-images")
+          .upload(filePath, file, {
+            cacheControl: "3600",
+            contentType: file.type,
+            upsert: false,
+          });
 
-      if (!imageFile) {
+        if (error) {
+          throw error;
+        }
 
-        return (
+        imageUrls.push(
+          supabase.storage
+            .from("product-images")
+            .getPublicUrl(filePath).data.publicUrl,
+        );
+      }
 
-          product?.image ??
-
-          null
-
-        );
-
-      }
-
-
-
-      const extension =
-
-        imageFile.name
-
-          .split(".")
-
-          .pop()
-
-          ?.toLowerCase() ||
-
-        "jpg";
-
-
-
-      const filePath =
-
-        `${userId}/${randomUuidLike()}.${extension}`;
-
-
-
-      const {
-
-        error,
-
-      } =
-
-        await supabase.storage
-
-          .from(
-
-            "product-images",
-
-          )
-
-          .upload(
-
-            filePath,
-
-            imageFile,
-
-            {
-
-              cacheControl:
-
-                "3600",
-
-
-
-              contentType:
-
-                imageFile.type,
-
-
-
-              upsert:
-
-                false,
-
-            },
-
-          );
-
-
-
-      if (error) {
-
-        throw error;
-
-      }
-
-
-
-      return supabase.storage
-
-        .from(
-
-          "product-images",
-
-        )
-
-        .getPublicUrl(
-
-          filePath,
-
-        ).data.publicUrl;
-
-    };
+      return [...existingImages, ...imageUrls];
+    };
 
 
 
@@ -1289,9 +1180,7 @@ export function ProductForm({
 
 
       if (
-
         !selectedCategory
-
       ) {
 
         toast.error(
@@ -1303,12 +1192,19 @@ export function ProductForm({
 
 
         return;
-
       }
 
+      if (
+        imagePreviews.length !== 3
+      ) {
+        toast.error(
+          `Product submit karne ke liye total 3 images chahiye. ${remainingImageCount} aur add karein.`,
+        );
 
+        return;
+      }
 
-      setSaving(true);
+      setSaving(true);
 
 
 
@@ -1486,12 +1382,9 @@ export function ProductForm({
 
          */
 
-        const image =
-
-          await uploadImage(
-
+        const images =
+          await uploadImages(
             authData.user.id,
-
           );
 
 
@@ -1624,7 +1517,9 @@ export function ProductForm({
 
 
 
-          image,
+image: images[0] ?? null,
+
+images,
 
         };
 
@@ -2409,10 +2304,8 @@ export function ProductForm({
 
 
         <section className="surface-card p-5">
-
           <h2 className="font-bold">
-
-            Product Image
+            Product Images ({imagePreviews.length}/3)
 
           </h2>
 
@@ -2420,14 +2313,10 @@ export function ProductForm({
 
           <div className="mt-4 grid aspect-square place-items-center rounded-2xl border-2 border-dashed border-border bg-muted/50 text-center">
 
-            {imagePreview ? (
-
+            {imagePreviews[0] ? (
               <img
-
                 src={
-
-                  imagePreview
-
+                  imagePreviews[0]
                 }
 
                 alt="Product preview"
@@ -2457,42 +2346,38 @@ export function ProductForm({
               </div>
 
             )}
-
           </div>
 
+          {imagePreviews.length > 1 && (
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {imagePreviews.map((preview, index) => (
+                <img
+                  key={`${preview}-${index}`}
+                  src={preview}
+                  alt={`Product image ${index + 1} preview`}
+                  className="aspect-square w-full rounded-lg object-cover"
+                />
+              ))}
+            </div>
+          )}
 
-
-          <input
-
-            ref={
-
-              fileInputRef
-
-            }
-
-            type="file"
-
-            accept="image/*"
-
-            className="sr-only"
-
-            onChange={(
-
-              event,
-
-            ) =>
-
-              handleImageChange(
-
-                event.target
-
-                  .files?.[0],
-
-              )
-
-            }
-
-          />
+          <input
+            ref={
+              fileInputRef
+            }
+            type="file"
+            accept="image/*"
+            multiple
+            className="sr-only"
+            onChange={(
+              event,
+            ) =>
+              {
+                handleImageChange(event.target.files);
+                event.target.value = "";
+              }
+            }
+          />
 
 
 
@@ -2502,21 +2387,22 @@ export function ProductForm({
 
             variant="outline"
 
-            className="mt-3 w-full rounded-xl"
+            disabled={remainingImageCount === 0}
+            onClick={() =>
+              fileInputRef.current?.click()
+            }
+          >
+            {remainingImageCount === 3
+              ? "Choose 3 Images"
+              : remainingImageCount > 0
+                ? `Add ${remainingImageCount} More Image${remainingImageCount === 1 ? "" : "s"}`
+                : "3 Images Added"}
+          </Button>
 
-            onClick={() =>
-
-              fileInputRef.current?.click()
-
-            }
-
-          >
-
-            Choose Image
-
-          </Button>
-
-        </section>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Pehli image barqarar rahegi. Baqi images add karein; har image 5 MB se chhoti honi chahiye.
+          </p>
+        </section>
 
 
 

@@ -21,6 +21,7 @@ import { Route as SellRouteImport } from './routes/sell'
 import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as VendorRouteImport } from './routes/vendor'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminBookingsRouteImport } from './routes/admin.bookings'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCommissionsRouteImport } from './routes/admin.commissions'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
@@ -109,6 +110,11 @@ const VendorRoute = VendorRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBookingsRoute = AdminBookingsRouteImport.update({
+  id: '/bookings',
+  path: '/bookings',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
@@ -269,6 +275,7 @@ export interface FileRoutesByFullPath {
   '/sell': typeof SellRoute
   '/track-order': typeof TrackOrderRoute
   '/vendor': typeof VendorRouteWithChildren
+  '/admin/bookings': typeof AdminBookingsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/commissions': typeof AdminCommissionsRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -310,6 +317,7 @@ export interface FileRoutesByTo {
   '/orders': typeof OrdersRoute
   '/sell': typeof SellRoute
   '/track-order': typeof TrackOrderRoute
+  '/admin/bookings': typeof AdminBookingsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/commissions': typeof AdminCommissionsRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -354,6 +362,7 @@ export interface FileRoutesById {
   '/sell': typeof SellRoute
   '/track-order': typeof TrackOrderRoute
   '/vendor': typeof VendorRouteWithChildren
+  '/admin/bookings': typeof AdminBookingsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/commissions': typeof AdminCommissionsRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -399,6 +408,7 @@ export interface FileRouteTypes {
     | '/sell'
     | '/track-order'
     | '/vendor'
+    | '/admin/bookings'
     | '/admin/categories'
     | '/admin/commissions'
     | '/admin/orders'
@@ -440,6 +450,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/sell'
     | '/track-order'
+    | '/admin/bookings'
     | '/admin/categories'
     | '/admin/commissions'
     | '/admin/orders'
@@ -483,6 +494,7 @@ export interface FileRouteTypes {
     | '/sell'
     | '/track-order'
     | '/vendor'
+    | '/admin/bookings'
     | '/admin/categories'
     | '/admin/commissions'
     | '/admin/orders'
@@ -623,6 +635,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/bookings': {
+      id: '/admin/bookings'
+      path: '/bookings'
+      fullPath: '/admin/bookings'
+      preLoaderRoute: typeof AdminBookingsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/categories': {
@@ -832,6 +851,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminBookingsRoute: typeof AdminBookingsRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCommissionsRoute: typeof AdminCommissionsRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
@@ -847,6 +867,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminBookingsRoute: AdminBookingsRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCommissionsRoute: AdminCommissionsRoute,
   AdminOrdersRoute: AdminOrdersRoute,

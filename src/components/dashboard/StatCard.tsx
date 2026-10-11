@@ -21,7 +21,12 @@ export function StatCard({
   } as const;
 
   return (
-    <div className="surface-card p-4 sm:p-5">
+    <div
+      className="surface-card admin-stat-card p-4 sm:p-5"
+      data-tone={tone}
+      role="group"
+      aria-label={`${label}: ${value}${hint ? `. ${hint}` : ""}`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -31,7 +36,7 @@ export function StatCard({
           {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
         </div>
         <span className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-xl", tones[tone])}>
-          <Icon className="h-5 w-5" />
+          <Icon aria-hidden="true" className="h-5 w-5" />
         </span>
       </div>
     </div>

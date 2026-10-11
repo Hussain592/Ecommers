@@ -149,13 +149,39 @@ type ProductReview = {
   title: string | null;
 
   body: string;
-
   created_at: string;
-
   user_id: string;
+  verified_purchase: boolean;
 
 };
 
+function hasDeliveredOrderForProduct(
+  orders: unknown,
+  productId: string,
+): boolean {
+  if (!Array.isArray(orders)) {
+    return false;
+  }
+
+  return orders.some((order: unknown) => {
+    if (
+      !order ||
+      typeof order !== "object" ||
+      !("items" in order) ||
+      !Array.isArray(order.items)
+    ) {
+      return false;
+    }
+
+    return order.items.some(
+      (item: unknown) =>
+        item !== null &&
+        typeof item === "object" &&
+        "id" in item &&
+        item.id === productId,
+    );
+  });
+}
 
 
 type DatabaseProductRow = {
@@ -167,6 +193,8 @@ type DatabaseProductRow = {
   description: string | null;
 
   image: string | null;
+
+  images: string[] | null;
 
 
 
@@ -315,12 +343,18 @@ function mapDatabaseProduct(
 
 
     image:
-
       data.image ||
-
+      data.images?.[0] ||
       "/favicon.ico",
 
-
+    images: Array.isArray(data.images)
+      ? data.images.filter(
+          (image): image is string =>
+            typeof image === "string" && image.length > 0,
+        )
+      : data.image
+        ? [data.image]
+        : [],
 
     description:
 
@@ -475,12 +509,9 @@ function ProductDetail() {
 
 
   const [
-
-    selectedImage,
-
-    setSelectedImage,
-
-  ] = useState("");
+    selectedImageIndex,
+    setSelectedImageIndex,
+  ] = useState(0);
 
 
 
@@ -541,12 +572,16 @@ function ProductDetail() {
 
 
   const [
-
     reviewSaving,
 
     setReviewSaving,
 
   ] = useState(false);
+
+  const [
+    reviewEligibility,
+    setReviewEligibility,
+  ] = useState<"loading" | "eligible" | "ineligible" | "error">("loading");
 
 
 
@@ -651,9 +686,8 @@ function ProductDetail() {
             name,
 
             description,
-
             image,
-
+            images,
             price,
 
             compare_price,
@@ -1056,11 +1090,7 @@ function ProductDetail() {
 
 
 
-    setSelectedImage(
-
-      product.image,
-
-    );
+    setSelectedImageIndex(0);
 
 
 
@@ -1107,22 +1137,19 @@ function ProductDetail() {
             title,
 
             body,
-
             created_at,
-
-            user_id
+            user_id,
+            verified_purchase
 
             `,
 
           )
 
           .eq(
-
             "product_id",
-
             product.id,
-
           )
+          .eq("verified_purchase", true)
 
           .order(
 
@@ -1225,6 +1252,45 @@ function ProductDetail() {
     product?.id,
 
   ]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkReviewEligibility = async () => {
+      if (!product || !user) {
+        setReviewEligibility("ineligible");
+        return;
+      }
+
+      setReviewEligibility("loading");
+
+      const { data, error } = await supabase
+        .from("orders")
+        .select("items")
+        .eq("customer_id", user.id)
+        .eq("status", "Delivered");
+
+      if (cancelled) return;
+
+      if (error) {
+        console.error("Unable to verify product purchase:", error);
+        setReviewEligibility("error");
+        return;
+      }
+
+      setReviewEligibility(
+        hasDeliveredOrderForProduct(data, product.id)
+          ? "eligible"
+          : "ineligible",
+      );
+    };
+
+    void checkReviewEligibility();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product?.id, user?.id]);
 
 
 
@@ -1372,11 +1438,18 @@ function ProductDetail() {
 
 
 
-  const galleryImages = [
-
-    product.image,
-
-  ];
+  const savedGalleryImages = Array.from(
+    new Set([
+      product.image,
+      ...(product.images ?? []),
+    ].filter(Boolean)),
+  );
+  const galleryImages =
+    savedGalleryImages.length === 1
+      ? [savedGalleryImages[0], savedGalleryImages[0], savedGalleryImages[0]]
+      : savedGalleryImages;
+  const activeImage =
+    galleryImages[selectedImageIndex] ?? product.image;
 
 
 
@@ -1521,7 +1594,16 @@ function ProductDetail() {
 
 
         return;
+      }
 
+      if (reviewEligibility !== "eligible") {
+        toast.error(
+          reviewEligibility === "error"
+            ? "Purchase verify nahi ho saki. Dobara try karein."
+            : "Review dene ke liye pehle yeh product khareed kar receive karein.",
+        );
+
+        return;
       }
 
 
@@ -1586,6 +1668,8 @@ function ProductDetail() {
 
               user.id,
 
+            verified_purchase: true,
+
 
 
             reviewer_name:
@@ -1647,10 +1731,9 @@ function ProductDetail() {
           title,
 
           body,
-
           created_at,
-
-          user_id
+          user_id,
+          verified_purchase
 
           `,
 
@@ -1823,10 +1906,7 @@ function ProductDetail() {
               <img
 
                 src={
-
-                  selectedImage ||
-
-                  product.image
+                  activeImage
 
                 }
 
@@ -1849,10 +1929,7 @@ function ProductDetail() {
                     productImageFallback(
 
                       product.name,
-
-                      selectedImage ||
-
-                        product.image,
+                      activeImage,
 
                     );
 
@@ -1885,20 +1962,10 @@ function ProductDetail() {
                     type="button"
 
                     onClick={() =>
-
-                      setSelectedImage(
-
-                        image,
-
-                      )
-
+                      setSelectedImageIndex(index)
                     }
-
                     className={`overflow-hidden rounded-xl border-2 bg-card transition-colors ${
-
-                      selectedImage ===
-
-                      image
+                      selectedImageIndex === index
 
                         ? "border-primary"
 
@@ -3086,7 +3153,17 @@ function ProductDetail() {
 
                   </h3>
 
-
+                  {reviewEligibility !== "eligible" && (
+                    <p className="mt-2 text-sm text-muted-foreground" role="status">
+                      {reviewEligibility === "loading"
+                        ? "Purchase verify ho rahi hai..."
+                        : reviewEligibility === "error"
+                          ? "Purchase verification abhi nahi ho saki. Page refresh karke dobara try karein."
+                          : user
+                            ? "Review sirf us product ke liye diya ja sakta hai jo aapke delivered order mein ho."
+                            : "Review dene ke liye login karein aur product receive hone ka intezar karein."}
+                    </p>
+                  )}
 
                   <div className="mt-3 flex items-center gap-1">
 
@@ -3237,9 +3314,8 @@ function ProductDetail() {
                     className="mt-3 rounded-xl"
 
                     disabled={
-
-                      reviewSaving
-
+                      reviewSaving ||
+                      reviewEligibility !== "eligible"
                     }
 
                   >
@@ -3324,7 +3400,13 @@ function ProductDetail() {
 
                           </p>
 
-
+                          <span className="mt-1 inline-flex items-center gap-1 text-xs text-success">
+                            <CheckCircle2
+                              className="h-3.5 w-3.5"
+                              aria-hidden="true"
+                            />
+                            Verified purchase
+                          </span>
 
                           <div className="flex items-center gap-2 text-warning">
 

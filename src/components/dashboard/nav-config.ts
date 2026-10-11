@@ -1,6 +1,7 @@
 import {
   BadgePercent,
   Boxes,
+  CalendarCheck,
   ClipboardList,
   LayoutDashboard,
   Package,
@@ -97,6 +98,11 @@ export const adminNav: NavItem[] = [
     to: "/admin/orders",
     label: "Orders",
     icon: ClipboardList,
+  },
+  {
+    to: "/admin/bookings",
+    label: "Service Bookings",
+    icon: CalendarCheck,
   },
   {
     to: "/admin/commissions",

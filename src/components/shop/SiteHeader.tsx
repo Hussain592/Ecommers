@@ -7,7 +7,7 @@ import {
   Truck,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,9 +40,25 @@ export function SiteHeader() {
   const { count } = useCart();
 
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  const closeWhenMouseExitsMenu = (event: React.MouseEvent<HTMLElement>) => {
+    const nextTarget = event.relatedTarget;
+    if (
+      !(nextTarget instanceof Node) ||
+      (!menuRef.current?.contains(nextTarget) &&
+        !menuButtonRef.current?.contains(nextTarget))
+    ) {
+      setOpen(false);
+    }
+  };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#c9a24b]/30 bg-[#082b21]/95 shadow-sm backdrop-blur-xl">
+    <header
+      className="sticky top-0 z-40 border-b border-[#c9a24b]/30 bg-[#082b21]/95 shadow-sm backdrop-blur-xl"
+      onMouseLeave={() => setOpen(false)}
+    >
       {/* =====================================================
           TOP ANNOUNCEMENT
       ===================================================== */}
@@ -184,13 +200,12 @@ export function SiteHeader() {
 
           {/* Mobile Menu */}
           <Button
+            ref={menuButtonRef}
             type="button"
             variant="outline"
             size="icon"
             className="shrink-0 rounded-xl border-[#d8b85c]/60 bg-[#fffaf0] text-[#16392d] hover:bg-[#f5ead0] lg:hidden"
-            onClick={() =>
-              setOpen((value) => !value)
-            }
+            onClick={() => setOpen((value) => !value)}
             aria-label={
               open
                 ? "Close navigation menu"
@@ -213,9 +228,11 @@ export function SiteHeader() {
       ===================================================== */}
       {open && (
         <nav
+          ref={menuRef}
           id="mobile-navigation"
           className="border-t border-[#d8b85c]/25 bg-[#061f18] px-4 py-3 shadow-lg lg:hidden"
           aria-label="Mobile navigation"
+          onMouseOut={closeWhenMouseExitsMenu}
         >
           <div className="space-y-1">
             {nav.map((item) => (

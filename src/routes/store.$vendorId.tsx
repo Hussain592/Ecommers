@@ -137,7 +137,7 @@ function VendorStorePage() {
     <ShopLayout>
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
-          <div className="h-28 bg-linear-to-r from-primary via-blue-500 to-cyan-400 sm:h-36" />
+          <div className="h-28 bg-linear-to-r from-[#082b21] via-[#0b513b] to-[#c9a24b] sm:h-36" />
           <div className="px-5 pb-5 sm:px-8">
             <div className="-mt-10 flex flex-col gap-4 sm:-mt-12 sm:flex-row sm:items-end">
               <div className="grid h-20 w-20 shrink-0 place-items-center rounded-2xl border-4 border-card bg-primary-soft text-primary shadow-card sm:h-24 sm:w-24"><Store className="h-9 w-9" /></div>

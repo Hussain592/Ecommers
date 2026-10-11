@@ -32,7 +32,7 @@ export const Route = createFileRoute("/vendor/")({
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-type OrderRow = { id: string; customer_name: string; total: number; status: string; created_at: string };
+type OrderRow = { id: string; customer_name: string; total: number; delivery_fee: number; status: string; created_at: string };
 
 function VendorDashboard() {
   const [loading, setLoading] = useState(true);
@@ -57,9 +57,9 @@ function VendorDashboard() {
       setStoreName(vendor.name);
 
       const [ordersRes, productsRes, payoutsRes] = await Promise.all([
-        supabase.from("orders").select("id, customer_name, total, status, created_at").eq("vendor_id", vendor.id).order("created_at", { ascending: false }),
+        supabase.from("orders").select("id, customer_name, total, delivery_fee, status, created_at").eq("vendor_id", vendor.id).order("created_at", { ascending: false }),
         supabase.from("products").select("id", { count: "exact", head: true }).eq("vendor_id", vendor.id).eq("active", true),
-        supabase.from("payouts").select("amount").eq("recipient_name", vendor.name).eq("status", "Pending"),
+        supabase.from("payouts").select("amount").eq("recipient_vendor_id", vendor.id).eq("status", "Pending"),
       ]);
 
       setOrders(ordersRes.data ?? []);
@@ -70,7 +70,7 @@ function VendorDashboard() {
     void load();
   }, []);
 
-  const totalRevenue = orders.reduce((s, o) => s + Number(o.total), 0);
+  const totalRevenue = orders.reduce((s, o) => s + Number(o.total) - Number(o.delivery_fee ?? 0), 0);
   const pendingOrders = orders.filter((o) => o.status === "Pending").length;
 
   const now = new Date();
@@ -81,7 +81,7 @@ function VendorDashboard() {
         const od = new Date(o.created_at);
         return od.getMonth() === d.getMonth() && od.getFullYear() === d.getFullYear();
       })
-      .reduce((s, o) => s + Number(o.total), 0);
+      .reduce((s, o) => s + Number(o.total) - Number(o.delivery_fee ?? 0), 0);
     return { month: MONTH_LABELS[d.getMonth()], sales: monthSales };
   });
 

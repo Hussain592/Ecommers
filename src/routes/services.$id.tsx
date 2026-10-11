@@ -1,10 +1,12 @@
 ﻿import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, type FormEvent } from "react";
 import {
   BookOpen,
   Check,
   CheckCircle2,
   Clock,
   Hammer,
+  Loader2,
   MapPin,
   Paintbrush,
   Scissors,
@@ -21,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatPKR } from "@/data/mock";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/services/$id")({
   head: () => ({
@@ -185,6 +188,7 @@ const islamicServices: IslamicService[] = [
 
 function ServiceDetail() {
   const { id } = Route.useParams();
+  const [submitting, setSubmitting] = useState(false);
 
   const service = islamicServices.find(
     (item) => item.id === id,
@@ -389,16 +393,45 @@ function ServiceDetail() {
 
             <form
               className="mt-5 space-y-4"
-              onSubmit={(event) => {
+              onSubmit={async (event: FormEvent<HTMLFormElement>) => {
                 event.preventDefault();
+                if (submitting) return;
 
-                toast.success(
-                  "Booking request bhej di gayi (demo)",
-                  {
+                const form = event.currentTarget;
+                const formData = new FormData(form);
+                const customerName = String(formData.get("name") ?? "").trim();
+                const email = String(formData.get("email") ?? "").trim().toLowerCase();
+                const phone = String(formData.get("phone") ?? "").trim();
+                const details = String(formData.get("details") ?? "").trim();
+
+                setSubmitting(true);
+                try {
+                  const { error } = await supabase
+                    .from("booking_requests")
+                    .insert({
+                      service_id: service.id,
+                      service_name: service.name,
+                      customer_name: customerName,
+                      email,
+                      phone,
+                      details: details || null,
+                    });
+
+                  if (error) throw error;
+
+                  form.reset();
+                  toast.success("Booking request save ho gayi.", {
                     description:
-                      "Provider availability confirm karke aapse contact kiya jayega.",
-                  },
-                );
+                      "Request Pending hai. Confirm hone par aapko is email par update bheja jayega.",
+                  });
+                } catch (error) {
+                  console.error("Unable to save booking request:", error);
+                  toast.error(
+                    "Booking request save nahi ho saki. Thori dair baad dobara try karein.",
+                  );
+                } finally {
+                  setSubmitting(false);
+                }
               }}
             >
               <div className="space-y-1.5">
@@ -415,6 +448,26 @@ function ServiceDetail() {
                   autoComplete="name"
                   required
                   placeholder="Ahmed Raza"
+                  className="h-11 rounded-xl border-[#d8cdae] bg-white focus-visible:ring-[#c9a24b]"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="service-email"
+                  className="text-sm font-semibold text-[#102d24]"
+                >
+                  Email for booking updates
+                </Label>
+
+                <Input
+                  id="service-email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  maxLength={254}
+                  required
+                  placeholder="you@example.com"
                   className="h-11 rounded-xl border-[#d8cdae] bg-white focus-visible:ring-[#c9a24b]"
                 />
               </div>
@@ -459,9 +512,13 @@ function ServiceDetail() {
               <Button
                 type="submit"
                 size="lg"
+                disabled={submitting}
                 className="h-11 w-full rounded-xl border border-[#c9a24b]/35 bg-[#082b21] font-bold text-[#fffaf0] hover:bg-[#0d3d2f] focus-visible:ring-[#c9a24b]"
               >
-                Request Booking
+                {submitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {submitting ? "Saving request..." : "Request Booking"}
               </Button>
 
               <div className="rounded-xl border border-[#c9a24b]/20 bg-[#f7efd9]/70 p-3">

@@ -90,27 +90,16 @@ function AdminOrders() {
     toast.success("Order status update ho gaya.");
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
 
-    // Order 'Delivered' hone par, vendor ka payout automatically ban jaye
-    if (status === "Delivered") {
-      const order = orders.find((o) => o.id === id);
-      if (order?.vendor_id) {
-        const vendorName = vendorNames.get(order.vendor_id);
-        if (vendorName) {
-          const { data: existing } = await supabase.from("payouts").select("pay_id").eq("pay_id", `PYT-${id}`).maybeSingle();
-          if (!existing) {
-            const { data: rateRow } = await supabase.from("platform_settings").select("value").eq("key", "commission_rate").maybeSingle();
-            const rate = rateRow?.value ? Number(rateRow.value) : 8;
-            const netAmount = Number(order.total) * (1 - rate / 100);
-            await supabase.from("payouts").insert({
-              pay_id: `PYT-${id}`,
-              recipient_name: vendorName,
-              recipient_type: "Vendor",
-              amount: netAmount,
-              method: "Bank Transfer",
-              status: "Pending",
-            });
-          }
-        }
+    if (status === "Confirmed") {
+      const { error: emailError } = await supabase.functions.invoke(
+        "send-confirmation-email",
+        { body: { type: "order", id } },
+      );
+      if (emailError) {
+        console.error("Order confirmed but email notification failed:", emailError);
+        toast.error("Order confirm ho gaya, lekin email nahi bheji ja saki.");
+      } else {
+        toast.success("Customer ko confirmation email bhej di.");
       }
     }
   };

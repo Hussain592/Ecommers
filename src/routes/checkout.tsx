@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/select";
 import { formatPKR } from "@/data/mock";
 import { useCart } from "@/lib/cart";
-import { randomId } from "@/lib/id";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
@@ -40,38 +39,40 @@ function CheckoutPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const delivery = subtotal > 3000 || subtotal === 0 ? 0 : 250;
+  const delivery = subtotal >= 3000 || subtotal === 0 ? 0 : 250;
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (detailed.length === 0) {
+      toast.error("Checkout ke liye cart mein products add karein.");
+      return;
+    }
+
     setLoading(true);
     try {
       const formData = new FormData(e.currentTarget);
-      const payload = {
-        customer_name: String(formData.get("name") ?? "").trim(),
-        phone: String(formData.get("phone") ?? "").trim(),
-        city: String(formData.get("city") ?? "").trim(),
-        alternate_phone: String(formData.get("alternatePhone") ?? "").trim() || null,
-        address: String(formData.get("address") ?? "").trim(),
-        notes: String(formData.get("notes") ?? "").trim() || null,
-      };
-      const byVendor = new Map<string, typeof detailed>();
-      detailed.forEach((line) => {
-        const key = line.product.vendorId ?? "unassigned";
-        byVendor.set(key, [...(byVendor.get(key) ?? []), line]);
-      });
-      const ordersToCreate = [...byVendor.entries()].map(([vendorId, lines]) => ({
-        id: `DKN-${randomId(10)}`,
-        ...payload,
-        vendor_id: vendorId === "unassigned" ? null : vendorId,
-        customer_id: user?.id ?? null,
-        total: lines.reduce((sum, line) => sum + line.product.price * line.qty, 0) + (byVendor.size === 1 ? delivery : 0),
-        status: "Pending",
-        items: lines.map(({ product, qty }) => ({ id: product.id, name: product.name, image: product.image, price: product.price, quantity: qty })),
-      }));
-      const { error } = await supabase.from("orders").insert(ordersToCreate);
+      const { data: orderIds, error } = await supabase.rpc(
+        "place_cod_orders",
+        {
+          p_customer_name: String(formData.get("name") ?? "").trim(),
+          p_customer_email: String(formData.get("email") ?? "").trim().toLowerCase(),
+          p_phone: String(formData.get("phone") ?? "").trim(),
+          p_city: String(formData.get("city") ?? "").trim(),
+          p_alternate_phone:
+            String(formData.get("alternatePhone") ?? "").trim() || null,
+          p_address: String(formData.get("address") ?? "").trim(),
+          p_notes: String(formData.get("notes") ?? "").trim() || null,
+          p_items: detailed.map(({ product, qty }) => ({
+            id: product.id,
+            quantity: qty,
+          })),
+        },
+      );
       if (error) throw error;
-      sessionStorage.setItem("dukaan_last_order_ids", JSON.stringify(ordersToCreate.map((order) => order.id)));
+      if (!orderIds?.length) {
+        throw new Error("Order IDs receive nahi hue.");
+      }
+      sessionStorage.setItem("dukaan_last_order_ids", JSON.stringify(orderIds));
       clear();
       await navigate({ to: "/order-confirmation" });
     } catch (error) {
@@ -98,6 +99,10 @@ function CheckoutPage() {
                 <div className="space-y-1.5">
                   <Label htmlFor="name">Full Name *</Label>
                   <Input id="name" name="name" required placeholder="Ahmed Raza" className="rounded-xl" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="email">Email for order updates *</Label>
+                  <Input id="email" name="email" type="email" autoComplete="email" required maxLength={254} placeholder="you@example.com" className="rounded-xl" />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="phone">Mobile Number *</Label>

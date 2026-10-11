@@ -4,7 +4,7 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ProductForm } from "@/components/dashboard/ProductForm";
 import { vendorNav } from "@/components/dashboard/nav-config";
 import { Button } from "@/components/ui/button";
-import { products, type Product } from "@/data/mock";
+import { type Product } from "@/data/mock";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/vendor/products/$id/edit")({
@@ -21,18 +21,25 @@ export const Route = createFileRoute("/vendor/products/$id/edit")({
 
 function EditProduct() {
   const { id } = Route.useParams();
-  const [product, setProduct] = useState<Product | undefined>(() => products.find((item) => item.id === id));
-  const [loading, setLoading] = useState(!products.some((item) => item.id === id));
+  const [product, setProduct] = useState<Product>();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadProduct = async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, name, description, image, price, compare_price, stock, category, brand, active")
+        .select("id, name, description, image, images, price, compare_price, stock, category, brand, active")
         .eq("id", id)
         .maybeSingle();
 
-      if (!error && data) {
+      if (cancelled) return;
+
+      if (error) {
+        console.error("Unable to load product for editing", error);
+        setProduct(undefined);
+      } else if (data) {
         setProduct({
           id: data.id,
           name: data.name,
@@ -47,14 +54,29 @@ function EditProduct() {
           rating: 0,
           reviews: 0,
           image: data.image || "/favicon.ico",
+          images: Array.isArray(data.images)
+            ? data.images.filter(
+                (image): image is string =>
+                  typeof image === "string" && image.length > 0,
+              )
+            : data.image
+              ? [data.image]
+              : [],
           description: data.description ?? "",
         });
+      } else {
+        setProduct(undefined);
       }
+
       setLoading(false);
     };
 
-    if (!product) void loadProduct();
-  }, [id, product]);
+    void loadProduct();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   return (
     <DashboardShell
@@ -79,4 +101,3 @@ function EditProduct() {
     </DashboardShell>
   );
 }
-

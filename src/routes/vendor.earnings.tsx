@@ -23,8 +23,8 @@ export const Route = createFileRoute("/vendor/earnings")({
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-type OrderRow = { total: number; status: string; created_at: string };
-type PayoutRow = { pay_id: string; amount: number; method: string; status: string; created_at: string };
+type OrderRow = { total: number; delivery_fee: number; status: string; created_at: string };
+type PayoutRow = { id: string; amount: number; method: string; status: string; created_at: string };
 
 function VendorEarnings() {
   const [loading, setLoading] = useState(true);
@@ -48,8 +48,8 @@ function VendorEarnings() {
       setStoreName(vendor.name);
 
       const [ordersRes, payoutsRes] = await Promise.all([
-        supabase.from("orders").select("total, status, created_at").eq("vendor_id", vendor.id),
-        supabase.from("payouts").select("pay_id, amount, method, status, created_at").eq("recipient_name", vendor.name).order("created_at", { ascending: false }),
+        supabase.from("orders").select("total, delivery_fee, status, created_at").eq("vendor_id", vendor.id),
+        supabase.from("payouts").select("id, amount, method, status, created_at").eq("recipient_vendor_id", vendor.id).order("created_at", { ascending: false }),
       ]);
 
       setOrders(ordersRes.data ?? []);
@@ -60,13 +60,15 @@ function VendorEarnings() {
   }, []);
 
   const now = new Date();
-  const lifetimeEarnings = orders.reduce((s, o) => s + Number(o.total), 0);
+  const itemSubtotal = (order: OrderRow) =>
+    Number(order.total) - Number(order.delivery_fee ?? 0);
+  const lifetimeEarnings = orders.reduce((s, o) => s + itemSubtotal(o), 0);
   const thisMonthEarnings = orders
     .filter((o) => {
       const d = new Date(o.created_at);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     })
-    .reduce((s, o) => s + Number(o.total), 0);
+    .reduce((s, o) => s + itemSubtotal(o), 0);
   const pendingPayout = payouts.filter((p) => p.status === "Pending").reduce((s, p) => s + Number(p.amount), 0);
   const codCollected = orders.filter((o) => o.status === "Delivered").reduce((s, o) => s + Number(o.total), 0);
 
@@ -77,7 +79,7 @@ function VendorEarnings() {
         const od = new Date(o.created_at);
         return od.getMonth() === d.getMonth() && od.getFullYear() === d.getFullYear();
       })
-      .reduce((s, o) => s + Number(o.total), 0);
+      .reduce((s, o) => s + itemSubtotal(o), 0);
     return { month: MONTH_LABELS[d.getMonth()], sales: monthSales };
   });
 
@@ -144,8 +146,8 @@ function VendorEarnings() {
                 </tr>
               ) : (
                 payouts.map((p) => (
-                  <tr key={p.pay_id} className="hover:bg-muted/40">
-                    <td className="px-4 py-3 font-medium">{p.pay_id}</td>
+                  <tr key={p.id} className="hover:bg-muted/40">
+                    <td className="px-4 py-3 font-medium">{p.id}</td>
                     <td className="px-4 py-3 text-muted-foreground">{new Date(p.created_at).toLocaleDateString("en-PK")}</td>
                     <td className="px-4 py-3">{p.method}</td>
                     <td className="px-4 py-3 font-medium">{formatPKR(Number(p.amount))}</td>
