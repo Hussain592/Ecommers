@@ -1616,6 +1616,10 @@ function ProductsPage() {
               categoryMenuRef
             }
             className="relative"
+            onMouseLeave={() => {
+              setCategoryMenuOpen(false);
+              setActiveRootId(null);
+            }}
           >
             <button
               type="button"
