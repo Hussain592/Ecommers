@@ -58,6 +58,15 @@ export function SiteHeader() {
     <header
       className="sticky top-0 z-40 border-b border-[#c9a24b]/30 bg-[#082b21]/95 shadow-sm backdrop-blur-xl"
       onMouseLeave={() => setOpen(false)}
+      onMouseOut={(event) => {
+        const nextTarget = event.relatedTarget;
+        if (
+          !(nextTarget instanceof Node) ||
+          !event.currentTarget.contains(nextTarget)
+        ) {
+          setOpen(false);
+        }
+      }}
     >
       {/* =====================================================
           TOP ANNOUNCEMENT
