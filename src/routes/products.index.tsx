@@ -1646,7 +1646,7 @@ function ProductsPage() {
 
             {categoryMenuOpen && (
               <div
-                className={`absolute right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-[#ddd5c2] bg-white shadow-[0_18px_50px_rgba(8,43,33,0.22)] sm:left-0 sm:right-auto ${
+                className={`absolute right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-[#ddd5c2] bg-white shadow-[0_18px_50px_rgba(8,43,33,0.22)] ${
                   activeRoot
                     ? "w-[min(620px,calc(100vw-32px))]"
                     : "w-[min(260px,calc(100vw-32px))]"
