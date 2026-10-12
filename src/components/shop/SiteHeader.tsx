@@ -7,7 +7,7 @@ import {
   Truck,
   X,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,33 +40,36 @@ export function SiteHeader() {
   const { count } = useCart();
 
   const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLElement>(null);
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
-  const closeWhenMouseExitsMenu = (event: React.MouseEvent<HTMLElement>) => {
-    const nextTarget = event.relatedTarget;
-    if (
-      !(nextTarget instanceof Node) ||
-      (!menuRef.current?.contains(nextTarget) &&
-        !menuButtonRef.current?.contains(nextTarget))
-    ) {
-      setOpen(false);
-    }
-  };
+  useEffect(() => {
+    if (!open) return;
+
+    const closeWhenPointerLeavesHeader = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+
+      const bounds = headerRef.current?.getBoundingClientRect();
+      if (
+        bounds &&
+        (event.clientX < bounds.left ||
+          event.clientX > bounds.right ||
+          event.clientY < bounds.top ||
+          event.clientY > bounds.bottom)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("pointermove", closeWhenPointerLeavesHeader);
+    return () =>
+      document.removeEventListener("pointermove", closeWhenPointerLeavesHeader);
+  }, [open]);
 
   return (
     <header
+      ref={headerRef}
       className="sticky top-0 z-40 border-b border-[#c9a24b]/30 bg-[#082b21]/95 shadow-sm backdrop-blur-xl"
       onMouseLeave={() => setOpen(false)}
-      onMouseOut={(event) => {
-        const nextTarget = event.relatedTarget;
-        if (
-          !(nextTarget instanceof Node) ||
-          !event.currentTarget.contains(nextTarget)
-        ) {
-          setOpen(false);
-        }
-      }}
     >
       {/* =====================================================
           TOP ANNOUNCEMENT
@@ -209,7 +212,6 @@ export function SiteHeader() {
 
           {/* Mobile Menu */}
           <Button
-            ref={menuButtonRef}
             type="button"
             variant="outline"
             size="icon"
@@ -237,11 +239,9 @@ export function SiteHeader() {
       ===================================================== */}
       {open && (
         <nav
-          ref={menuRef}
           id="mobile-navigation"
           className="border-t border-[#d8b85c]/25 bg-[#061f18] px-4 py-3 shadow-lg lg:hidden"
           aria-label="Mobile navigation"
-          onMouseOut={closeWhenMouseExitsMenu}
         >
           <div className="space-y-1">
             {nav.map((item) => (
