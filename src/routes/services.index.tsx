@@ -160,54 +160,26 @@ const categories = [
 ];
 
 function ServicesPage() {
-  const [q, setQ] =
-    useState("");
+  const [q, setQ] = useState("");
 
-  const [
-    category,
-    setCategory,
-  ] = useState("All");
+  const [category, setCategory] = useState("All");
 
-  const list =
-    useMemo(() => {
-      const search =
-        q
-          .trim()
-          .toLowerCase();
+  const list = useMemo(() => {
+    const search = q.trim().toLowerCase();
 
-      return islamicServices.filter(
-        (service) => {
-          const matchesCategory =
-            category ===
-              "All" ||
-            service.category ===
-              category;
+    return islamicServices.filter((service) => {
+      const matchesCategory = category === "All" || service.category === category;
 
-          const matchesSearch =
-            !search ||
-            service.name
-              .toLowerCase()
-              .includes(search) ||
-            service.category
-              .toLowerCase()
-              .includes(search) ||
-            service.description
-              .toLowerCase()
-              .includes(search) ||
-            service.city
-              .toLowerCase()
-              .includes(search);
+      const matchesSearch =
+        !search ||
+        service.name.toLowerCase().includes(search) ||
+        service.category.toLowerCase().includes(search) ||
+        service.description.toLowerCase().includes(search) ||
+        service.city.toLowerCase().includes(search);
 
-          return (
-            matchesCategory &&
-            matchesSearch
-          );
-        },
-      );
-    }, [
-      q,
-      category,
-    ]);
+      return matchesCategory && matchesSearch;
+    });
+  }, [q, category]);
 
   return (
     <ShopLayout>
@@ -223,17 +195,12 @@ function ServicesPage() {
           <div className="mt-2 grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               <h1 className="max-w-2xl text-3xl font-extrabold leading-tight sm:text-4xl">
-                Islamic & Azadari
-                Services
+                Islamic & Azadari Services
               </h1>
 
               <p className="mt-3 max-w-2xl text-sm leading-6 text-[#d8d1bf] sm:text-base">
-                Quran learning,
-                Majlis arrangements,
-                Niyaz, custom Islamic
-                work aur doosri useful
-                services — simple aur
-                clear booking ke saath.
+                Quran learning, Majlis arrangements, Niyaz, custom Islamic work aur doosri useful
+                services — simple aur clear booking ke saath.
               </p>
             </div>
 
@@ -241,17 +208,13 @@ function ServicesPage() {
               <div className="rounded-xl border border-[#c9a24b]/20 bg-white/5 px-3 py-2.5">
                 <ShieldCheck className="mb-1 h-4 w-4 text-[#d8b85c]" />
 
-                <p className="font-semibold text-[#fffaf0]">
-                  Trusted providers
-                </p>
+                <p className="font-semibold text-[#fffaf0]">Trusted providers</p>
               </div>
 
               <div className="rounded-xl border border-[#c9a24b]/20 bg-white/5 px-3 py-2.5">
                 <CheckCircle2 className="mb-1 h-4 w-4 text-[#d8b85c]" />
 
-                <p className="font-semibold text-[#fffaf0]">
-                  Clear service info
-                </p>
+                <p className="font-semibold text-[#fffaf0]">Clear service info</p>
               </div>
             </div>
           </div>
@@ -264,10 +227,7 @@ function ServicesPage() {
           aria-label="Find services"
           className="mt-6 rounded-2xl border border-[#ded5bd] bg-[#fffdf7] p-4 shadow-[0_4px_16px_rgba(8,43,33,0.05)]"
         >
-          <label
-            htmlFor="service-search"
-            className="text-sm font-bold text-[#102d24]"
-          >
+          <label htmlFor="service-search" className="text-sm font-bold text-[#102d24]">
             Find a service
           </label>
 
@@ -277,52 +237,32 @@ function ServicesPage() {
             <Input
               id="service-search"
               value={q}
-              onChange={(
-                event,
-              ) =>
-                setQ(
-                  event.target
-                    .value,
-                )
-              }
+              onChange={(event) => setQ(event.target.value)}
               placeholder="Search Quran classes, Niyaz, Majlis setup..."
               className="h-11 rounded-xl border-[#d8cdae] bg-white pl-10 text-sm focus-visible:ring-[#c9a24b]"
             />
           </div>
 
-          <div
-            className="mt-4 flex gap-2 overflow-x-auto pb-1"
-            aria-label="Service categories"
-          >
-            {categories.map(
-              (item) => {
-                const active =
-                  category ===
-                  item;
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1" aria-label="Service categories">
+            {categories.map((item) => {
+              const active = category === item;
 
-                return (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() =>
-                      setCategory(
-                        item,
-                      )
-                    }
-                    aria-pressed={
-                      active
-                    }
-                    className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a24b] ${
-                      active
-                        ? "border-[#0b513b] bg-[#0b513b] text-white"
-                        : "border-[#ded5bd] bg-white text-[#52635b] hover:border-[#c9a24b]/60 hover:bg-[#f7efd9]"
-                    }`}
-                  >
-                    {item}
-                  </button>
-                );
-              },
-            )}
+              return (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setCategory(item)}
+                  aria-pressed={active}
+                  className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a24b] ${
+                    active
+                      ? "border-[#0b513b] bg-[#0b513b] text-white"
+                      : "border-[#ded5bd] bg-white text-[#52635b] hover:border-[#c9a24b]/60 hover:bg-[#f7efd9]"
+                  }`}
+                >
+                  {item}
+                </button>
+              );
+            })}
           </div>
         </section>
 
@@ -336,17 +276,12 @@ function ServicesPage() {
             </p>
 
             <h2 className="mt-1 text-xl font-extrabold text-[#102d24]">
-              {category === "All"
-                ? "Explore Services"
-                : category}
+              {category === "All" ? "Explore Services" : category}
             </h2>
           </div>
 
           <p className="text-xs text-[#748078]">
-            {list.length}{" "}
-            {list.length === 1
-              ? "service"
-              : "services"}
+            {list.length} {list.length === 1 ? "service" : "services"}
           </p>
         </div>
 
@@ -357,14 +292,10 @@ function ServicesPage() {
           <div className="mt-5 rounded-2xl border border-[#ded5bd] bg-[#fffdf7] px-5 py-12 text-center">
             <Search className="mx-auto h-7 w-7 text-[#9a7927]" />
 
-            <h3 className="mt-3 font-bold text-[#102d24]">
-              Koi service nahi mili
-            </h3>
+            <h3 className="mt-3 font-bold text-[#102d24]">Koi service nahi mili</h3>
 
             <p className="mt-1 text-sm text-[#748078]">
-              Search ya category
-              change karke dobara
-              try karein.
+              Search ya category change karke dobara try karein.
             </p>
 
             <Button
@@ -372,9 +303,7 @@ function ServicesPage() {
               variant="outline"
               onClick={() => {
                 setQ("");
-                setCategory(
-                  "All",
-                );
+                setCategory("All");
               }}
               className="mt-4 rounded-xl border-[#c9a24b]/50 text-[#0b513b]"
             >
@@ -386,146 +315,110 @@ function ServicesPage() {
               SERVICES GRID
           ========================= */
           <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {list.map(
-              (service) => {
-                const Icon =
-                  service.icon;
+            {list.map((service) => {
+              const Icon = service.icon;
 
-                return (
-                  <article
-                    key={
-                      service.id
-                    }
-                    className="group flex h-full flex-col overflow-hidden rounded-[22px] border border-[#ded5bd] bg-[#fffdf7] shadow-[0_4px_16px_rgba(8,43,33,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[#c9a24b]/70 hover:shadow-[0_16px_34px_rgba(8,43,33,0.11)]"
-                  >
-                    {/* Visual top */}
-                    <div className="relative overflow-hidden border-b border-[#eadfc4] bg-[linear-gradient(135deg,#f7efd9_0%,#fffdf7_55%,#eef5ee_100%)] px-5 py-5">
-                      <div
-                        aria-hidden="true"
-                        className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[#c9a24b]/10"
-                      />
+              return (
+                <article
+                  key={service.id}
+                  className="group flex h-full flex-col overflow-hidden rounded-[22px] border border-[#ded5bd] bg-[#fffdf7] shadow-[0_4px_16px_rgba(8,43,33,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[#c9a24b]/70 hover:shadow-[0_16px_34px_rgba(8,43,33,0.11)]"
+                >
+                  {/* Visual top */}
+                  <div className="relative overflow-hidden border-b border-[#eadfc4] bg-[linear-gradient(135deg,#f7efd9_0%,#fffdf7_55%,#eef5ee_100%)] px-5 py-5">
+                    <div
+                      aria-hidden="true"
+                      className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[#c9a24b]/10"
+                    />
 
-                      <div className="relative flex items-start justify-between gap-4">
-                        <span className="grid h-12 w-12 place-items-center rounded-2xl border border-[#c9a24b]/30 bg-[#082b21] text-[#e2c56c] shadow-sm">
-                          <Icon
-                            className="h-5 w-5"
-                            aria-hidden="true"
-                          />
-                        </span>
+                    <div className="relative flex items-start justify-between gap-4">
+                      <span className="grid h-12 w-12 place-items-center rounded-2xl border border-[#c9a24b]/30 bg-[#082b21] text-[#e2c56c] shadow-sm">
+                        <Icon className="h-5 w-5" aria-hidden />
+                      </span>
 
-                        <span className="rounded-full border border-[#c9a24b]/30 bg-[#fffdf7]/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.09em] text-[#70591f]">
-                          {
-                            service.category
-                          }
-                        </span>
-                      </div>
+                      <span className="rounded-full border border-[#c9a24b]/30 bg-[#fffdf7]/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.09em] text-[#70591f]">
+                        {service.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-1 flex-col p-5">
+                    {/* Main focus */}
+                    <Link
+                      to="/services/$id"
+                      params={{
+                        id: service.id,
+                      }}
+                      className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a24b]"
+                    >
+                      <h3 className="text-[17px] font-extrabold leading-6 text-[#102d24] transition-colors group-hover:text-[#0b513b]">
+                        {service.name}
+                      </h3>
+                    </Link>
+
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#69776f]">
+                      {service.description}
+                    </p>
+
+                    {/* Metadata */}
+                    <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-[#6f7d75]">
+                      <span className="inline-flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 text-[#9a7927]" aria-hidden="true" />
+
+                        {service.city}
+                      </span>
+
+                      <span className="inline-flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5 text-[#9a7927]" aria-hidden="true" />
+
+                        {service.duration}
+                      </span>
+
+                      <span className="inline-flex items-center gap-1.5">
+                        <Star
+                          className="h-3.5 w-3.5 fill-[#c99a20] text-[#c99a20]"
+                          aria-hidden="true"
+                        />
+
+                        <strong className="font-semibold text-[#102d24]">{service.rating}</strong>
+
+                        <span>({service.reviews})</span>
+                      </span>
                     </div>
 
-                    <div className="flex flex-1 flex-col p-5">
-                      {/* Main focus */}
-                      <Link
-                        to="/services/$id"
-                        params={{
-                          id: service.id,
-                        }}
-                        className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a24b]"
-                      >
-                        <h3 className="text-[17px] font-extrabold leading-6 text-[#102d24] transition-colors group-hover:text-[#0b513b]">
-                          {
-                            service.name
-                          }
-                        </h3>
-                      </Link>
+                    {/* Price + CTA */}
+                    <div className="mt-auto pt-5">
+                      <div className="flex items-end justify-between gap-4 border-t border-[#eee6d2] pt-4">
+                        <div>
+                          <p className="text-[10px] font-medium uppercase tracking-wide text-[#89938e]">
+                            Starting from
+                          </p>
 
-                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#69776f]">
-                        {
-                          service.description
-                        }
-                      </p>
-
-                      {/* Metadata */}
-                      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-[#6f7d75]">
-                        <span className="inline-flex items-center gap-1.5">
-                          <MapPin
-                            className="h-3.5 w-3.5 text-[#9a7927]"
-                            aria-hidden="true"
-                          />
-
-                          {
-                            service.city
-                          }
-                        </span>
-
-                        <span className="inline-flex items-center gap-1.5">
-                          <Clock
-                            className="h-3.5 w-3.5 text-[#9a7927]"
-                            aria-hidden="true"
-                          />
-
-                          {
-                            service.duration
-                          }
-                        </span>
-
-                        <span className="inline-flex items-center gap-1.5">
-                          <Star
-                            className="h-3.5 w-3.5 fill-[#c99a20] text-[#c99a20]"
-                            aria-hidden="true"
-                          />
-
-                          <strong className="font-semibold text-[#102d24]">
-                            {
-                              service.rating
-                            }
-                          </strong>
-
-                          <span>
-                            (
-                            {
-                              service.reviews
-                            }
-                            )
-                          </span>
-                        </span>
-                      </div>
-
-                      {/* Price + CTA */}
-                      <div className="mt-auto pt-5">
-                        <div className="flex items-end justify-between gap-4 border-t border-[#eee6d2] pt-4">
-                          <div>
-                            <p className="text-[10px] font-medium uppercase tracking-wide text-[#89938e]">
-                              Starting from
-                            </p>
-
-                            <p className="mt-0.5 font-display text-xl font-extrabold text-[#0b513b]">
-                              {formatPKR(
-                                service.startingPrice,
-                              )}
-                            </p>
-                          </div>
-
-                          <Button
-                            asChild
-                            size="sm"
-                            className="h-9 rounded-xl border border-[#c9a24b]/30 bg-[#082b21] px-4 text-xs font-bold text-[#fffaf0] shadow-none hover:bg-[#0d3d2f] focus-visible:ring-[#c9a24b]"
-                          >
-                            <Link
-                              to="/services/$id"
-                              params={{
-                                id: service.id,
-                              }}
-                              aria-label={`View details for ${service.name}`}
-                            >
-                              View Details
-                            </Link>
-                          </Button>
+                          <p className="mt-0.5 font-display text-xl font-extrabold text-[#0b513b]">
+                            {formatPKR(service.startingPrice)}
+                          </p>
                         </div>
+
+                        <Button
+                          asChild
+                          size="sm"
+                          className="h-9 rounded-xl border border-[#c9a24b]/30 bg-[#082b21] px-4 text-xs font-bold text-[#fffaf0] shadow-none hover:bg-[#0d3d2f] focus-visible:ring-[#c9a24b]"
+                        >
+                          <Link
+                            to="/services/$id"
+                            params={{
+                              id: service.id,
+                            }}
+                            aria-label={`View details for ${service.name}`}
+                          >
+                            View Details
+                          </Link>
+                        </Button>
                       </div>
                     </div>
-                  </article>
-                );
-              },
-            )}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </main>

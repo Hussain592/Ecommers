@@ -22,17 +22,40 @@ export const Route = createFileRoute("/vendor/")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "Track your store sales, orders, stock and payouts on Dukaan.pk." },
-      { property: "og:title", content: "Vendor Dashboard â€” Dukaan.pk" },
-      { property: "og:description", content: "Manage your Dukaan.pk store in one place." },
+      {
+        name: "description",
+        content: "Track your store sales, orders, stock and payouts on azadari.store.",
+      },
+      { property: "og:title", content: "Vendor Dashboard — azadari.store" },
+      { property: "og:description", content: "Manage your azadari.store store in one place." },
     ],
   }),
   component: VendorDashboard,
 });
 
-const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTH_LABELS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
-type OrderRow = { id: string; customer_name: string; total: number; delivery_fee: number; status: string; created_at: string };
+type OrderRow = {
+  id: string;
+  customer_name: string;
+  total: number;
+  delivery_fee: number;
+  status: string;
+  created_at: string;
+};
 
 function VendorDashboard() {
   const [loading, setLoading] = useState(true);
@@ -49,7 +72,11 @@ function VendorDashboard() {
         return;
       }
 
-      const { data: vendor } = await supabase.from("vendors").select("id, name").eq("owner_id", authData.user.id).maybeSingle();
+      const { data: vendor } = await supabase
+        .from("vendors")
+        .select("id, name")
+        .eq("owner_id", authData.user.id)
+        .maybeSingle();
       if (!vendor) {
         setLoading(false);
         return;
@@ -57,9 +84,21 @@ function VendorDashboard() {
       setStoreName(vendor.name);
 
       const [ordersRes, productsRes, payoutsRes] = await Promise.all([
-        supabase.from("orders").select("id, customer_name, total, delivery_fee, status, created_at").eq("vendor_id", vendor.id).order("created_at", { ascending: false }),
-        supabase.from("products").select("id", { count: "exact", head: true }).eq("vendor_id", vendor.id).eq("active", true),
-        supabase.from("payouts").select("amount").eq("recipient_vendor_id", vendor.id).eq("status", "Pending"),
+        supabase
+          .from("orders")
+          .select("id, customer_name, total, delivery_fee, status, created_at")
+          .eq("vendor_id", vendor.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("products")
+          .select("id", { count: "exact", head: true })
+          .eq("vendor_id", vendor.id)
+          .eq("active", true),
+        supabase
+          .from("payouts")
+          .select("amount")
+          .eq("recipient_vendor_id", vendor.id)
+          .eq("status", "Pending"),
       ]);
 
       setOrders(ordersRes.data ?? []);
@@ -70,7 +109,10 @@ function VendorDashboard() {
     void load();
   }, []);
 
-  const totalRevenue = orders.reduce((s, o) => s + Number(o.total) - Number(o.delivery_fee ?? 0), 0);
+  const totalRevenue = orders.reduce(
+    (s, o) => s + Number(o.total) - Number(o.delivery_fee ?? 0),
+    0,
+  );
   const pendingOrders = orders.filter((o) => o.status === "Pending").length;
 
   const now = new Date();
@@ -87,7 +129,13 @@ function VendorDashboard() {
 
   if (loading) {
     return (
-      <DashboardShell brand={storeName} role="Vendor Account" title="Dashboard Overview" subtitle="Aaj ki performance ek nazar mein" nav={vendorNav}>
+      <DashboardShell
+        brand={storeName}
+        role="Vendor Account"
+        title="Dashboard Overview"
+        subtitle="Aaj ki performance ek nazar mein"
+        nav={vendorNav}
+      >
         <div className="flex justify-center p-10">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -111,10 +159,26 @@ function VendorDashboard() {
       }
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total Revenue" value={formatPKR(totalRevenue)} hint={`${orders.length} total orders`} icon={TrendingUp} />
-        <StatCard label="Total Orders" value={String(orders.length)} hint={`${pendingOrders} pending`} icon={ShoppingBag} tone="warning" />
+        <StatCard
+          label="Total Revenue"
+          value={formatPKR(totalRevenue)}
+          hint={`${orders.length} total orders`}
+          icon={TrendingUp}
+        />
+        <StatCard
+          label="Total Orders"
+          value={String(orders.length)}
+          hint={`${pendingOrders} pending`}
+          icon={ShoppingBag}
+          tone="warning"
+        />
         <StatCard label="Active Products" value={String(productCount)} icon={Package} />
-        <StatCard label="Pending Payout" value={formatPKR(pendingPayout)} icon={Wallet} tone="success" />
+        <StatCard
+          label="Pending Payout"
+          value={formatPKR(pendingPayout)}
+          icon={Wallet}
+          tone="success"
+        />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
@@ -131,8 +195,19 @@ function VendorDashboard() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                <XAxis
+                  dataKey="month"
+                  stroke="var(--muted-foreground)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="var(--muted-foreground)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
                 <Tooltip
                   contentStyle={{
                     borderRadius: 12,
@@ -141,7 +216,13 @@ function VendorDashboard() {
                     fontSize: 12,
                   }}
                 />
-                <Area type="monotone" dataKey="sales" stroke="var(--primary)" strokeWidth={2} fill="url(#salesFill)" />
+                <Area
+                  type="monotone"
+                  dataKey="sales"
+                  stroke="var(--primary)"
+                  strokeWidth={2}
+                  fill="url(#salesFill)"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -154,10 +235,15 @@ function VendorDashboard() {
               <p className="text-sm text-muted-foreground">Abhi koi order nahi aaya.</p>
             ) : (
               orders.slice(0, 5).map((o) => (
-                <div key={o.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl bg-muted/60 p-3">
+                <div
+                  key={o.id}
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl bg-muted/60 p-3"
+                >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold">{o.customer_name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{o.id} Â· {formatPKR(Number(o.total))}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {o.id} · {formatPKR(Number(o.total))}
+                    </p>
                   </div>
                   <StatusBadge status={o.status as never} />
                 </div>

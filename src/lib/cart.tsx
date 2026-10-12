@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { type Product } from "@/data/mock";
+import { type Product, type ProductRow } from "@/data/mock";
 import { supabase } from "@/lib/supabase";
 
 export type CartLine = {
@@ -74,7 +74,7 @@ const FIRST_PAGE_CACHE_TTL = 30_000;
 const CATALOG_STORAGE_KEY = "dukaan_catalog_v1";
 
 type CatalogRowsResult = {
-  rows: any[];
+  rows: ProductRow[];
 };
 
 type StoredCatalog = {
@@ -103,20 +103,19 @@ function readStoredCatalog(): StoredCatalog | null {
       throw new Error("Cached product catalog has an invalid format.");
     }
 
-    const products = parsed.products.filter(
-      (product): product is Product =>
-        Boolean(
-          product &&
-            typeof product === "object" &&
-            "id" in product &&
-            typeof product.id === "string" &&
-            "name" in product &&
-            typeof product.name === "string" &&
-            "price" in product &&
-            typeof product.price === "number" &&
-            "image" in product &&
-            typeof product.image === "string",
-        ),
+    const products = parsed.products.filter((product): product is Product =>
+      Boolean(
+        product &&
+        typeof product === "object" &&
+        "id" in product &&
+        typeof product.id === "string" &&
+        "name" in product &&
+        typeof product.name === "string" &&
+        "price" in product &&
+        typeof product.price === "number" &&
+        "image" in product &&
+        typeof product.image === "string",
+      ),
     );
 
     return {
@@ -129,20 +128,18 @@ function readStoredCatalog(): StoredCatalog | null {
   }
 }
 
-let firstPageCache:
-  | {
-      expiresAt: number;
-      result: CatalogRowsResult;
-    }
-  | null = null;
+let firstPageCache: {
+  expiresAt: number;
+  result: CatalogRowsResult;
+} | null = null;
 
 let firstPagePending: Promise<CatalogRowsResult> | null = null;
 
-function mapProduct(item: any): Product {
+function mapProduct(item: ProductRow): Product {
   return {
     id: item.id,
 
-    name: item.name,
+    name: item.name ?? "",
 
     slug: String(item.name ?? "")
       .toLowerCase()
@@ -154,8 +151,7 @@ function mapProduct(item: any): Product {
     price: Number(item.price ?? 0),
 
     oldPrice:
-      item.compare_price !== null &&
-      item.compare_price !== undefined
+      item.compare_price !== null && item.compare_price !== undefined
         ? Number(item.compare_price)
         : undefined,
 
@@ -177,8 +173,7 @@ function mapProduct(item: any): Product {
 
     images: Array.isArray(item.images)
       ? item.images.filter(
-          (image: unknown): image is string =>
-            typeof image === "string" && image.length > 0,
+          (image: unknown): image is string => typeof image === "string" && image.length > 0,
         )
       : item.image
         ? [item.image]
@@ -188,9 +183,7 @@ function mapProduct(item: any): Product {
   };
 }
 
-async function requestCatalogRows(
-  offset: number,
-): Promise<CatalogRowsResult> {
+async function requestCatalogRows(offset: number): Promise<CatalogRowsResult> {
   const runRequest = async (): Promise<CatalogRowsResult> => {
     const { data, error } = await supabase
       .from("products")
@@ -224,10 +217,7 @@ async function requestCatalogRows(
   if (offset === 0) {
     const now = Date.now();
 
-    if (
-      firstPageCache &&
-      firstPageCache.expiresAt > now
-    ) {
+    if (firstPageCache && firstPageCache.expiresAt > now) {
       return firstPageCache.result;
     }
 
@@ -254,31 +244,20 @@ async function requestCatalogRows(
   return runRequest();
 }
 
-export function CartProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
 
-  const [cartHydrated, setCartHydrated] =
-    useState(false);
+  const [cartHydrated, setCartHydrated] = useState(false);
 
   const [catalog, setCatalog] = useState<Product[]>([]);
 
-  const [cartProducts, setCartProducts] = useState<Product[]>(
-    [],
-  );
+  const [cartProducts, setCartProducts] = useState<Product[]>([]);
 
-  const [catalogLoading, setCatalogLoading] =
-    useState(true);
+  const [catalogLoading, setCatalogLoading] = useState(true);
 
   const [catalogHasMore, setCatalogHasMore] = useState(true);
 
-  const [
-    catalogLoadingMore,
-    setCatalogLoadingMore,
-  ] = useState(false);
+  const [catalogLoadingMore, setCatalogLoadingMore] = useState(false);
 
   const [nextOffset, setNextOffset] = useState(0);
 
@@ -296,14 +275,13 @@ export function CartProvider({
         const parsed = JSON.parse(raw);
 
         if (Array.isArray(parsed)) {
-          const safeLines = parsed.filter(
-            (line): line is CartLine =>
-              Boolean(
-                line &&
-                  typeof line.id === "string" &&
-                  Number.isFinite(Number(line.qty)) &&
-                  Number(line.qty) > 0,
-              ),
+          const safeLines = parsed.filter((line): line is CartLine =>
+            Boolean(
+              line &&
+              typeof line.id === "string" &&
+              Number.isFinite(Number(line.qty)) &&
+              Number(line.qty) > 0,
+            ),
           );
 
           setLines(
@@ -315,10 +293,7 @@ export function CartProvider({
         }
       }
     } catch (error) {
-      console.error(
-        "Unable to load cart",
-        error,
-      );
+      console.error("Unable to load cart", error);
     } finally {
       setCartHydrated(true);
     }
@@ -334,117 +309,71 @@ export function CartProvider({
     setCatalogLoading(false);
   }, []);
 
-  const fetchCatalogPage = useCallback(
-    async (
-      offset: number,
-      append: boolean,
-    ) => {
-      if (append) {
-        setCatalogLoadingMore(true);
-      } else {
-        setCatalogLoading(true);
-      }
+  const fetchCatalogPage = useCallback(async (offset: number, append: boolean) => {
+    if (append) {
+      setCatalogLoadingMore(true);
+    } else {
+      setCatalogLoading(true);
+    }
 
-      try {
-        const { rows } =
-          await requestCatalogRows(offset);
+    try {
+      const { rows } = await requestCatalogRows(offset);
 
-        const pageRows = rows.slice(
-          0,
-          PAGE_SIZE,
-        );
+      const pageRows = rows.slice(0, PAGE_SIZE);
 
-        const mapped =
-          pageRows.map(mapProduct);
+      const mapped = pageRows.map(mapProduct);
 
-        setCatalog((previous) => {
-          if (!append) {
-            return mapped;
-          }
-
-          const merged = [
-            ...previous,
-            ...mapped,
-          ];
-
-          return Array.from(
-            new Map(
-              merged.map((product) => [
-                product.id,
-                product,
-              ]),
-            ).values(),
-          );
-        });
-
-        setCatalogHasMore(
-          rows.length > PAGE_SIZE,
-        );
-
-        setNextOffset(
-          offset + pageRows.length,
-        );
-
-        if (!append && typeof window !== "undefined") {
-          try {
-            window.localStorage.setItem(
-              CATALOG_STORAGE_KEY,
-              JSON.stringify({
-                products: mapped,
-                hasMore: rows.length > PAGE_SIZE,
-              } satisfies StoredCatalog),
-            );
-          } catch (error) {
-            console.error(
-              "Unable to cache product catalog:",
-              error,
-            );
-          }
+      setCatalog((previous) => {
+        if (!append) {
+          return mapped;
         }
-      } catch (error) {
-        console.error(
-          "Unable to load catalog",
-          error,
-        );
 
-        setCatalogHasMore(false);
-      } finally {
-        setCatalogLoading(false);
-        setCatalogLoadingMore(false);
+        const merged = [...previous, ...mapped];
+
+        return Array.from(new Map(merged.map((product) => [product.id, product])).values());
+      });
+
+      setCatalogHasMore(rows.length > PAGE_SIZE);
+
+      setNextOffset(offset + pageRows.length);
+
+      if (!append && typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(
+            CATALOG_STORAGE_KEY,
+            JSON.stringify({
+              products: mapped,
+              hasMore: rows.length > PAGE_SIZE,
+            } satisfies StoredCatalog),
+          );
+        } catch (error) {
+          console.error("Unable to cache product catalog:", error);
+        }
       }
-    },
-    [],
-  );
+    } catch (error) {
+      console.error("Unable to load catalog", error);
+
+      setCatalogHasMore(false);
+    } finally {
+      setCatalogLoading(false);
+      setCatalogLoadingMore(false);
+    }
+  }, []);
 
   /*
    * Initial products.
    */
   useEffect(() => {
-    void fetchCatalogPage(
-      0,
-      false,
-    );
+    void fetchCatalogPage(0, false);
   }, [fetchCatalogPage]);
 
-  const loadMoreCatalog =
-    useCallback(() => {
-      if (
-        catalogLoadingMore ||
-        !catalogHasMore
-      ) {
-        return;
-      }
+  const loadMoreCatalog = useCallback(() => {
+    if (catalogLoadingMore || !catalogHasMore) {
+      return;
+    }
 
-      void fetchCatalogPage(
-        nextOffset,
-        true,
-      );
-    }, [
-      catalogLoadingMore,
-      catalogHasMore,
-      nextOffset,
-      fetchCatalogPage,
-    ]);
+    void fetchCatalogPage(nextOffset, true);
+  }, [catalogLoadingMore, catalogHasMore, nextOffset, fetchCatalogPage]);
 
   /*
    * Cart IDs stable string.
@@ -467,100 +396,63 @@ export function CartProvider({
   useEffect(() => {
     let cancelled = false;
 
-    const loadCartProducts =
-      async () => {
-        if (!cartIdsKey) {
-          setCartProducts([]);
-          return;
-        }
+    const loadCartProducts = async () => {
+      if (!cartIdsKey) {
+        setCartProducts([]);
+        return;
+      }
 
-        const ids =
-          cartIdsKey.split(",");
+      const ids = cartIdsKey.split(",");
 
-        /*
-         * Jo products already catalog mein hain unhein pehle reuse karo.
-         * Is se normal home-page products add karne par unnecessary DB
-         * request avoid ho sakti hai.
-         */
-        const catalogById = new Map(
-          catalog.map((product) => [
-            product.id,
-            product,
-          ]),
-        );
+      /*
+       * Jo products already catalog mein hain unhein pehle reuse karo.
+       * Is se normal home-page products add karne par unnecessary DB
+       * request avoid ho sakti hai.
+       */
+      const catalogById = new Map(catalog.map((product) => [product.id, product]));
 
-        const alreadyAvailable =
-          ids
-            .map((id) =>
-              catalogById.get(id),
-            )
-            .filter(Boolean) as Product[];
+      const alreadyAvailable = ids.map((id) => catalogById.get(id)).filter(Boolean) as Product[];
 
-        const availableIds = new Set(
-          alreadyAvailable.map(
-            (product) => product.id,
-          ),
-        );
+      const availableIds = new Set(alreadyAvailable.map((product) => product.id));
 
-        const missingIds = ids.filter(
-          (id) => !availableIds.has(id),
-        );
+      const missingIds = ids.filter((id) => !availableIds.has(id));
 
-        if (missingIds.length === 0) {
-          setCartProducts(
-            alreadyAvailable,
-          );
-          return;
-        }
+      if (missingIds.length === 0) {
+        setCartProducts(alreadyAvailable);
+        return;
+      }
 
-        try {
-          const { data, error } =
-            await supabase
-              .from("products")
-              .select(PRODUCT_SELECT)
-              .in("id", missingIds);
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select(PRODUCT_SELECT)
+          .in("id", missingIds);
 
-          if (error) {
-            console.error(
-              "Unable to load cart products",
-              error,
-            );
-
-            if (!cancelled) {
-              setCartProducts(
-                alreadyAvailable,
-              );
-            }
-
-            return;
-          }
-
-          if (cancelled) {
-            return;
-          }
-
-          const fetched =
-            (data ?? []).map(
-              mapProduct,
-            );
-
-          setCartProducts([
-            ...alreadyAvailable,
-            ...fetched,
-          ]);
-        } catch (error) {
-          console.error(
-            "Unexpected cart loading error",
-            error,
-          );
+        if (error) {
+          console.error("Unable to load cart products", error);
 
           if (!cancelled) {
-            setCartProducts(
-              alreadyAvailable,
-            );
+            setCartProducts(alreadyAvailable);
           }
+
+          return;
         }
-      };
+
+        if (cancelled) {
+          return;
+        }
+
+        const fetched = (data ?? []).map(mapProduct);
+
+        setCartProducts([...alreadyAvailable, ...fetched]);
+      } catch (error) {
+        console.error("Unexpected cart loading error", error);
+
+        if (!cancelled) {
+          setCartProducts(alreadyAvailable);
+        }
+      }
+    };
 
     void loadCartProducts();
 
@@ -578,199 +470,128 @@ export function CartProvider({
     }
 
     try {
-      localStorage.setItem(
-        KEY,
-        JSON.stringify(lines),
-      );
+      localStorage.setItem(KEY, JSON.stringify(lines));
     } catch (error) {
-      console.error(
-        "Unable to save cart",
-        error,
-      );
+      console.error("Unable to save cart", error);
     }
   }, [lines, cartHydrated]);
 
-  const value =
-    useMemo<CartCtx>(() => {
-      const productMap = new Map<
-        string,
-        Product
-      >();
+  const value = useMemo<CartCtx>(() => {
+    const productMap = new Map<string, Product>();
 
-      for (const product of catalog) {
-        productMap.set(
-          product.id,
+    for (const product of catalog) {
+      productMap.set(product.id, product);
+    }
+
+    for (const product of cartProducts) {
+      productMap.set(product.id, product);
+    }
+
+    const detailed = lines
+      .map((line) => {
+        const product = productMap.get(line.id);
+
+        if (!product) {
+          return null;
+        }
+
+        return {
           product,
-        );
-      }
+          qty: line.qty,
+        };
+      })
+      .filter(Boolean) as Array<{
+      product: Product;
+      qty: number;
+    }>;
 
-      for (const product of cartProducts) {
-        productMap.set(
-          product.id,
-          product,
-        );
-      }
+    return {
+      lines,
 
-      const detailed = lines
-        .map((line) => {
-          const product =
-            productMap.get(line.id);
+      add: (id, qty = 1) => {
+        setLines((previous) => {
+          const existing = previous.find((line) => line.id === id);
 
-          if (!product) {
-            return null;
+          if (existing) {
+            return previous.map((line) =>
+              line.id === id
+                ? {
+                    ...line,
+                    qty: line.qty + qty,
+                  }
+                : line,
+            );
           }
 
-          return {
-            product,
-            qty: line.qty,
-          };
-        })
-        .filter(
-          Boolean,
-        ) as Array<{
-        product: Product;
-        qty: number;
-      }>;
+          return [
+            ...previous,
+            {
+              id,
+              qty,
+            },
+          ];
+        });
+      },
 
-      return {
-        lines,
+      remove: (id) => {
+        setLines((previous) => previous.filter((line) => line.id !== id));
+      },
 
-        add: (
-          id,
-          qty = 1,
-        ) => {
-          setLines(
-            (previous) => {
-              const existing =
-                previous.find(
-                  (line) =>
-                    line.id === id,
-                );
+      setQty: (id, qty) => {
+        setLines((previous) => {
+          if (qty <= 0) {
+            return previous.filter((line) => line.id !== id);
+          }
 
-              if (existing) {
-                return previous.map(
-                  (line) =>
-                    line.id === id
-                      ? {
-                          ...line,
-                          qty:
-                            line.qty +
-                            qty,
-                        }
-                      : line,
-                );
-              }
-
-              return [
-                ...previous,
-                {
-                  id,
+          return previous.map((line) =>
+            line.id === id
+              ? {
+                  ...line,
                   qty,
-                },
-              ];
-            },
+                }
+              : line,
           );
-        },
+        });
+      },
 
-        remove: (id) => {
-          setLines(
-            (previous) =>
-              previous.filter(
-                (line) =>
-                  line.id !== id,
-              ),
-          );
-        },
+      clear: () => {
+        setLines([]);
+      },
 
-        setQty: (
-          id,
-          qty,
-        ) => {
-          setLines(
-            (previous) => {
-              if (qty <= 0) {
-                return previous.filter(
-                  (line) =>
-                    line.id !== id,
-                );
-              }
+      count: lines.reduce((total, line) => total + line.qty, 0),
 
-              return previous.map(
-                (line) =>
-                  line.id === id
-                    ? {
-                        ...line,
-                        qty,
-                      }
-                    : line,
-              );
-            },
-          );
-        },
+      detailed,
 
-        clear: () => {
-          setLines([]);
-        },
+      subtotal: detailed.reduce((total, item) => total + item.product.price * item.qty, 0),
 
-        count: lines.reduce(
-          (
-            total,
-            line,
-          ) =>
-            total +
-            line.qty,
-          0,
-        ),
-
-        detailed,
-
-        subtotal:
-          detailed.reduce(
-            (
-              total,
-              item,
-            ) =>
-              total +
-              item.product.price *
-                item.qty,
-            0,
-          ),
-
-        catalog,
-
-        catalogLoading,
-
-        catalogHasMore,
-
-        catalogLoadingMore,
-
-        loadMoreCatalog,
-      };
-    }, [
-      lines,
       catalog,
-      cartProducts,
-      catalogLoading,
-      catalogHasMore,
-      catalogLoadingMore,
-      loadMoreCatalog,
-    ]);
 
-  return (
-    <Ctx.Provider value={value}>
-      {children}
-    </Ctx.Provider>
-  );
+      catalogLoading,
+
+      catalogHasMore,
+
+      catalogLoadingMore,
+
+      loadMoreCatalog,
+    };
+  }, [
+    lines,
+    catalog,
+    cartProducts,
+    catalogLoading,
+    catalogHasMore,
+    catalogLoadingMore,
+    loadMoreCatalog,
+  ]);
+
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
 export function useCart() {
-  const ctx =
-    useContext(Ctx);
+  const ctx = useContext(Ctx);
 
   if (!ctx) {
-    throw new Error(
-      "useCart must be used inside CartProvider",
-    );
+    throw new Error("useCart must be used inside CartProvider");
   }
 
   return ctx;

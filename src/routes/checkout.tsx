@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { formatPKR } from "@/data/mock";
 import { useCart } from "@/lib/cart";
+import { deliveryFeeFor, useDeliverySettings } from "@/lib/delivery";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
@@ -24,22 +25,37 @@ export const Route = createFileRoute("/checkout")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "Guest checkout with Cash on Delivery. No account or online payment needed." },
-      { property: "og:title", content: "COD Checkout â€” Dukaan.pk" },
-      { property: "og:description", content: "Order as guest and pay cash when your parcel arrives." },
+      {
+        name: "description",
+        content: "Guest checkout with Cash on Delivery. No account or online payment needed.",
+      },
+      { property: "og:title", content: "COD Checkout — azadari.store" },
+      {
+        property: "og:description",
+        content: "Order as guest and pay cash when your parcel arrives.",
+      },
     ],
   }),
   component: CheckoutPage,
 });
 
-const cities = ["Karachi", "Lahore", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Peshawar", "Quetta"];
+const cities = [
+  "Karachi",
+  "Lahore",
+  "Islamabad",
+  "Rawalpindi",
+  "Faisalabad",
+  "Multan",
+  "Peshawar",
+  "Quetta",
+];
 
 function CheckoutPage() {
   const { detailed, subtotal, clear } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const delivery = subtotal >= 3000 || subtotal === 0 ? 0 : 250;
+  const delivery = deliveryFeeFor(subtotal, useDeliverySettings());
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,28 +67,37 @@ function CheckoutPage() {
     setLoading(true);
     try {
       const formData = new FormData(e.currentTarget);
-      const { data: orderIds, error } = await supabase.rpc(
-        "place_cod_orders",
-        {
-          p_customer_name: String(formData.get("name") ?? "").trim(),
-          p_customer_email: String(formData.get("email") ?? "").trim().toLowerCase(),
-          p_phone: String(formData.get("phone") ?? "").trim(),
-          p_city: String(formData.get("city") ?? "").trim(),
-          p_alternate_phone:
-            String(formData.get("alternatePhone") ?? "").trim() || null,
-          p_address: String(formData.get("address") ?? "").trim(),
-          p_notes: String(formData.get("notes") ?? "").trim() || null,
-          p_items: detailed.map(({ product, qty }) => ({
-            id: product.id,
-            quantity: qty,
-          })),
-        },
-      );
+      const { data: orderIds, error } = await supabase.rpc("place_cod_orders", {
+        p_customer_name: String(formData.get("name") ?? "").trim(),
+        p_customer_email: String(formData.get("email") ?? "")
+          .trim()
+          .toLowerCase(),
+        p_phone: String(formData.get("phone") ?? "").trim(),
+        p_city: String(formData.get("city") ?? "").trim(),
+        p_alternate_phone: String(formData.get("alternatePhone") ?? "").trim() || null,
+        p_address: String(formData.get("address") ?? "").trim(),
+        p_notes: String(formData.get("notes") ?? "").trim() || null,
+        p_items: detailed.map(({ product, qty }) => ({
+          id: product.id,
+          quantity: qty,
+        })),
+      });
       if (error) throw error;
       if (!orderIds?.length) {
         throw new Error("Order IDs receive nahi hue.");
       }
       sessionStorage.setItem("dukaan_last_order_ids", JSON.stringify(orderIds));
+
+      // Each seller gets an email about their new order. The order is already
+      // placed, so a failed alert must never block the customer.
+      for (const orderId of orderIds as string[]) {
+        void supabase.functions
+          .invoke("send-confirmation-email", { body: { type: "new_order", id: orderId } })
+          .then(({ error: alertError }) => {
+            if (alertError) console.warn("New order alert not sent", orderId, alertError);
+          });
+      }
+
       clear();
       await navigate({ to: "/order-confirmation" });
     } catch (error) {
@@ -88,7 +113,7 @@ function CheckoutPage() {
       <div className="mx-auto max-w-7xl px-4 py-8">
         <h1 className="text-2xl font-extrabold sm:text-3xl">COD Checkout</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Guest checkout â€” account banane ki zaroorat nahi.
+          Guest checkout — account banane ki zaroorat nahi.
         </p>
 
         <form onSubmit={submit} className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -98,15 +123,36 @@ function CheckoutPage() {
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="name">Full Name *</Label>
-                  <Input id="name" name="name" required placeholder="Ahmed Raza" className="rounded-xl" />
+                  <Input
+                    id="name"
+                    name="name"
+                    required
+                    placeholder="Ahmed Raza"
+                    className="rounded-xl"
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="email">Email for order updates *</Label>
-                  <Input id="email" name="email" type="email" autoComplete="email" required maxLength={254} placeholder="you@example.com" className="rounded-xl" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    maxLength={254}
+                    placeholder="you@example.com"
+                    className="rounded-xl"
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="phone">Mobile Number *</Label>
-                  <Input id="phone" name="phone" required placeholder="03XX-XXXXXXX" className="rounded-xl" />
+                  <Input
+                    id="phone"
+                    name="phone"
+                    required
+                    placeholder="03XX-XXXXXXX"
+                    className="rounded-xl"
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="city">City *</Label>
@@ -116,22 +162,40 @@ function CheckoutPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {cities.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="alt">Alternate Number</Label>
-                  <Input id="alt" name="alternatePhone" placeholder="Optional" className="rounded-xl" />
+                  <Input
+                    id="alt"
+                    name="alternatePhone"
+                    placeholder="Optional"
+                    className="rounded-xl"
+                  />
                 </div>
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label htmlFor="address">Complete Address *</Label>
-                  <Textarea id="address" name="address" required placeholder="House #, street, area, landmark" className="rounded-xl" />
+                  <Textarea
+                    id="address"
+                    name="address"
+                    required
+                    placeholder="House #, street, area, landmark"
+                    className="rounded-xl"
+                  />
                 </div>
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label htmlFor="notes">Order Notes</Label>
-                  <Textarea id="notes" name="notes" placeholder="Delivery ke liye koi hidayat?" className="rounded-xl" />
+                  <Textarea
+                    id="notes"
+                    name="notes"
+                    placeholder="Delivery ke liye koi hidayat?"
+                    className="rounded-xl"
+                  />
                 </div>
               </div>
             </section>
@@ -157,13 +221,15 @@ function CheckoutPage() {
               {detailed.length === 0 && (
                 <p className="text-sm text-muted-foreground">
                   Cart khali hai.{" "}
-                  <Link to="/products" className="text-primary underline">Products dekhein</Link>
+                  <Link to="/products" className="text-primary underline">
+                    Products dekhein
+                  </Link>
                 </p>
               )}
               {detailed.map(({ product, qty }) => (
                 <div key={product.id} className="flex items-center justify-between gap-3 text-sm">
                   <span className="min-w-0 truncate">
-                    {product.name} <span className="text-muted-foreground">Ã— {qty}</span>
+                    {product.name} <span className="text-muted-foreground">× {qty}</span>
                   </span>
                   <span className="shrink-0 font-medium">{formatPKR(product.price * qty)}</span>
                 </div>
@@ -182,10 +248,17 @@ function CheckoutPage() {
               <Separator className="my-2" />
               <div className="flex justify-between text-base">
                 <span className="font-semibold">Total Payable</span>
-                <span className="font-display font-extrabold text-primary">{formatPKR(subtotal + delivery)}</span>
+                <span className="font-display font-extrabold text-primary">
+                  {formatPKR(subtotal + delivery)}
+                </span>
               </div>
             </div>
-            <Button type="submit" size="lg" disabled={loading || detailed.length === 0} className="mt-5 w-full rounded-xl">
+            <Button
+              type="submit"
+              size="lg"
+              disabled={loading || detailed.length === 0}
+              className="mt-5 w-full rounded-xl"
+            >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {loading ? "Placing order..." : "Place COD Order"}
             </Button>

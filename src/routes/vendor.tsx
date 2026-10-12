@@ -8,8 +8,7 @@ export const Route = createFileRoute("/vendor")({
       return;
     }
 
-    const { data: sessionData, error: sessionError } =
-      await supabase.auth.getSession();
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
     if (sessionError) {
       throw sessionError;
@@ -19,7 +18,7 @@ export const Route = createFileRoute("/vendor")({
 
     // If not logged in, go to login
     if (!user) {
-      throw redirect({ 
+      throw redirect({
         to: "/login",
         search: {
           redirect: location.href,

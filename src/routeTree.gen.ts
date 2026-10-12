@@ -14,9 +14,11 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BecomeVendorRouteImport } from './routes/become-vendor'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OrderConfirmationRouteImport } from './routes/order-confirmation'
 import { Route as OrdersRouteImport } from './routes/orders'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SellRouteImport } from './routes/sell'
 import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as VendorRouteImport } from './routes/vendor'
@@ -77,6 +79,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -90,6 +97,11 @@ const OrderConfirmationRoute = OrderConfirmationRouteImport.update({
 const OrdersRoute = OrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SellRoute = SellRouteImport.update({
@@ -269,9 +281,11 @@ export interface FileRoutesByFullPath {
   '/become-vendor': typeof BecomeVendorRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/order-confirmation': typeof OrderConfirmationRoute
   '/orders': typeof OrdersRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sell': typeof SellRoute
   '/track-order': typeof TrackOrderRoute
   '/vendor': typeof VendorRouteWithChildren
@@ -312,9 +326,11 @@ export interface FileRoutesByTo {
   '/become-vendor': typeof BecomeVendorRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/order-confirmation': typeof OrderConfirmationRoute
   '/orders': typeof OrdersRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sell': typeof SellRoute
   '/track-order': typeof TrackOrderRoute
   '/admin/bookings': typeof AdminBookingsRoute
@@ -356,9 +372,11 @@ export interface FileRoutesById {
   '/become-vendor': typeof BecomeVendorRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/order-confirmation': typeof OrderConfirmationRoute
   '/orders': typeof OrdersRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sell': typeof SellRoute
   '/track-order': typeof TrackOrderRoute
   '/vendor': typeof VendorRouteWithChildren
@@ -402,9 +420,11 @@ export interface FileRouteTypes {
     | '/become-vendor'
     | '/cart'
     | '/checkout'
+    | '/forgot-password'
     | '/login'
     | '/order-confirmation'
     | '/orders'
+    | '/reset-password'
     | '/sell'
     | '/track-order'
     | '/vendor'
@@ -445,9 +465,11 @@ export interface FileRouteTypes {
     | '/become-vendor'
     | '/cart'
     | '/checkout'
+    | '/forgot-password'
     | '/login'
     | '/order-confirmation'
     | '/orders'
+    | '/reset-password'
     | '/sell'
     | '/track-order'
     | '/admin/bookings'
@@ -488,9 +510,11 @@ export interface FileRouteTypes {
     | '/become-vendor'
     | '/cart'
     | '/checkout'
+    | '/forgot-password'
     | '/login'
     | '/order-confirmation'
     | '/orders'
+    | '/reset-password'
     | '/sell'
     | '/track-order'
     | '/vendor'
@@ -533,9 +557,11 @@ export interface RootRouteChildren {
   BecomeVendorRoute: typeof BecomeVendorRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   OrderConfirmationRoute: typeof OrderConfirmationRoute
   OrdersRoute: typeof OrdersRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SellRoute: typeof SellRoute
   TrackOrderRoute: typeof TrackOrderRoute
   VendorRoute: typeof VendorRouteWithChildren
@@ -588,6 +614,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -607,6 +640,13 @@ declare module '@tanstack/react-router' {
       path: '/orders'
       fullPath: '/orders'
       preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sell': {
@@ -915,9 +955,11 @@ const rootRouteChildren: RootRouteChildren = {
   BecomeVendorRoute: BecomeVendorRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   OrderConfirmationRoute: OrderConfirmationRoute,
   OrdersRoute: OrdersRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SellRoute: SellRoute,
   TrackOrderRoute: TrackOrderRoute,
   VendorRoute: VendorRouteWithChildren,

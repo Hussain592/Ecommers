@@ -7,8 +7,8 @@ export const Route = createFileRoute("/vendor/products/new")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "Add a new product to your Dukaan.pk store catalog." },
-      { property: "og:title", content: "Add Product â€” Dukaan.pk" },
+      { name: "description", content: "Add a new product to your azadari.store store catalog." },
+      { property: "og:title", content: "Add Product — azadari.store" },
       { property: "og:description", content: "List a new product for Cash on Delivery orders." },
     ],
   }),

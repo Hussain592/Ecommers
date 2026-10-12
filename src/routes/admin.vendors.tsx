@@ -1,12 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import {
-  Ban,
-  Check,
-  Loader2,
-  Search,
-  X,
-} from "lucide-react";
+import { Ban, Check, Loader2, Search, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -20,12 +14,11 @@ export const Route = createFileRoute("/admin/vendors")({
   head: () => ({
     meta: [
       {
-        title: "Vendors — Dukaan.pk Admin",
+        title: "Vendors — azadari.store Admin",
       },
       {
         name: "description",
-        content:
-          "Approve, reject, suspend and review all marketplace vendors.",
+        content: "Approve, reject, suspend and review all marketplace vendors.",
       },
       {
         name: "robots",
@@ -33,7 +26,7 @@ export const Route = createFileRoute("/admin/vendors")({
       },
       {
         property: "og:title",
-        content: "Vendors — Dukaan.pk Admin",
+        content: "Vendors — azadari.store Admin",
       },
       {
         property: "og:description",
@@ -73,48 +66,35 @@ function VendorList() {
 
     const { data, error } = await supabase
       .from("vendors")
-      .select(
-        "id, name, contact, email, address, status, created_at",
-      )
+      .select("id, name, contact, email, address, status, created_at")
       .order("created_at", {
         ascending: false,
       });
 
     if (error) {
-      console.error(
-        "Error loading vendors",
-        error,
-      );
+      console.error("Error loading vendors", error);
 
-      toast.error(
-        "Vendors load nahi ho sake.",
-      );
+      toast.error("Vendors load nahi ho sake.");
 
       setLoading(false);
       return;
     }
 
     const withCounts = await Promise.all(
-      (data ?? []).map(
-        async (vendor) => {
-          const { count } =
-            await supabase
-              .from("products")
-              .select("id", {
-                count: "exact",
-                head: true,
-              })
-              .eq(
-                "vendor_id",
-                vendor.id,
-              );
+      (data ?? []).map(async (vendor) => {
+        const { count } = await supabase
+          .from("products")
+          .select("id", {
+            count: "exact",
+            head: true,
+          })
+          .eq("vendor_id", vendor.id);
 
-          return {
-            ...vendor,
-            products: count ?? 0,
-          };
-        },
-      ),
+        return {
+          ...vendor,
+          products: count ?? 0,
+        };
+      }),
     );
 
     setVendors(withCounts);
@@ -140,30 +120,20 @@ function VendorList() {
    * vendors.status = Rejected
    * users.role = customer
    */
-  const reviewApplication = async (
-    id: string,
-    action: "approve" | "reject",
-  ) => {
+  const reviewApplication = async (id: string, action: "approve" | "reject") => {
     setBusyId(id);
 
     try {
-      const { error } =
-        await supabase.rpc(
-          "review_vendor_application",
-          {
-            p_vendor_id: id,
-            p_action: action,
-          },
-        );
+      const { error } = await supabase.rpc("review_vendor_application", {
+        p_vendor_id: id,
+        p_action: action,
+      });
 
       if (error) {
         throw error;
       }
 
-      const nextStatus =
-        action === "approve"
-          ? "Active"
-          : "Rejected";
+      const nextStatus = action === "approve" ? "Active" : "Rejected";
 
       setVendors((previous) =>
         previous.map((vendor) =>
@@ -177,24 +147,15 @@ function VendorList() {
       );
 
       if (action === "approve") {
-        toast.success(
-          "Vendor application approve ho gayi.",
-        );
+        toast.success("Vendor application approve ho gayi.");
       } else {
-        toast.success(
-          "Vendor application reject ho gayi.",
-        );
+        toast.success("Vendor application reject ho gayi.");
       }
     } catch (error) {
-      console.error(
-        "Unable to review vendor",
-        error,
-      );
+      console.error("Unable to review vendor", error);
 
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Vendor application update nahi ho saki.",
+        error instanceof Error ? error.message : "Vendor application update nahi ho saki.",
       );
     } finally {
       setBusyId(null);
@@ -206,16 +167,11 @@ function VendorList() {
    * SUSPEND ACTIVE VENDOR
    * ----------------------------------------
    */
-  const suspendVendor = async (
-    id: string,
-  ) => {
+  const suspendVendor = async (id: string) => {
     setBusyId(id);
 
     try {
-      const {
-        data,
-        error,
-      } = await supabase
+      const { data, error } = await supabase
         .from("vendors")
         .update({
           status: "Suspended",
@@ -228,9 +184,7 @@ function VendorList() {
       }
 
       if (!data || data.length === 0) {
-        throw new Error(
-          "Permission nahi mili. Admin account se login karein.",
-        );
+        throw new Error("Permission nahi mili. Admin account se login karein.");
       }
 
       setVendors((previous) =>
@@ -244,43 +198,29 @@ function VendorList() {
         ),
       );
 
-      toast.success(
-        "Vendor suspend ho gaya.",
-      );
+      toast.success("Vendor suspend ho gaya.");
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Vendor suspend nahi ho saka.",
-      );
+      toast.error(error instanceof Error ? error.message : "Vendor suspend nahi ho saka.");
     } finally {
       setBusyId(null);
     }
   };
 
-  const normalizedQuery =
-    q.trim().toLowerCase();
+  const normalizedQuery = q.trim().toLowerCase();
 
   const list = vendors.filter(
     (vendor) =>
-      vendor.name
-        .toLowerCase()
-        .includes(normalizedQuery) ||
-      (vendor.email ?? "")
-        .toLowerCase()
-        .includes(normalizedQuery),
+      vendor.name.toLowerCase().includes(normalizedQuery) ||
+      (vendor.email ?? "").toLowerCase().includes(normalizedQuery),
   );
 
-  const pendingCount =
-    vendors.filter(
-      (vendor) =>
-        (vendor.status ?? "Pending") ===
-        "Pending",
-    ).length;
+  const pendingCount = vendors.filter(
+    (vendor) => (vendor.status ?? "Pending") === "Pending",
+  ).length;
 
   return (
     <DashboardShell
-      brand="Dukaan.pk"
+      brand="azadari.store"
       role="Owner / Admin"
       title="Vendors"
       subtitle={`${vendors.length} vendors · ${pendingCount} pending applications`}
@@ -293,9 +233,7 @@ function VendorList() {
 
           <Input
             value={q}
-            onChange={(event) =>
-              setQ(event.target.value)
-            }
+            onChange={(event) => setQ(event.target.value)}
             placeholder="Search name or email"
             className="h-10 rounded-xl pl-9"
           />
@@ -312,41 +250,25 @@ function VendorList() {
             <table className="w-full min-w-[840px] text-sm">
               <thead className="bg-muted/70 text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3 font-semibold">
-                    Vendor
-                  </th>
+                  <th className="px-4 py-3 font-semibold">Vendor</th>
 
-                  <th className="px-4 py-3 font-semibold">
-                    Contact
-                  </th>
+                  <th className="px-4 py-3 font-semibold">Contact</th>
 
-                  <th className="px-4 py-3 font-semibold">
-                    Address
-                  </th>
+                  <th className="px-4 py-3 font-semibold">Address</th>
 
-                  <th className="px-4 py-3 font-semibold">
-                    Products
-                  </th>
+                  <th className="px-4 py-3 font-semibold">Products</th>
 
-                  <th className="px-4 py-3 font-semibold">
-                    Status
-                  </th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
 
-                  <th className="px-4 py-3 text-right font-semibold">
-                    Actions
-                  </th>
+                  <th className="px-4 py-3 text-right font-semibold">Actions</th>
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-border">
                 {list.map((vendor) => {
-                  const status =
-                    vendor.status ??
-                    "Pending";
+                  const status = vendor.status ?? "Pending";
 
-                  const busy =
-                    busyId ===
-                    vendor.id;
+                  const busy = busyId === vendor.id;
 
                   return (
                     <tr
@@ -359,26 +281,18 @@ function VendorList() {
                         navigate({
                           to: "/admin/vendors/$vendorId",
                           params: {
-                            vendorId:
-                              vendor.id,
+                            vendorId: vendor.id,
                           },
                         })
                       }
-                      onKeyDown={(
-                        event,
-                      ) => {
-                        if (
-                          event.key ===
-                            "Enter" ||
-                          event.key === " "
-                        ) {
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
 
                           navigate({
                             to: "/admin/vendors/$vendorId",
                             params: {
-                              vendorId:
-                                vendor.id,
+                              vendorId: vendor.id,
                             },
                           });
                         }
@@ -389,8 +303,7 @@ function VendorList() {
                         <Link
                           to="/admin/vendors/$vendorId"
                           params={{
-                            vendorId:
-                              vendor.id,
+                            vendorId: vendor.id,
                           }}
                           className="font-medium text-primary hover:underline"
                         >
@@ -398,63 +311,44 @@ function VendorList() {
                         </Link>
 
                         <p className="text-xs text-muted-foreground">
-                          {vendor.email ??
-                            "No email"}
+                          {vendor.email ?? "No email"}
                         </p>
                       </td>
 
                       {/* Contact */}
-                      <td className="px-4 py-3">
-                        {vendor.contact ??
-                          "—"}
-                      </td>
+                      <td className="px-4 py-3">{vendor.contact ?? "—"}</td>
 
                       {/* Address */}
                       <td className="max-w-[260px] px-4 py-3 text-muted-foreground">
-                        {vendor.address ??
-                          "—"}
+                        {vendor.address ?? "—"}
                       </td>
 
                       {/* Products */}
-                      <td className="px-4 py-3">
-                        {vendor.products}
-                      </td>
+                      <td className="px-4 py-3">{vendor.products}</td>
 
                       {/* Status */}
                       <td className="px-4 py-3">
-                        <StatusBadge
-                          status={
-                            status as never
-                          }
-                        />
+                        <StatusBadge status={status as never} />
                       </td>
 
                       {/* Actions */}
                       <td className="px-4 py-3">
                         <div className="flex justify-end gap-2">
                           {/* Pending Application */}
-                          {status ===
-                            "Pending" && (
+                          {status === "Pending" && (
                             <>
                               <Button
                                 type="button"
                                 variant="outline"
                                 size="icon"
                                 className="h-8 w-8 rounded-lg text-success"
-                                disabled={
-                                  busy
-                                }
+                                disabled={busy}
                                 title="Approve vendor"
                                 aria-label={`Approve ${vendor.name}`}
-                                onClick={(
-                                  event,
-                                ) => {
+                                onClick={(event) => {
                                   event.stopPropagation();
 
-                                  void reviewApplication(
-                                    vendor.id,
-                                    "approve",
-                                  );
+                                  void reviewApplication(vendor.id, "approve");
                                 }}
                               >
                                 {busy ? (
@@ -469,20 +363,13 @@ function VendorList() {
                                 variant="outline"
                                 size="icon"
                                 className="h-8 w-8 rounded-lg text-destructive"
-                                disabled={
-                                  busy
-                                }
+                                disabled={busy}
                                 title="Reject vendor"
                                 aria-label={`Reject ${vendor.name}`}
-                                onClick={(
-                                  event,
-                                ) => {
+                                onClick={(event) => {
                                   event.stopPropagation();
 
-                                  void reviewApplication(
-                                    vendor.id,
-                                    "reject",
-                                  );
+                                  void reviewApplication(vendor.id, "reject");
                                 }}
                               >
                                 {busy ? (
@@ -495,26 +382,19 @@ function VendorList() {
                           )}
 
                           {/* Active Vendor */}
-                          {status ===
-                            "Active" && (
+                          {status === "Active" && (
                             <Button
                               type="button"
                               variant="outline"
                               size="icon"
                               className="h-8 w-8 rounded-lg text-destructive"
-                              disabled={
-                                busy
-                              }
+                              disabled={busy}
                               title="Suspend vendor"
                               aria-label={`Suspend ${vendor.name}`}
-                              onClick={(
-                                event,
-                              ) => {
+                              onClick={(event) => {
                                 event.stopPropagation();
 
-                                void suspendVendor(
-                                  vendor.id,
-                                );
+                                void suspendVendor(vendor.id);
                               }}
                             >
                               {busy ? (
@@ -526,10 +406,7 @@ function VendorList() {
                           )}
 
                           {/* Rejected / Suspended */}
-                          {(status ===
-                            "Rejected" ||
-                            status ===
-                              "Suspended") && (
+                          {(status === "Rejected" || status === "Suspended") && (
                             <span className="px-2 py-1 text-xs text-muted-foreground">
                               No action
                             </span>

@@ -12,8 +12,8 @@ export const Route = createFileRoute("/vendor/products/$id/edit")({
     meta: [
       { title: "azadari.store" },
       { name: "description", content: "Update product details, price, stock and availability." },
-      { property: "og:title", content: "Edit Product â€” Dukaan.pk" },
-      { property: "og:description", content: "Edit your Dukaan.pk product listing." },
+      { property: "og:title", content: "Edit Product — azadari.store" },
+      { property: "og:description", content: "Edit your azadari.store product listing." },
     ],
   }),
   component: EditProduct,
@@ -30,7 +30,9 @@ function EditProduct() {
     const loadProduct = async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, name, description, image, images, price, compare_price, stock, category, brand, active")
+        .select(
+          "id, name, description, image, images, price, compare_price, stock, category, brand, active",
+        )
         .eq("id", id)
         .maybeSingle();
 
@@ -43,7 +45,10 @@ function EditProduct() {
         setProduct({
           id: data.id,
           name: data.name,
-          slug: data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+          slug: data.name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)/g, ""),
           category: data.category ?? "Uncategorized",
           price: Number(data.price),
           oldPrice: data.compare_price ? Number(data.compare_price) : undefined,
@@ -56,8 +61,7 @@ function EditProduct() {
           image: data.image || "/favicon.ico",
           images: Array.isArray(data.images)
             ? data.images.filter(
-                (image): image is string =>
-                  typeof image === "string" && image.length > 0,
+                (image): image is string => typeof image === "string" && image.length > 0,
               )
             : data.image
               ? [data.image]
@@ -83,11 +87,15 @@ function EditProduct() {
       brand="Al-Madina Traders"
       role="Vendor Account"
       title="Edit Product"
-      subtitle={loading ? "Product load ho raha hai..." : product ? product.name : "Product not found"}
+      subtitle={
+        loading ? "Product load ho raha hai..." : product ? product.name : "Product not found"
+      }
       nav={vendorNav}
     >
       {loading ? (
-        <div className="surface-card p-10 text-center text-sm text-muted-foreground">Product load ho raha hai...</div>
+        <div className="surface-card p-10 text-center text-sm text-muted-foreground">
+          Product load ho raha hai...
+        </div>
       ) : product ? (
         <ProductForm mode="edit" product={product} />
       ) : (

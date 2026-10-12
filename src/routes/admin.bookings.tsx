@@ -12,7 +12,7 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/admin/bookings")({
   head: () => ({
     meta: [
-      { title: "Service Bookings — Dukaan.pk Admin" },
+      { title: "Service Bookings — azadari.store Admin" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -79,16 +79,13 @@ function AdminBookings() {
     }
 
     setRequests((current) =>
-      current.map((item) =>
-        item.id === request.id ? { ...item, status } : item,
-      ),
+      current.map((item) => (item.id === request.id ? { ...item, status } : item)),
     );
     toast.success("Booking status update ho gaya.");
     if (status === "Confirmed") {
-      const { error: emailError } = await supabase.functions.invoke(
-        "send-confirmation-email",
-        { body: { type: "booking", id: request.id } },
-      );
+      const { error: emailError } = await supabase.functions.invoke("send-confirmation-email", {
+        body: { type: "booking", id: request.id },
+      });
       if (emailError) {
         console.error("Booking confirmed but email notification failed:", emailError);
         toast.error("Booking confirm ho gayi, lekin email nahi bheji ja saki.");
@@ -100,7 +97,7 @@ function AdminBookings() {
 
   return (
     <DashboardShell
-      brand="Dukaan.pk"
+      brand="azadari.store"
       role="Owner / Admin"
       title="Service Bookings"
       subtitle="Customer requests dekhein aur unka status manage karein"
@@ -130,14 +127,30 @@ function AdminBookings() {
               <caption className="sr-only">Service booking requests</caption>
               <thead className="bg-muted/70 text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th scope="col" className="px-4 py-3 font-semibold">Service</th>
-                  <th scope="col" className="px-4 py-3 font-semibold">Customer</th>
-                  <th scope="col" className="px-4 py-3 font-semibold">Phone</th>
-                  <th scope="col" className="px-4 py-3 font-semibold">Email</th>
-                  <th scope="col" className="px-4 py-3 font-semibold">Requirements / Address</th>
-                  <th scope="col" className="px-4 py-3 font-semibold">Date</th>
-                  <th scope="col" className="px-4 py-3 font-semibold">Status</th>
-                  <th scope="col" className="px-4 py-3 font-semibold">Update</th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Service
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Customer
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Phone
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Email
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Requirements / Address
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Date
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Status
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Update
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -174,12 +187,12 @@ function AdminBookings() {
                         className="h-9 rounded-lg border border-border bg-background px-2"
                         disabled={busyId === request.id}
                         value={request.status}
-                        onChange={(event) =>
-                          void updateStatus(request, event.target.value)
-                        }
+                        onChange={(event) => void updateStatus(request, event.target.value)}
                       >
                         {statuses.map((status) => (
-                          <option key={status} value={status}>{status}</option>
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
                         ))}
                       </select>
                     </td>

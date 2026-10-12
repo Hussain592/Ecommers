@@ -16,9 +16,12 @@ export const Route = createFileRoute("/admin/settings")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "Configure marketplace-wide settings, delivery charges and policies." },
+      {
+        name: "description",
+        content: "Configure marketplace-wide settings, delivery charges and policies.",
+      },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Platform Settings â€” Dukaan.pk Admin" },
+      { property: "og:title", content: "Platform Settings — azadari.store Admin" },
       { property: "og:description", content: "Marketplace configuration." },
     ],
   }),
@@ -26,9 +29,9 @@ export const Route = createFileRoute("/admin/settings")({
 });
 
 const DEFAULTS = {
-  platform_name: "Dukaan.pk",
-  support_helpline: "0311-DUKAAN",
-  announcement_bar: "Cash on Delivery all over Pakistan Â· Free delivery above Rs. 3,000",
+  platform_name: "azadari.store",
+  support_helpline: "",
+  announcement_bar: "Cash on Delivery all over Pakistan · Free delivery above Rs. 3,000",
   delivery_charges: 250,
   free_delivery_threshold: 3000,
   return_window: 7,
@@ -105,7 +108,13 @@ function AdminSettings() {
 
   if (loading) {
     return (
-      <DashboardShell brand="Dukaan.pk" role="Owner / Admin" title="Settings" subtitle="Platform configuration" nav={adminNav}>
+      <DashboardShell
+        brand="azadari.store"
+        role="Owner / Admin"
+        title="Settings"
+        subtitle="Platform configuration"
+        nav={adminNav}
+      >
         <div className="flex justify-center p-10">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -114,22 +123,45 @@ function AdminSettings() {
   }
 
   return (
-    <DashboardShell brand="Dukaan.pk" role="Owner / Admin" title="Settings" subtitle="Platform configuration" nav={adminNav}>
+    <DashboardShell
+      brand="azadari.store"
+      role="Owner / Admin"
+      title="Settings"
+      subtitle="Platform configuration"
+      nav={adminNav}
+    >
       <form className="grid gap-6 lg:grid-cols-2" onSubmit={handleSubmit}>
         <section className="surface-card p-5">
           <h2 className="font-bold">Marketplace</h2>
           <div className="mt-4 space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="pn">Platform Name</Label>
-              <Input id="pn" name="platform_name" defaultValue={settings.platform_name} className="rounded-xl" />
+              <Input
+                id="pn"
+                name="platform_name"
+                defaultValue={settings.platform_name}
+                className="rounded-xl"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="sh">Support Helpline</Label>
-              <Input id="sh" name="support_helpline" defaultValue={settings.support_helpline} className="rounded-xl" />
+              <Input
+                id="sh"
+                name="support_helpline"
+                defaultValue={settings.support_helpline}
+                placeholder="0300-1234567"
+                className="rounded-xl"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="an">Announcement Bar</Label>
-              <Textarea id="an" name="announcement_bar" rows={3} defaultValue={settings.announcement_bar} className="rounded-xl" />
+              <Textarea
+                id="an"
+                name="announcement_bar"
+                rows={3}
+                defaultValue={settings.announcement_bar}
+                className="rounded-xl"
+              />
             </div>
           </div>
         </section>
@@ -139,15 +171,33 @@ function AdminSettings() {
           <div className="mt-4 space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="dc">Delivery Charges (PKR)</Label>
-              <Input id="dc" name="delivery_charges" type="number" defaultValue={settings.delivery_charges} className="rounded-xl" />
+              <Input
+                id="dc"
+                name="delivery_charges"
+                type="number"
+                defaultValue={settings.delivery_charges}
+                className="rounded-xl"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="ft">Free Delivery Threshold (PKR)</Label>
-              <Input id="ft" name="free_delivery_threshold" type="number" defaultValue={settings.free_delivery_threshold} className="rounded-xl" />
+              <Input
+                id="ft"
+                name="free_delivery_threshold"
+                type="number"
+                defaultValue={settings.free_delivery_threshold}
+                className="rounded-xl"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="rw">Return Window (days)</Label>
-              <Input id="rw" name="return_window" type="number" defaultValue={settings.return_window} className="rounded-xl" />
+              <Input
+                id="rw"
+                name="return_window"
+                type="number"
+                defaultValue={settings.return_window}
+                className="rounded-xl"
+              />
             </div>
           </div>
         </section>
@@ -155,13 +205,29 @@ function AdminSettings() {
         <section className="surface-card p-5 lg:col-span-2">
           <h2 className="font-bold">Platform Controls</h2>
           <div className="mt-4 space-y-4">
-            {(
+            {[
               [
-                ["cod_only", "Cash on Delivery only", "Online payments disabled rakhein", codOnly, setCodOnly] as const,
-                ["guest_checkout", "Guest checkout", "Bina account order allow karein", guestCheckout, setGuestCheckout] as const,
-                ["auto_approve_vendors", "Auto-approve new vendors", "Naye vendors ko manual review ke baghair activate karein", autoApproveVendors, setAutoApproveVendors] as const,
-              ]
-            ).map(([name, t, d, checked, setChecked], i, arr) => (
+                "cod_only",
+                "Cash on Delivery only",
+                "Online payments disabled rakhein",
+                codOnly,
+                setCodOnly,
+              ] as const,
+              [
+                "guest_checkout",
+                "Guest checkout",
+                "Bina account order allow karein",
+                guestCheckout,
+                setGuestCheckout,
+              ] as const,
+              [
+                "auto_approve_vendors",
+                "Auto-approve new vendors",
+                "Naye vendors ko manual review ke baghair activate karein",
+                autoApproveVendors,
+                setAutoApproveVendors,
+              ] as const,
+            ].map(([name, t, d, checked, setChecked], i, arr) => (
               <div key={name}>
                 <div className="flex items-center justify-between gap-4">
                   <div className="min-w-0">

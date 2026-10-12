@@ -13,8 +13,11 @@ export const Route = createFileRoute("/partner/products")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "View the products you have listed as a Dukaan.pk partner." },
-      { property: "og:title", content: "Partner Products â€” Dukaan.pk" },
+      {
+        name: "description",
+        content: "View the products you have listed as a azadari.store partner.",
+      },
+      { property: "og:title", content: "Partner Products — azadari.store" },
       { property: "og:description", content: "Your listed products and their approval status." },
     ],
   }),
@@ -44,7 +47,11 @@ function PartnerProducts() {
         return;
       }
 
-      const { data: profile } = await supabase.from("users").select("name").eq("auth_id", authData.user.id).maybeSingle();
+      const { data: profile } = await supabase
+        .from("users")
+        .select("name")
+        .eq("auth_id", authData.user.id)
+        .maybeSingle();
       if (profile?.name) setPartnerName(profile.name);
 
       const { data, error } = await supabase
@@ -79,7 +86,12 @@ function PartnerProducts() {
       <div className="surface-card p-4">
         <div className="relative max-w-sm">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search my products" className="h-10 rounded-xl pl-9" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search my products"
+            className="h-10 rounded-xl pl-9"
+          />
         </div>
       </div>
 
@@ -103,7 +115,14 @@ function PartnerProducts() {
           {list.map((p) => (
             <div key={p.id} className="surface-card p-4">
               <div className="flex gap-3">
-                <img src={p.image ?? ""} alt={p.name} loading="lazy" width={800} height={800} className="h-16 w-16 rounded-xl bg-muted object-cover" />
+                <img
+                  src={p.image ?? ""}
+                  alt={p.name}
+                  loading="lazy"
+                  width={800}
+                  height={800}
+                  className="h-16 w-16 rounded-xl bg-muted object-cover"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{p.name}</p>
                   <p className="text-xs text-muted-foreground">{p.category}</p>

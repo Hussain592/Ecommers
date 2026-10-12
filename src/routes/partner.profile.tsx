@@ -14,8 +14,8 @@ export const Route = createFileRoute("/partner/profile")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "Manage your partner profile details on Dukaan.pk." },
-      { property: "og:title", content: "Partner Profile â€” Dukaan.pk" },
+      { name: "description", content: "Manage your partner profile details on azadari.store." },
+      { property: "og:title", content: "Partner Profile — azadari.store" },
       { property: "og:description", content: "Update your contact and personal details." },
     ],
   }),
@@ -76,7 +76,11 @@ function PartnerProfile() {
     };
 
     setSaving(true);
-    const { data, error } = await supabase.from("users").update(updated).eq("id", profile.id).select();
+    const { data, error } = await supabase
+      .from("users")
+      .update(updated)
+      .eq("id", profile.id)
+      .select();
     setSaving(false);
 
     if (error || !data || data.length === 0) {
@@ -90,7 +94,13 @@ function PartnerProfile() {
 
   if (loading) {
     return (
-      <DashboardShell brand="Partner" role="Partner Account" title="Profile" subtitle="Apni maloomat update karein" nav={partnerNav}>
+      <DashboardShell
+        brand="Partner"
+        role="Partner Account"
+        title="Profile"
+        subtitle="Apni maloomat update karein"
+        nav={partnerNav}
+      >
         <div className="flex justify-center p-10">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -100,7 +110,13 @@ function PartnerProfile() {
 
   if (!profile) {
     return (
-      <DashboardShell brand="Partner" role="Partner Account" title="Profile" subtitle="Apni maloomat update karein" nav={partnerNav}>
+      <DashboardShell
+        brand="Partner"
+        role="Partner Account"
+        title="Profile"
+        subtitle="Apni maloomat update karein"
+        nav={partnerNav}
+      >
         <p className="text-sm text-muted-foreground">Profile nahi mila.</p>
       </DashboardShell>
     );
@@ -137,11 +153,22 @@ function PartnerProfile() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="ph">Phone</Label>
-              <Input id="ph" name="phone" defaultValue={profile.phone ?? ""} className="rounded-xl" />
+              <Input
+                id="ph"
+                name="phone"
+                defaultValue={profile.phone ?? ""}
+                className="rounded-xl"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="em">Email</Label>
-              <Input id="em" type="email" defaultValue={profile.email ?? ""} className="rounded-xl" disabled />
+              <Input
+                id="em"
+                type="email"
+                defaultValue={profile.email ?? ""}
+                className="rounded-xl"
+                disabled
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="ct">City</Label>
@@ -149,7 +176,13 @@ function PartnerProfile() {
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="ad">Address</Label>
-              <Textarea id="ad" name="address" rows={3} defaultValue={profile.address ?? ""} className="rounded-xl" />
+              <Textarea
+                id="ad"
+                name="address"
+                rows={3}
+                defaultValue={profile.address ?? ""}
+                className="rounded-xl"
+              />
             </div>
           </div>
           <Button type="submit" className="mt-6 rounded-xl" disabled={saving}>

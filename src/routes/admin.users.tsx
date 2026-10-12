@@ -1,13 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import {
-  Search,
-  Check,
-  Ban,
-  Loader2,
-  Store,
-  Users,
-} from "lucide-react";
+import { Search, Check, Ban, Loader2, Store, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -16,11 +9,7 @@ import { adminNav } from "@/components/dashboard/nav-config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -42,12 +31,11 @@ export const Route = createFileRoute("/admin/users")({
   head: () => ({
     meta: [
       {
-        title: "Partners & Users — Dukaan.pk Admin",
+        title: "Partners & Users — azadari.store Admin",
       },
       {
         name: "description",
-        content:
-          "Manage partner accounts and platform users.",
+        content: "Manage partner accounts and platform users.",
       },
       {
         name: "robots",
@@ -55,7 +43,7 @@ export const Route = createFileRoute("/admin/users")({
       },
       {
         property: "og:title",
-        content: "Partners & Users — Dukaan.pk Admin",
+        content: "Partners & Users — azadari.store Admin",
       },
       {
         property: "og:description",
@@ -85,44 +73,33 @@ type VendorOption = {
 };
 
 function AdminUsers() {
-  const [tab, setTab] = useState<
-    "partners" | "vendors" | "customers"
-  >("customers");
+  const [tab, setTab] = useState<"partners" | "vendors" | "customers">("customers");
 
   const [q, setQ] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
-  const [busyKey, setBusyKey] = useState<string | null>(
-    null,
-  );
+  const [busyKey, setBusyKey] = useState<string | null>(null);
 
   /*
    * Vendors available for partner assignment.
    */
-  const [vendorOptions, setVendorOptions] = useState<
-    VendorOption[]
-  >([]);
+  const [vendorOptions, setVendorOptions] = useState<VendorOption[]>([]);
 
   /*
    * Make Vendor dialog.
    */
-  const [vendorDialogRow, setVendorDialogRow] =
-    useState<Row | null>(null);
+  const [vendorDialogRow, setVendorDialogRow] = useState<Row | null>(null);
 
-  const [vendorSaving, setVendorSaving] =
-    useState(false);
+  const [vendorSaving, setVendorSaving] = useState(false);
 
   /*
    * Partner assignment dialog.
    */
-  const [partnerDialogRow, setPartnerDialogRow] =
-    useState<Row | null>(null);
+  const [partnerDialogRow, setPartnerDialogRow] = useState<Row | null>(null);
 
-  const [partnerVendorId, setPartnerVendorId] =
-    useState("");
+  const [partnerVendorId, setPartnerVendorId] = useState("");
 
-  const [partnerSaving, setPartnerSaving] =
-    useState(false);
+  const [partnerSaving, setPartnerSaving] = useState(false);
 
   /*
    * ------------------------------------------------
@@ -130,16 +107,10 @@ function AdminUsers() {
    * ------------------------------------------------
    */
   const loadVendorOptions = async () => {
-    const { data, error } = await supabase
-      .from("vendors")
-      .select("id, name, status")
-      .order("name");
+    const { data, error } = await supabase.from("vendors").select("id, name, status").order("name");
 
     if (error) {
-      console.error(
-        "Unable to load vendor options",
-        error,
-      );
+      console.error("Unable to load vendor options", error);
 
       return;
     }
@@ -158,9 +129,7 @@ function AdminUsers() {
     if (tab === "vendors") {
       const { data, error } = await supabase
         .from("vendors")
-        .select(
-          "id, name, contact, email, status",
-        )
+        .select("id, name, contact, email, status")
         .order("created_at", {
           ascending: false,
         });
@@ -168,9 +137,7 @@ function AdminUsers() {
       if (error) {
         console.error(error);
 
-        toast.error(
-          "Vendors load nahi ho sake.",
-        );
+        toast.error("Vendors load nahi ho sake.");
 
         setLoading(false);
         return;
@@ -182,27 +149,18 @@ function AdminUsers() {
           authId: null,
           name: vendor.name,
           email: vendor.email,
-          contact:
-            vendor.contact ||
-            vendor.email ||
-            "-",
-          status:
-            vendor.status ?? "Pending",
+          contact: vendor.contact || vendor.email || "-",
+          status: vendor.status ?? "Pending",
           source: "vendors" as const,
           vendorId: null,
         })),
       );
     } else {
-      const role =
-        tab === "partners"
-          ? "partner"
-          : "customer";
+      const role = tab === "partners" ? "partner" : "customer";
 
       const { data, error } = await supabase
         .from("users")
-        .select(
-          "id, auth_id, name, email, phone, status, role, vendor_id",
-        )
+        .select("id, auth_id, name, email, phone, status, role, vendor_id")
         .eq("role", role)
         .order("created_at", {
           ascending: false,
@@ -211,9 +169,7 @@ function AdminUsers() {
       if (error) {
         console.error(error);
 
-        toast.error(
-          "Users load nahi ho sake.",
-        );
+        toast.error("Users load nahi ho sake.");
 
         setLoading(false);
         return;
@@ -223,20 +179,12 @@ function AdminUsers() {
         (data ?? []).map((user) => ({
           key: user.id,
           authId: user.auth_id,
-          name:
-            user.name ||
-            user.email ||
-            "User",
+          name: user.name || user.email || "User",
           email: user.email,
-          contact:
-            user.phone ||
-            user.email ||
-            "-",
-          status:
-            user.status ?? "Active",
+          contact: user.phone || user.email || "-",
+          status: user.status ?? "Active",
           source: "users" as const,
-          vendorId:
-            user.vendor_id ?? null,
+          vendorId: user.vendor_id ?? null,
         })),
       );
     }
@@ -258,10 +206,7 @@ function AdminUsers() {
    * VENDOR STATUS
    * ------------------------------------------------
    */
-  const updateVendorStatus = async (
-    row: Row,
-    status: "Active" | "Suspended",
-  ) => {
+  const updateVendorStatus = async (row: Row, status: "Active" | "Suspended") => {
     setBusyKey(row.key);
 
     try {
@@ -278,9 +223,7 @@ function AdminUsers() {
       }
 
       if (!data || data.length === 0) {
-        throw new Error(
-          "Permission nahi mili.",
-        );
+        throw new Error("Permission nahi mili.");
       }
 
       setRows((previous) =>
@@ -296,17 +239,9 @@ function AdminUsers() {
 
       await loadVendorOptions();
 
-      toast.success(
-        status === "Active"
-          ? "Vendor active ho gaya."
-          : "Vendor suspend ho gaya.",
-      );
+      toast.success(status === "Active" ? "Vendor active ho gaya." : "Vendor suspend ho gaya.");
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Vendor status update nahi ho saka.",
-      );
+      toast.error(error instanceof Error ? error.message : "Vendor status update nahi ho saka.");
     } finally {
       setBusyKey(null);
     }
@@ -317,14 +252,10 @@ function AdminUsers() {
    * OPEN PARTNER VENDOR DIALOG
    * ------------------------------------------------
    */
-  const openPartnerDialog = (
-    row: Row,
-  ) => {
+  const openPartnerDialog = (row: Row) => {
     setPartnerDialogRow(row);
 
-    setPartnerVendorId(
-      row.vendorId ?? "",
-    );
+    setPartnerVendorId(row.vendorId ?? "");
   };
 
   /*
@@ -340,9 +271,7 @@ function AdminUsers() {
    * users.status = Active
    * users.vendor_id = selected vendor
    */
-  const savePartnerAssignment = async (
-    event: React.FormEvent<HTMLFormElement>,
-  ) => {
+  const savePartnerAssignment = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!partnerDialogRow) {
@@ -350,9 +279,7 @@ function AdminUsers() {
     }
 
     if (!partnerVendorId) {
-      toast.error(
-        "Partner ke liye Vendor select karein.",
-      );
+      toast.error("Partner ke liye Vendor select karein.");
 
       return;
     }
@@ -360,15 +287,10 @@ function AdminUsers() {
     setPartnerSaving(true);
 
     try {
-      const { error } = await supabase.rpc(
-        "admin_assign_partner",
-        {
-          p_user_id:
-            partnerDialogRow.key,
-          p_vendor_id:
-            partnerVendorId,
-        },
-      );
+      const { error } = await supabase.rpc("admin_assign_partner", {
+        p_user_id: partnerDialogRow.key,
+        p_vendor_id: partnerVendorId,
+      });
 
       if (error) {
         throw error;
@@ -379,17 +301,9 @@ function AdminUsers() {
        * Partner banne ke baad customer list se remove.
        */
       if (tab === "customers") {
-        setRows((previous) =>
-          previous.filter(
-            (item) =>
-              item.key !==
-              partnerDialogRow.key,
-          ),
-        );
+        setRows((previous) => previous.filter((item) => item.key !== partnerDialogRow.key));
 
-        toast.success(
-          `${partnerDialogRow.name} ab Partner hai.`,
-        );
+        toast.success(`${partnerDialogRow.name} ab Partner hai.`);
       } else {
         /*
          * Existing partner:
@@ -397,36 +311,25 @@ function AdminUsers() {
          */
         setRows((previous) =>
           previous.map((item) =>
-            item.key ===
-            partnerDialogRow.key
+            item.key === partnerDialogRow.key
               ? {
                   ...item,
-                  vendorId:
-                    partnerVendorId,
+                  vendorId: partnerVendorId,
                   status: "Active",
                 }
               : item,
           ),
         );
 
-        toast.success(
-          `${partnerDialogRow.name} ka Vendor assign ho gaya.`,
-        );
+        toast.success(`${partnerDialogRow.name} ka Vendor assign ho gaya.`);
       }
 
       setPartnerDialogRow(null);
       setPartnerVendorId("");
     } catch (error) {
-      console.error(
-        "Unable to assign partner",
-        error,
-      );
+      console.error("Unable to assign partner", error);
 
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Partner assign nahi ho saka.",
-      );
+      toast.error(error instanceof Error ? error.message : "Partner assign nahi ho saka.");
     } finally {
       setPartnerSaving(false);
     }
@@ -437,29 +340,20 @@ function AdminUsers() {
    * PARTNER STATUS
    * ------------------------------------------------
    */
-  const updatePartnerStatus = async (
-    row: Row,
-    action: "activate" | "suspend",
-  ) => {
+  const updatePartnerStatus = async (row: Row, action: "activate" | "suspend") => {
     setBusyKey(row.key);
 
     try {
-      const { error } = await supabase.rpc(
-        "admin_manage_partner",
-        {
-          p_user_id: row.key,
-          p_action: action,
-        },
-      );
+      const { error } = await supabase.rpc("admin_manage_partner", {
+        p_user_id: row.key,
+        p_action: action,
+      });
 
       if (error) {
         throw error;
       }
 
-      const nextStatus =
-        action === "activate"
-          ? "Active"
-          : "Suspended";
+      const nextStatus = action === "activate" ? "Active" : "Suspended";
 
       setRows((previous) =>
         previous.map((item) =>
@@ -472,22 +366,11 @@ function AdminUsers() {
         ),
       );
 
-      toast.success(
-        action === "activate"
-          ? "Partner active ho gaya."
-          : "Partner suspend ho gaya.",
-      );
+      toast.success(action === "activate" ? "Partner active ho gaya." : "Partner suspend ho gaya.");
     } catch (error) {
-      console.error(
-        "Unable to update partner",
-        error,
-      );
+      console.error("Unable to update partner", error);
 
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Partner status update nahi ho saka.",
-      );
+      toast.error(error instanceof Error ? error.message : "Partner status update nahi ho saka.");
     } finally {
       setBusyKey(null);
     }
@@ -500,173 +383,104 @@ function AdminUsers() {
    *
    * Existing flow unchanged.
    */
-  const promoteToVendor = async (
-    event: React.FormEvent<HTMLFormElement>,
-  ) => {
+  const promoteToVendor = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (
-      !vendorDialogRow ||
-      !vendorDialogRow.authId
-    ) {
+    if (!vendorDialogRow || !vendorDialogRow.authId) {
       return;
     }
 
-    const formData = new FormData(
-      event.currentTarget,
-    );
+    const formData = new FormData(event.currentTarget);
 
-    const storeName = String(
-      formData.get("storeName") ?? "",
-    ).trim();
+    const storeName = String(formData.get("storeName") ?? "").trim();
 
-    const phone = String(
-      formData.get("phone") ?? "",
-    ).trim();
+    const phone = String(formData.get("phone") ?? "").trim();
 
-    const address = String(
-      formData.get("address") ?? "",
-    ).trim();
+    const address = String(formData.get("address") ?? "").trim();
 
     setVendorSaving(true);
 
-    const { error: vendorError } =
-      await supabase
-        .from("vendors")
-        .insert({
-          owner_id:
-            vendorDialogRow.authId,
-          name: storeName,
-          contact: phone,
-          email:
-            vendorDialogRow.email,
-          address,
-          status: "Active",
-        });
+    const { error: vendorError } = await supabase.from("vendors").insert({
+      owner_id: vendorDialogRow.authId,
+      name: storeName,
+      contact: phone,
+      email: vendorDialogRow.email,
+      address,
+      status: "Active",
+    });
 
     if (vendorError) {
       setVendorSaving(false);
 
-      toast.error(
-        vendorError.message,
-      );
+      toast.error(vendorError.message);
 
       return;
     }
 
-    const { error: userError } =
-      await supabase
-        .from("users")
-        .update({
-          role: "vendor",
-          status: "Active",
-        })
-        .eq(
-          "id",
-          vendorDialogRow.key,
-        );
+    const { error: userError } = await supabase
+      .from("users")
+      .update({
+        role: "vendor",
+        status: "Active",
+      })
+      .eq("id", vendorDialogRow.key);
 
     setVendorSaving(false);
 
     if (userError) {
-      toast.error(
-        userError.message,
-      );
+      toast.error(userError.message);
 
       return;
     }
 
-    toast.success(
-      `${vendorDialogRow.name} ab Vendor hai.`,
-    );
+    toast.success(`${vendorDialogRow.name} ab Vendor hai.`);
 
-    setRows((previous) =>
-      previous.filter(
-        (item) =>
-          item.key !==
-          vendorDialogRow.key,
-      ),
-    );
+    setRows((previous) => previous.filter((item) => item.key !== vendorDialogRow.key));
 
     setVendorDialogRow(null);
 
     await loadVendorOptions();
   };
 
-  const normalizedQuery =
-    q.trim().toLowerCase();
+  const normalizedQuery = q.trim().toLowerCase();
 
   const list = rows.filter(
     (row) =>
-      row.name
-        .toLowerCase()
-        .includes(normalizedQuery) ||
-      (row.email ?? "")
-        .toLowerCase()
-        .includes(normalizedQuery) ||
-      row.contact
-        .toLowerCase()
-        .includes(normalizedQuery),
+      row.name.toLowerCase().includes(normalizedQuery) ||
+      (row.email ?? "").toLowerCase().includes(normalizedQuery) ||
+      row.contact.toLowerCase().includes(normalizedQuery),
   );
 
-  const activeVendors =
-    vendorOptions.filter(
-      (vendor) =>
-        vendor.status === "Active",
-    );
+  const activeVendors = vendorOptions.filter((vendor) => vendor.status === "Active");
 
-  const getVendorName = (
-    vendorId: string | null,
-  ) => {
+  const getVendorName = (vendorId: string | null) => {
     if (!vendorId) {
       return "Vendor not assigned";
     }
 
-    return (
-      vendorOptions.find(
-        (vendor) =>
-          vendor.id === vendorId,
-      )?.name ??
-      "Assigned Vendor"
-    );
+    return vendorOptions.find((vendor) => vendor.id === vendorId)?.name ?? "Assigned Vendor";
   };
 
   return (
     <DashboardShell
-      brand="Dukaan.pk"
+      brand="azadari.store"
       role="Owner / Admin"
       title="Partners / Users"
       subtitle="Accounts aur roles manage karein"
       nav={adminNav}
     >
       <div className="surface-card space-y-4 p-4">
-        <Tabs
-          value={tab}
-          onValueChange={(value) =>
-            setTab(
-              value as typeof tab,
-            )
-          }
-        >
+        <Tabs value={tab} onValueChange={(value) => setTab(value as typeof tab)}>
           <TabsList className="rounded-xl">
-            <TabsTrigger
-              value="customers"
-              className="rounded-lg text-xs"
-            >
+            <TabsTrigger value="customers" className="rounded-lg text-xs">
               Customers
             </TabsTrigger>
 
-            <TabsTrigger
-              value="vendors"
-              className="rounded-lg text-xs"
-            >
+            <TabsTrigger value="vendors" className="rounded-lg text-xs">
               Vendor Owners
             </TabsTrigger>
 
-            <TabsTrigger
-              value="partners"
-              className="rounded-lg text-xs"
-            >
+            <TabsTrigger value="partners" className="rounded-lg text-xs">
               Partners
             </TabsTrigger>
           </TabsList>
@@ -677,11 +491,7 @@ function AdminUsers() {
 
           <Input
             value={q}
-            onChange={(event) =>
-              setQ(
-                event.target.value,
-              )
-            }
+            onChange={(event) => setQ(event.target.value)}
             placeholder="Search users"
             className="h-10 rounded-xl pl-9"
           />
@@ -698,90 +508,56 @@ function AdminUsers() {
             <table className="w-full min-w-[640px] text-sm">
               <thead className="bg-muted/70 text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3 font-semibold">
-                    Name
-                  </th>
+                  <th className="px-4 py-3 font-semibold">Name</th>
 
-                  <th className="px-4 py-3 font-semibold">
-                    Contact
-                  </th>
+                  <th className="px-4 py-3 font-semibold">Contact</th>
 
-                  <th className="px-4 py-3 font-semibold">
-                    Status
-                  </th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
 
-                  <th className="px-4 py-3 text-right font-semibold">
-                    Action
-                  </th>
+                  <th className="px-4 py-3 text-right font-semibold">Action</th>
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-border">
                 {list.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={4}
-                      className="px-4 py-8 text-center text-muted-foreground"
-                    >
+                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
                       Koi record nahi mila.
                     </td>
                   </tr>
                 ) : (
                   list.map((row) => {
-                    const busy =
-                      busyKey === row.key;
+                    const busy = busyKey === row.key;
 
                     return (
-                      <tr
-                        key={row.key}
-                        className="hover:bg-muted/40"
-                      >
+                      <tr key={row.key} className="hover:bg-muted/40">
                         <td className="px-4 py-3">
-                          <p className="font-medium">
-                            {row.name}
-                          </p>
+                          <p className="font-medium">{row.name}</p>
 
-                          {tab ===
-                            "partners" && (
+                          {tab === "partners" && (
                             <p className="mt-1 text-xs text-muted-foreground">
-                              Vendor:{" "}
-                              {getVendorName(
-                                row.vendorId,
-                              )}
+                              Vendor: {getVendorName(row.vendorId)}
                             </p>
                           )}
                         </td>
 
-                        <td className="px-4 py-3 text-muted-foreground">
-                          {row.contact}
-                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">{row.contact}</td>
 
                         <td className="px-4 py-3">
-                          <StatusBadge
-                            status={
-                              row.status as never
-                            }
-                          />
+                          <StatusBadge status={row.status as never} />
                         </td>
 
                         <td className="px-4 py-3 text-right">
                           <div className="flex flex-wrap justify-end gap-2">
                             {/* CUSTOMER */}
-                            {tab ===
-                            "customers" ? (
+                            {tab === "customers" ? (
                               <>
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   className="rounded-lg"
-                                  disabled={
-                                    busy
-                                  }
-                                  onClick={() =>
-                                    setVendorDialogRow(
-                                      row,
-                                    )
-                                  }
+                                  disabled={busy}
+                                  onClick={() => setVendorDialogRow(row)}
                                 >
                                   <Store className="mr-1.5 h-3.5 w-3.5" />
                                   Make Vendor
@@ -791,64 +567,40 @@ function AdminUsers() {
                                   variant="outline"
                                   size="sm"
                                   className="rounded-lg"
-                                  disabled={
-                                    busy
-                                  }
-                                  onClick={() =>
-                                    openPartnerDialog(
-                                      row,
-                                    )
-                                  }
+                                  disabled={busy}
+                                  onClick={() => openPartnerDialog(row)}
                                 >
                                   <Users className="mr-1.5 h-3.5 w-3.5" />
                                   Make Partner
                                 </Button>
                               </>
-                            ) : tab ===
-                              "partners" ? (
+                            ) : tab === "partners" ? (
                               <>
                                 {/* ASSIGN / CHANGE VENDOR */}
-                                {row.status ===
-                                  "Active" && (
+                                {row.status === "Active" && (
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     className="rounded-lg"
-                                    disabled={
-                                      busy
-                                    }
-                                    onClick={() =>
-                                      openPartnerDialog(
-                                        row,
-                                      )
-                                    }
+                                    disabled={busy}
+                                    onClick={() => openPartnerDialog(row)}
                                   >
                                     <Store className="mr-1.5 h-3.5 w-3.5" />
 
-                                    {row.vendorId
-                                      ? "Change Vendor"
-                                      : "Assign Vendor"}
+                                    {row.vendorId ? "Change Vendor" : "Assign Vendor"}
                                   </Button>
                                 )}
 
                                 {/* ACTIVATE */}
-                                {row.status !==
-                                  "Active" && (
+                                {row.status !== "Active" && (
                                   <Button
                                     variant="outline"
                                     size="icon"
                                     className="h-8 w-8 rounded-lg text-success"
-                                    disabled={
-                                      busy
-                                    }
+                                    disabled={busy}
                                     title="Activate partner"
                                     aria-label={`Activate ${row.name}`}
-                                    onClick={() =>
-                                      void updatePartnerStatus(
-                                        row,
-                                        "activate",
-                                      )
-                                    }
+                                    onClick={() => void updatePartnerStatus(row, "activate")}
                                   >
                                     {busy ? (
                                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -859,23 +611,15 @@ function AdminUsers() {
                                 )}
 
                                 {/* SUSPEND */}
-                                {row.status !==
-                                  "Suspended" && (
+                                {row.status !== "Suspended" && (
                                   <Button
                                     variant="outline"
                                     size="icon"
                                     className="h-8 w-8 rounded-lg text-destructive"
-                                    disabled={
-                                      busy
-                                    }
+                                    disabled={busy}
                                     title="Suspend partner"
                                     aria-label={`Suspend ${row.name}`}
-                                    onClick={() =>
-                                      void updatePartnerStatus(
-                                        row,
-                                        "suspend",
-                                      )
-                                    }
+                                    onClick={() => void updatePartnerStatus(row, "suspend")}
                                   >
                                     {busy ? (
                                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -892,19 +636,10 @@ function AdminUsers() {
                                   variant="outline"
                                   size="icon"
                                   className="h-8 w-8 rounded-lg text-success"
-                                  disabled={
-                                    busy ||
-                                    row.status ===
-                                      "Active"
-                                  }
+                                  disabled={busy || row.status === "Active"}
                                   title="Activate vendor"
                                   aria-label={`Activate ${row.name}`}
-                                  onClick={() =>
-                                    void updateVendorStatus(
-                                      row,
-                                      "Active",
-                                    )
-                                  }
+                                  onClick={() => void updateVendorStatus(row, "Active")}
                                 >
                                   {busy ? (
                                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -918,19 +653,10 @@ function AdminUsers() {
                                   variant="outline"
                                   size="icon"
                                   className="h-8 w-8 rounded-lg text-destructive"
-                                  disabled={
-                                    busy ||
-                                    row.status ===
-                                      "Suspended"
-                                  }
+                                  disabled={busy || row.status === "Suspended"}
                                   title="Suspend vendor"
                                   aria-label={`Suspend ${row.name}`}
-                                  onClick={() =>
-                                    void updateVendorStatus(
-                                      row,
-                                      "Suspended",
-                                    )
-                                  }
+                                  onClick={() => void updateVendorStatus(row, "Suspended")}
                                 >
                                   {busy ? (
                                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -966,76 +692,44 @@ function AdminUsers() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              Partner Vendor Assignment
-            </DialogTitle>
+            <DialogTitle>Partner Vendor Assignment</DialogTitle>
 
             <DialogDescription>
-              {partnerDialogRow?.name} ko
-              kis Vendor ke saath assign
-              karna hai?
+              {partnerDialogRow?.name} ko kis Vendor ke saath assign karna hai?
             </DialogDescription>
           </DialogHeader>
 
-          <form
-            className="space-y-4"
-            onSubmit={
-              savePartnerAssignment
-            }
-          >
+          <form className="space-y-4" onSubmit={savePartnerAssignment}>
             <div className="space-y-1.5">
-              <Label>
-                Vendor / Store
-              </Label>
+              <Label>Vendor / Store</Label>
 
-              <Select
-                value={partnerVendorId}
-                onValueChange={
-                  setPartnerVendorId
-                }
-              >
+              <Select value={partnerVendorId} onValueChange={setPartnerVendorId}>
                 <SelectTrigger className="rounded-xl">
                   <SelectValue placeholder="Vendor select karein" />
                 </SelectTrigger>
 
                 <SelectContent>
-                  {activeVendors.map(
-                    (vendor) => (
-                      <SelectItem
-                        key={vendor.id}
-                        value={vendor.id}
-                      >
-                        {vendor.name}
-                      </SelectItem>
-                    ),
-                  )}
+                  {activeVendors.map((vendor) => (
+                    <SelectItem key={vendor.id} value={vendor.id}>
+                      {vendor.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
-              {activeVendors.length ===
-                0 && (
-                <p className="text-xs text-destructive">
-                  Koi Active Vendor
-                  available nahi hai.
-                </p>
+              {activeVendors.length === 0 && (
+                <p className="text-xs text-destructive">Koi Active Vendor available nahi hai.</p>
               )}
             </div>
 
             <Button
               type="submit"
               className="w-full rounded-xl"
-              disabled={
-                partnerSaving ||
-                !partnerVendorId
-              }
+              disabled={partnerSaving || !partnerVendorId}
             >
-              {partnerSaving && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {partnerSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 
-              {partnerDialogRow?.vendorId
-                ? "Update Vendor Assignment"
-                : "Assign Partner"}
+              {partnerDialogRow?.vendorId ? "Update Vendor Assignment" : "Assign Partner"}
             </Button>
           </form>
         </DialogContent>
@@ -1054,24 +748,16 @@ function AdminUsers() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              Vendor Banayein
-            </DialogTitle>
+            <DialogTitle>Vendor Banayein</DialogTitle>
 
             <DialogDescription>
-              {vendorDialogRow?.name} ke
-              liye store details bharein.
+              {vendorDialogRow?.name} ke liye store details bharein.
             </DialogDescription>
           </DialogHeader>
 
-          <form
-            className="space-y-4"
-            onSubmit={promoteToVendor}
-          >
+          <form className="space-y-4" onSubmit={promoteToVendor}>
             <div className="space-y-1.5">
-              <Label htmlFor="storeName">
-                Store / Business Name
-              </Label>
+              <Label htmlFor="storeName">Store / Business Name</Label>
 
               <Input
                 id="storeName"
@@ -1083,9 +769,7 @@ function AdminUsers() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="phone">
-                Phone Number
-              </Label>
+              <Label htmlFor="phone">Phone Number</Label>
 
               <Input
                 id="phone"
@@ -1097,9 +781,7 @@ function AdminUsers() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="address">
-                Address / City
-              </Label>
+              <Label htmlFor="address">Address / City</Label>
 
               <Input
                 id="address"
@@ -1110,18 +792,10 @@ function AdminUsers() {
               />
             </div>
 
-            <Button
-              type="submit"
-              disabled={vendorSaving}
-              className="w-full rounded-xl"
-            >
-              {vendorSaving && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+            <Button type="submit" disabled={vendorSaving} className="w-full rounded-xl">
+              {vendorSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 
-              {vendorSaving
-                ? "Saving..."
-                : "Vendor Banayein"}
+              {vendorSaving ? "Saving..." : "Vendor Banayein"}
             </Button>
           </form>
         </DialogContent>

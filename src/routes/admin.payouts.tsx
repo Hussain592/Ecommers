@@ -14,9 +14,12 @@ export const Route = createFileRoute("/admin/payouts")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "Process vendor and partner payouts across the marketplace." },
+      {
+        name: "description",
+        content: "Process vendor and partner payouts across the marketplace.",
+      },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Payouts â€” Dukaan.pk Admin" },
+      { property: "og:title", content: "Payouts — azadari.store Admin" },
       { property: "og:description", content: "Payout queue and settlement history." },
     ],
   }),
@@ -76,7 +79,11 @@ function AdminPayouts() {
     }
 
     toast.success("Payout release ho gaya.");
-    setPayouts((prev) => prev.map((p) => (p.id === payoutId ? { ...p, status: "Paid", paid_at: new Date().toISOString() } : p)));
+    setPayouts((prev) =>
+      prev.map((p) =>
+        p.id === payoutId ? { ...p, status: "Paid", paid_at: new Date().toISOString() } : p,
+      ),
+    );
   };
 
   const pending = payouts.filter((p) => p.status === "Pending");
@@ -89,11 +96,19 @@ function AdminPayouts() {
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     })
     .reduce((s, p) => s + Number(p.amount), 0);
-  const totalSettled = payouts.filter((p) => p.status === "Paid").reduce((s, p) => s + Number(p.amount), 0);
+  const totalSettled = payouts
+    .filter((p) => p.status === "Paid")
+    .reduce((s, p) => s + Number(p.amount), 0);
 
   if (loading) {
     return (
-      <DashboardShell brand="Dukaan.pk" role="Owner / Admin" title="Payouts" subtitle="Vendors aur partners ki settlements" nav={adminNav}>
+      <DashboardShell
+        brand="azadari.store"
+        role="Owner / Admin"
+        title="Payouts"
+        subtitle="Vendors aur partners ki settlements"
+        nav={adminNav}
+      >
         <div className="flex justify-center p-10">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -102,10 +117,27 @@ function AdminPayouts() {
   }
 
   return (
-    <DashboardShell brand="Dukaan.pk" role="Owner / Admin" title="Payouts" subtitle="Vendors aur partners ki settlements" nav={adminNav}>
+    <DashboardShell
+      brand="azadari.store"
+      role="Owner / Admin"
+      title="Payouts"
+      subtitle="Vendors aur partners ki settlements"
+      nav={adminNav}
+    >
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Pending Payouts" value={formatPKR(pendingTotal)} hint={`${pending.length} requests`} icon={Clock} tone="warning" />
-        <StatCard label="Paid This Month" value={formatPKR(paidThisMonth)} icon={Banknote} tone="success" />
+        <StatCard
+          label="Pending Payouts"
+          value={formatPKR(pendingTotal)}
+          hint={`${pending.length} requests`}
+          icon={Clock}
+          tone="warning"
+        />
+        <StatCard
+          label="Paid This Month"
+          value={formatPKR(paidThisMonth)}
+          icon={Banknote}
+          tone="success"
+        />
         <StatCard label="Total Settled" value={formatPKR(totalSettled)} icon={Banknote} />
       </div>
 
@@ -127,7 +159,9 @@ function AdminPayouts() {
             <tbody className="divide-y divide-border">
               {payouts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Koi payout record nahi.</td>
+                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+                    Koi payout record nahi.
+                  </td>
                 </tr>
               ) : (
                 payouts.map((p) => (
@@ -136,9 +170,13 @@ function AdminPayouts() {
                     <td className="px-4 py-3">{p.recipient_name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{p.recipient_type}</td>
                     <td className="px-4 py-3">{p.method}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {new Date(p.created_at).toLocaleDateString()}
+                    </td>
                     <td className="px-4 py-3 font-medium">{formatPKR(Number(p.amount))}</td>
-                    <td className="px-4 py-3"><StatusBadge status={p.status as never} /></td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={p.status as never} />
+                    </td>
                     <td className="px-4 py-3 text-right">
                       <Button
                         size="sm"

@@ -69,15 +69,7 @@ function BecomeVendorPage() {
       const city = String(formData.get("city") ?? "").trim();
       const address = String(formData.get("address") ?? "").trim();
 
-      if (
-        !fullName ||
-        !email ||
-        !password ||
-        !storeName ||
-        !phone ||
-        !city ||
-        !address
-      ) {
+      if (!fullName || !email || !password || !storeName || !phone || !city || !address) {
         toast.error("Tamam required fields fill karein.");
         return;
       }
@@ -120,9 +112,7 @@ function BecomeVendorPage() {
       console.error("Unable to submit vendor application", error);
 
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Vendor application submit nahi ho saki.",
+        error instanceof Error ? error.message : "Vendor application submit nahi ho saki.",
       );
     } finally {
       setLoading(false);
@@ -148,8 +138,8 @@ function BecomeVendorPage() {
               </h1>
 
               <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#6f7d75]">
-                Aapki application successfully submit ho gayi hai. Ab admin
-                review ke baad account status update hoga.
+                Aapki application successfully submit ho gayi hai. Ab admin review ke baad account
+                status update hoga.
               </p>
             </div>
 
@@ -180,17 +170,12 @@ function BecomeVendorPage() {
                   />
 
                   <div>
-                    <h2 className="text-sm font-extrabold text-[#102d24]">
-                      Ab kya hoga?
-                    </h2>
+                    <h2 className="text-sm font-extrabold text-[#102d24]">Ab kya hoga?</h2>
 
                     <ol className="mt-3 space-y-2.5 text-sm leading-5 text-[#5f6d65]">
                       <li>1. Admin aapki application review karega.</li>
                       <li>2. Approval ke baad vendor account active hoga.</li>
-                      <li>
-                        3. Phir aap sign in karke Vendor Dashboard access kar
-                        sakenge.
-                      </li>
+                      <li>3. Phir aap sign in karke Vendor Dashboard access kar sakenge.</li>
                     </ol>
                   </div>
                 </div>
@@ -242,8 +227,8 @@ function BecomeVendorPage() {
               </h1>
 
               <p className="mt-3 max-w-xl text-sm leading-6 text-[#6f7d75] sm:text-base">
-                Apni account aur store details fill karein. Application review
-                hone ke baad selling access activate hoga.
+                Apni account aur store details fill karein. Application review hone ke baad selling
+                access activate hoga.
               </p>
             </div>
 
@@ -258,23 +243,17 @@ function BecomeVendorPage() {
                   </span>
 
                   <div>
-                    <h2 className="text-lg font-extrabold text-[#102d24]">
-                      Account Information
-                    </h2>
+                    <h2 className="text-lg font-extrabold text-[#102d24]">Account Information</h2>
 
                     <p className="mt-1 text-xs leading-5 text-[#6f7d75]">
-                      Ye details aapke vendor login aur account ke liye use
-                      hongi.
+                      Ye details aapke vendor login aur account ke liye use hongi.
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label
-                      htmlFor="fullName"
-                      className="text-sm font-semibold text-[#102d24]"
-                    >
+                    <Label htmlFor="fullName" className="text-sm font-semibold text-[#102d24]">
                       Full Name *
                     </Label>
 
@@ -296,10 +275,7 @@ function BecomeVendorPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label
-                      htmlFor="email"
-                      className="text-sm font-semibold text-[#102d24]"
-                    >
+                    <Label htmlFor="email" className="text-sm font-semibold text-[#102d24]">
                       Email *
                     </Label>
 
@@ -322,10 +298,7 @@ function BecomeVendorPage() {
                   </div>
 
                   <div className="space-y-1.5 sm:col-span-2">
-                    <Label
-                      htmlFor="password"
-                      className="text-sm font-semibold text-[#102d24]"
-                    >
+                    <Label htmlFor="password" className="text-sm font-semibold text-[#102d24]">
                       Password *
                     </Label>
 
@@ -347,9 +320,7 @@ function BecomeVendorPage() {
                       />
                     </div>
 
-                    <p className="text-[11px] text-[#89938e]">
-                      Kam az kam 6 characters.
-                    </p>
+                    <p className="text-[11px] text-[#89938e]">Kam az kam 6 characters.</p>
                   </div>
                 </div>
               </section>
@@ -361,23 +332,17 @@ function BecomeVendorPage() {
                   </span>
 
                   <div>
-                    <h2 className="text-lg font-extrabold text-[#102d24]">
-                      Store Information
-                    </h2>
+                    <h2 className="text-lg font-extrabold text-[#102d24]">Store Information</h2>
 
                     <p className="mt-1 text-xs leading-5 text-[#6f7d75]">
-                      Customers ko aapka business isi store name se nazar
-                      aayega.
+                      Customers ko aapka business isi store name se nazar aayega.
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5 sm:col-span-2">
-                    <Label
-                      htmlFor="storeName"
-                      className="text-sm font-semibold text-[#102d24]"
-                    >
+                    <Label htmlFor="storeName" className="text-sm font-semibold text-[#102d24]">
                       Store Name *
                     </Label>
 
@@ -398,10 +363,7 @@ function BecomeVendorPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label
-                      htmlFor="phone"
-                      className="text-sm font-semibold text-[#102d24]"
-                    >
+                    <Label htmlFor="phone" className="text-sm font-semibold text-[#102d24]">
                       Phone Number *
                     </Label>
 
@@ -425,10 +387,7 @@ function BecomeVendorPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label
-                      htmlFor="city"
-                      className="text-sm font-semibold text-[#102d24]"
-                    >
+                    <Label htmlFor="city" className="text-sm font-semibold text-[#102d24]">
                       City *
                     </Label>
 
@@ -450,10 +409,7 @@ function BecomeVendorPage() {
                   </div>
 
                   <div className="space-y-1.5 sm:col-span-2">
-                    <Label
-                      htmlFor="address"
-                      className="text-sm font-semibold text-[#102d24]"
-                    >
+                    <Label htmlFor="address" className="text-sm font-semibold text-[#102d24]">
                       Business / Pickup Address *
                     </Label>
 
@@ -478,13 +434,11 @@ function BecomeVendorPage() {
                   />
 
                   <div>
-                    <p className="text-sm font-extrabold text-[#102d24]">
-                      Admin approval required
-                    </p>
+                    <p className="text-sm font-extrabold text-[#102d24]">Admin approval required</p>
 
                     <p className="mt-1 text-xs leading-5 text-[#5f6d65]">
-                      Submit hone ke baad application Pending Review mein
-                      rahegi. Approval ke baad Vendor Dashboard access milega.
+                      Submit hone ke baad application Pending Review mein rahegi. Approval ke baad
+                      Vendor Dashboard access milega.
                     </p>
                   </div>
                 </div>
@@ -497,19 +451,13 @@ function BecomeVendorPage() {
                 >
                   {loading ? (
                     <>
-                      <Loader2
-                        aria-hidden="true"
-                        className="mr-2 h-4 w-4 animate-spin"
-                      />
+                      <Loader2 aria-hidden="true" className="mr-2 h-4 w-4 animate-spin" />
                       Submitting Application...
                     </>
                   ) : (
                     <>
                       Submit Vendor Application
-                      <ArrowRight
-                        aria-hidden="true"
-                        className="ml-2 h-4 w-4"
-                      />
+                      <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
                     </>
                   )}
                 </Button>
@@ -535,34 +483,26 @@ function BecomeVendorPage() {
                 </span>
 
                 <div>
-                  <p className="text-sm font-extrabold text-[#102d24]">
-                    Simple vendor setup
-                  </p>
+                  <p className="text-sm font-extrabold text-[#102d24]">Simple vendor setup</p>
 
                   <p className="mt-1 text-xs leading-5 text-[#6f7d75]">
-                    Form complete karein, approval ka wait karein, phir selling
-                    start karein.
+                    Form complete karein, approval ka wait karein, phir selling start karein.
                   </p>
                 </div>
               </div>
 
               <ol className="mt-5 space-y-4">
-                {[
-                  "Application submit",
-                  "Admin review",
-                  "Vendor approval",
-                  "Dashboard access",
-                ].map((step, index) => (
-                  <li key={step} className="flex items-center gap-3">
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[#c9a24b]/30 bg-[#f7efd9] text-[11px] font-extrabold text-[#70591f]">
-                      {index + 1}
-                    </span>
+                {["Application submit", "Admin review", "Vendor approval", "Dashboard access"].map(
+                  (step, index) => (
+                    <li key={step} className="flex items-center gap-3">
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[#c9a24b]/30 bg-[#f7efd9] text-[11px] font-extrabold text-[#70591f]">
+                        {index + 1}
+                      </span>
 
-                    <span className="text-sm font-medium text-[#44564d]">
-                      {step}
-                    </span>
-                  </li>
-                ))}
+                      <span className="text-sm font-medium text-[#44564d]">{step}</span>
+                    </li>
+                  ),
+                )}
               </ol>
             </section>
 
@@ -574,13 +514,10 @@ function BecomeVendorPage() {
                 />
 
                 <div>
-                  <p className="text-sm font-bold text-[#0b513b]">
-                    No selling before approval
-                  </p>
+                  <p className="text-sm font-bold text-[#0b513b]">No selling before approval</p>
 
                   <p className="mt-1 text-xs leading-5 text-[#517066]">
-                    Application approve hone tak vendor account selling ke liye
-                    active nahi hoga.
+                    Application approve hone tak vendor account selling ke liye active nahi hoga.
                   </p>
                 </div>
               </div>

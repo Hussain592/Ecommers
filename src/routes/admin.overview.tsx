@@ -1,7 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, ClipboardList, Loader2, Package, PackageCheck, ShoppingBag, Store, TrendingUp } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  ArrowRight,
+  ClipboardList,
+  Loader2,
+  Package,
+  PackageCheck,
+  ShoppingBag,
+  Store,
+  TrendingUp,
+} from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { toast } from "sonner";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -14,9 +31,12 @@ export const Route = createFileRoute("/admin/overview")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "Platform-wide sales, vendors and order metrics for Dukaan.pk owners." },
+      {
+        name: "description",
+        content: "Platform-wide sales, vendors and order metrics for azadari.store owners.",
+      },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Admin Overview â€” Dukaan.pk" },
+      { property: "og:title", content: "Admin Overview — azadari.store" },
       { property: "og:description", content: "Marketplace performance at a glance." },
     ],
   }),
@@ -38,7 +58,20 @@ type VendorRow = {
   status: string | null;
 };
 
-const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTH_LABELS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 function AdminOverview() {
   const [loading, setLoading] = useState(true);
@@ -52,13 +85,20 @@ function AdminOverview() {
     const load = async () => {
       setLoading(true);
 
-      const [ordersRes, vendorsRes, productsRes, activeProductsRes, categoriesRes] = await Promise.all([
-        supabase.from("orders").select("id, customer_name, vendor_id, total, status, created_at").order("created_at", { ascending: false }),
-        supabase.from("vendors").select("id, name, status"),
-        supabase.from("products").select("id", { count: "exact", head: true }),
-        supabase.from("products").select("id", { count: "exact", head: true }).eq("active", true),
-        supabase.from("categories").select("id", { count: "exact", head: true }).eq("active", true),
-      ]);
+      const [ordersRes, vendorsRes, productsRes, activeProductsRes, categoriesRes] =
+        await Promise.all([
+          supabase
+            .from("orders")
+            .select("id, customer_name, vendor_id, total, status, created_at")
+            .order("created_at", { ascending: false }),
+          supabase.from("vendors").select("id, name, status"),
+          supabase.from("products").select("id", { count: "exact", head: true }),
+          supabase.from("products").select("id", { count: "exact", head: true }).eq("active", true),
+          supabase
+            .from("categories")
+            .select("id", { count: "exact", head: true })
+            .eq("active", true),
+        ]);
 
       if (ordersRes.data) setOrders(ordersRes.data);
       if (vendorsRes.data) setVendors(vendorsRes.data);
@@ -66,7 +106,13 @@ function AdminOverview() {
       if (!activeProductsRes.error) setActiveProductCount(activeProductsRes.count ?? 0);
       if (!categoriesRes.error) setCategoryCount(categoriesRes.count ?? 0);
 
-      if (ordersRes.error || vendorsRes.error || productsRes.error || activeProductsRes.error || categoriesRes.error) {
+      if (
+        ordersRes.error ||
+        vendorsRes.error ||
+        productsRes.error ||
+        activeProductsRes.error ||
+        categoriesRes.error
+      ) {
         toast.error("Kuch live dashboard data load nahi ho saka. Dobara refresh karein.");
       }
 
@@ -116,8 +162,18 @@ function AdminOverview() {
 
   if (loading) {
     return (
-      <DashboardShell brand="Dukaan.pk" role="Owner / Admin" title="Platform Overview" subtitle="Poore marketplace ki performance" nav={adminNav}>
-        <div className="flex min-h-40 flex-col items-center justify-center gap-3 p-10" role="status" aria-live="polite">
+      <DashboardShell
+        brand="azadari.store"
+        role="Owner / Admin"
+        title="Platform Overview"
+        subtitle="Poore marketplace ki performance"
+        nav={adminNav}
+      >
+        <div
+          className="flex min-h-40 flex-col items-center justify-center gap-3 p-10"
+          role="status"
+          aria-live="polite"
+        >
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           <p className="text-sm text-muted-foreground">Dashboard data load ho raha hai...</p>
         </div>
@@ -126,25 +182,44 @@ function AdminOverview() {
   }
 
   return (
-    <DashboardShell brand="Dukaan.pk" role="Owner / Admin" title="Platform Overview" subtitle="Poore marketplace ki performance" nav={adminNav}>
+    <DashboardShell
+      brand="azadari.store"
+      role="Owner / Admin"
+      title="Platform Overview"
+      subtitle="Poore marketplace ki performance"
+      nav={adminNav}
+    >
       <section aria-label="Marketplace summary">
         <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9a7927]">
               At a glance
             </p>
-            <h2 className="mt-1 text-lg font-bold text-[#102d24]">
-              Marketplace overview
-            </h2>
+            <h2 className="mt-1 text-lg font-bold text-[#102d24]">Marketplace overview</h2>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Updated from live marketplace data
-          </p>
+          <p className="text-xs text-muted-foreground">Updated from live marketplace data</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="GMV (This Month)" value={formatPKR(gmvThisMonth)} hint={`${orders.length} total orders lifetime`} icon={TrendingUp} />
-          <StatCard label="Total Orders" value={String(orders.length)} hint={`${pendingOrders} pending confirmation`} icon={ShoppingBag} tone="warning" />
-          <StatCard label="Active Vendors" value={String(activeVendors)} hint={`${pendingVendors} approval pending`} icon={Store} tone="success" />
+          <StatCard
+            label="GMV (This Month)"
+            value={formatPKR(gmvThisMonth)}
+            hint={`${orders.length} total orders lifetime`}
+            icon={TrendingUp}
+          />
+          <StatCard
+            label="Total Orders"
+            value={String(orders.length)}
+            hint={`${pendingOrders} pending confirmation`}
+            icon={ShoppingBag}
+            tone="warning"
+          />
+          <StatCard
+            label="Active Vendors"
+            value={String(activeVendors)}
+            hint={`${pendingVendors} approval pending`}
+            icon={Store}
+            tone="success"
+          />
           <StatCard
             label="Listed Products"
             value={productCount === null ? "-" : String(productCount)}
@@ -163,7 +238,7 @@ function AdminOverview() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 id="admin-actions-heading" className="text-base font-bold">
               Needs your attention
-          </h2>
+            </h2>
             <p className="text-xs text-muted-foreground">
               Review important work without searching through menus.
             </p>
@@ -187,11 +262,17 @@ function AdminOverview() {
             </span>
             <span className="flex shrink-0 items-center gap-2">
               {pendingOrders > 0 && (
-                <span className="rounded-full bg-[#f7efd9] px-2 py-1 text-xs font-bold text-[#70591f]" aria-label={`${pendingOrders} pending orders`}>
+                <span
+                  className="rounded-full bg-[#f7efd9] px-2 py-1 text-xs font-bold text-[#70591f]"
+                  aria-label={`${pendingOrders} pending orders`}
+                >
                   {pendingOrders}
                 </span>
               )}
-              <ArrowRight aria-hidden="true" className="h-4 w-4 text-primary transition-transform group-hover:translate-x-1" />
+              <ArrowRight
+                aria-hidden="true"
+                className="h-4 w-4 text-primary transition-transform group-hover:translate-x-1"
+              />
             </span>
           </Link>
           <Link
@@ -211,11 +292,17 @@ function AdminOverview() {
             </span>
             <span className="flex shrink-0 items-center gap-2">
               {pendingVendors > 0 && (
-                <span className="rounded-full bg-[#e8f1eb] px-2 py-1 text-xs font-bold text-[#0b513b]" aria-label={`${pendingVendors} pending vendor applications`}>
+                <span
+                  className="rounded-full bg-[#e8f1eb] px-2 py-1 text-xs font-bold text-[#0b513b]"
+                  aria-label={`${pendingVendors} pending vendor applications`}
+                >
                   {pendingVendors}
                 </span>
               )}
-              <ArrowRight aria-hidden="true" className="h-4 w-4 text-primary transition-transform group-hover:translate-x-1" />
+              <ArrowRight
+                aria-hidden="true"
+                className="h-4 w-4 text-primary transition-transform group-hover:translate-x-1"
+              />
             </span>
           </Link>
           <Link
@@ -233,14 +320,19 @@ function AdminOverview() {
                 </span>
               </span>
             </span>
-            <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-1" />
+            <ArrowRight
+              aria-hidden="true"
+              className="h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-1"
+            />
           </Link>
         </div>
       </section>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <section className="surface-card p-5" aria-labelledby="sales-chart-heading">
-          <h2 id="sales-chart-heading" className="font-bold">Marketplace Sales</h2>
+          <h2 id="sales-chart-heading" className="font-bold">
+            Marketplace Sales
+          </h2>
           <p className="text-xs text-muted-foreground">Last 6 months (PKR, all vendors)</p>
           <div
             className="mt-4 h-64 w-full"
@@ -256,17 +348,45 @@ function AdminOverview() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis tickFormatter={(value: number) => formatPKR(value)} stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip formatter={(value) => formatPKR(Number(value))} contentStyle={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--card)", fontSize: 12 }} />
-                <Area type="monotone" dataKey="sales" stroke="var(--primary)" strokeWidth={2} fill="url(#adminFill)" />
+                <XAxis
+                  dataKey="month"
+                  stroke="var(--muted-foreground)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  tickFormatter={(value: number) => formatPKR(value)}
+                  stroke="var(--muted-foreground)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  formatter={(value) => formatPKR(Number(value))}
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: "1px solid var(--border)",
+                    background: "var(--card)",
+                    fontSize: 12,
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="sales"
+                  stroke="var(--primary)"
+                  strokeWidth={2}
+                  fill="url(#adminFill)"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </section>
 
         <section className="surface-card p-5" aria-labelledby="top-vendors-heading">
-          <h2 id="top-vendors-heading" className="font-bold">Top Vendors</h2>
+          <h2 id="top-vendors-heading" className="font-bold">
+            Top Vendors
+          </h2>
           <ol className="mt-4 space-y-3" aria-label="Vendors ranked by order count">
             {topVendors.length === 0 ? (
               <li className="rounded-xl bg-muted/60 p-4 text-sm text-muted-foreground">
@@ -274,8 +394,14 @@ function AdminOverview() {
               </li>
             ) : (
               topVendors.map((v, index) => (
-                <li key={v.id} className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 rounded-xl bg-muted/60 p-3">
-                  <span aria-hidden="true" className="grid h-8 w-8 place-items-center rounded-full bg-[#f7efd9] text-xs font-bold text-[#70591f]">
+                <li
+                  key={v.id}
+                  className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 rounded-xl bg-muted/60 p-3"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="grid h-8 w-8 place-items-center rounded-full bg-[#f7efd9] text-xs font-bold text-[#70591f]"
+                  >
                     {index + 1}
                   </span>
                   <div className="min-w-0">
@@ -307,11 +433,21 @@ function AdminOverview() {
             </caption>
             <thead className="bg-muted/70 text-left text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th scope="col" className="px-4 py-3 font-semibold">Order</th>
-                <th scope="col" className="px-4 py-3 font-semibold">Customer</th>
-                <th scope="col" className="px-4 py-3 font-semibold">Vendor</th>
-                <th scope="col" className="px-4 py-3 font-semibold">Total</th>
-                <th scope="col" className="px-4 py-3 font-semibold">Status</th>
+                <th scope="col" className="px-4 py-3 font-semibold">
+                  Order
+                </th>
+                <th scope="col" className="px-4 py-3 font-semibold">
+                  Customer
+                </th>
+                <th scope="col" className="px-4 py-3 font-semibold">
+                  Vendor
+                </th>
+                <th scope="col" className="px-4 py-3 font-semibold">
+                  Total
+                </th>
+                <th scope="col" className="px-4 py-3 font-semibold">
+                  Status
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -326,9 +462,13 @@ function AdminOverview() {
                   <tr key={o.id} className="hover:bg-muted/40">
                     <td className="px-4 py-3 font-medium">{o.id}</td>
                     <td className="px-4 py-3">{o.customer_name}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{o.vendor_id ? vendorNameById.get(o.vendor_id) ?? "-" : "-"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {o.vendor_id ? (vendorNameById.get(o.vendor_id) ?? "-") : "-"}
+                    </td>
                     <td className="px-4 py-3 font-medium">{formatPKR(Number(o.total))}</td>
-                    <td className="px-4 py-3"><StatusBadge status={o.status as never} /></td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={o.status as never} />
+                    </td>
                   </tr>
                 ))
               )}

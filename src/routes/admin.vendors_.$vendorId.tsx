@@ -27,10 +27,7 @@ import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin/vendors_/$vendorId")({
   head: () => ({
-    meta: [
-      { title: "azadari.store" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "azadari.store" }, { name: "robots", content: "noindex" }],
   }),
   component: AdminVendorDetail,
 });
@@ -75,26 +72,19 @@ function AdminVendorDetail() {
     const [vendorRes, productsRes, ordersRes] = await Promise.all([
       supabase
         .from("vendors")
-        .select(
-          "id, name, contact, email, address, status, created_at",
-        )
+        .select("id, name, contact, email, address, status, created_at")
         .eq("id", vendorId)
         .maybeSingle(),
 
       supabase
         .from("products")
-        .select(
-          "id, name, image, price, stock, active",
-        )
+        .select("id, name, image, price, stock, active")
         .eq("vendor_id", vendorId)
         .order("created_at", {
           ascending: false,
         }),
 
-      supabase
-        .from("orders")
-        .select("id, total, status")
-        .eq("vendor_id", vendorId),
+      supabase.from("orders").select("id, total, status").eq("vendor_id", vendorId),
     ]);
 
     if (vendorRes.data) {
@@ -116,28 +106,20 @@ function AdminVendorDetail() {
    * Pending / Rejected application:
    * Approve or Reject through secure RPC.
    */
-  const reviewApplication = async (
-    action: "approve" | "reject",
-  ) => {
+  const reviewApplication = async (action: "approve" | "reject") => {
     setBusy(true);
 
     try {
-      const { error } = await supabase.rpc(
-        "review_vendor_application",
-        {
-          p_vendor_id: vendorId,
-          p_action: action,
-        },
-      );
+      const { error } = await supabase.rpc("review_vendor_application", {
+        p_vendor_id: vendorId,
+        p_action: action,
+      });
 
       if (error) {
         throw error;
       }
 
-      const nextStatus =
-        action === "approve"
-          ? "Active"
-          : "Rejected";
+      const nextStatus = action === "approve" ? "Active" : "Rejected";
 
       setVendor((previous) =>
         previous
@@ -149,20 +131,13 @@ function AdminVendorDetail() {
       );
 
       toast.success(
-        action === "approve"
-          ? "Vendor approve ho gaya."
-          : "Vendor application reject ho gayi.",
+        action === "approve" ? "Vendor approve ho gaya." : "Vendor application reject ho gayi.",
       );
     } catch (error) {
-      console.error(
-        "Unable to review vendor",
-        error,
-      );
+      console.error("Unable to review vendor", error);
 
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Vendor application update nahi ho saki.",
+        error instanceof Error ? error.message : "Vendor application update nahi ho saki.",
       );
     } finally {
       setBusy(false);
@@ -175,9 +150,7 @@ function AdminVendorDetail() {
    *
    * Products delete nahi hote.
    */
-  const updateVendorStatus = async (
-    status: "Active" | "Suspended",
-  ) => {
+  const updateVendorStatus = async (status: "Active" | "Suspended") => {
     setBusy(true);
 
     try {
@@ -194,9 +167,7 @@ function AdminVendorDetail() {
       }
 
       if (!data || data.length === 0) {
-        throw new Error(
-          "Status update ki permission nahi mili.",
-        );
+        throw new Error("Status update ki permission nahi mili.");
       }
 
       setVendor((previous) =>
@@ -209,47 +180,27 @@ function AdminVendorDetail() {
       );
 
       toast.success(
-        status === "Active"
-          ? "Vendor dobara active ho gaya."
-          : "Vendor suspend ho gaya.",
+        status === "Active" ? "Vendor dobara active ho gaya." : "Vendor suspend ho gaya.",
       );
     } catch (error) {
-      console.error(
-        "Unable to update vendor status",
-        error,
-      );
+      console.error("Unable to update vendor status", error);
 
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Status update nahi ho saka.",
-      );
+      toast.error(error instanceof Error ? error.message : "Status update nahi ho saka.");
     } finally {
       setBusy(false);
     }
   };
 
-  const totalRevenue = orders.reduce(
-    (sum, order) =>
-      sum + Number(order.total),
-    0,
-  );
+  const totalRevenue = orders.reduce((sum, order) => sum + Number(order.total), 0);
 
-  const deliveredOrders =
-    orders.filter(
-      (order) =>
-        order.status === "Delivered",
-    ).length;
+  const deliveredOrders = orders.filter((order) => order.status === "Delivered").length;
 
-  const activeProducts =
-    products.filter(
-      (product) => product.active,
-    ).length;
+  const activeProducts = products.filter((product) => product.active).length;
 
   if (loading) {
     return (
       <DashboardShell
-        brand="Dukaan.pk"
+        brand="azadari.store"
         role="Owner / Admin"
         title="Vendor Details"
         subtitle=""
@@ -265,25 +216,22 @@ function AdminVendorDetail() {
   if (!vendor) {
     return (
       <DashboardShell
-        brand="Dukaan.pk"
+        brand="azadari.store"
         role="Owner / Admin"
         title="Vendor Details"
         subtitle=""
         nav={adminNav}
       >
-        <p className="text-sm text-muted-foreground">
-          Vendor nahi mila.
-        </p>
+        <p className="text-sm text-muted-foreground">Vendor nahi mila.</p>
       </DashboardShell>
     );
   }
 
-  const status =
-    vendor.status ?? "Pending";
+  const status = vendor.status ?? "Pending";
 
   return (
     <DashboardShell
-      brand="Dukaan.pk"
+      brand="azadari.store"
       role="Owner / Admin"
       title={vendor.name}
       subtitle="Vendor ki poori details"
@@ -307,13 +255,9 @@ function AdminVendorDetail() {
 
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold">
-                  {vendor.name}
-                </h2>
+                <h2 className="text-lg font-bold">{vendor.name}</h2>
 
-                <StatusBadge
-                  status={status as never}
-                />
+                <StatusBadge status={status as never} />
               </div>
 
               <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -341,16 +285,11 @@ function AdminVendorDetail() {
 
               <p className="mt-1 text-xs text-muted-foreground">
                 Joined:{" "}
-                {new Date(
-                  vendor.created_at,
-                ).toLocaleDateString(
-                  "en-PK",
-                  {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  },
-                )}
+                {new Date(vendor.created_at).toLocaleDateString("en-PK", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
               </p>
             </div>
           </div>
@@ -363,18 +302,13 @@ function AdminVendorDetail() {
                   variant="outline"
                   className="rounded-xl text-success"
                   disabled={busy}
-                  onClick={() =>
-                    void reviewApplication(
-                      "approve",
-                    )
-                  }
+                  onClick={() => void reviewApplication("approve")}
                 >
                   {busy ? (
                     <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                   ) : (
                     <Check className="mr-1.5 h-4 w-4" />
                   )}
-
                   Approve
                 </Button>
 
@@ -382,18 +316,13 @@ function AdminVendorDetail() {
                   variant="outline"
                   className="rounded-xl text-destructive"
                   disabled={busy}
-                  onClick={() =>
-                    void reviewApplication(
-                      "reject",
-                    )
-                  }
+                  onClick={() => void reviewApplication("reject")}
                 >
                   {busy ? (
                     <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                   ) : (
                     <X className="mr-1.5 h-4 w-4" />
                   )}
-
                   Reject
                 </Button>
               </>
@@ -405,18 +334,13 @@ function AdminVendorDetail() {
                 variant="outline"
                 className="rounded-xl text-destructive"
                 disabled={busy}
-                onClick={() =>
-                  void updateVendorStatus(
-                    "Suspended",
-                  )
-                }
+                onClick={() => void updateVendorStatus("Suspended")}
               >
                 {busy ? (
                   <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                 ) : (
                   <Ban className="mr-1.5 h-4 w-4" />
                 )}
-
                 Suspend
               </Button>
             )}
@@ -427,18 +351,13 @@ function AdminVendorDetail() {
                 variant="outline"
                 className="rounded-xl text-success"
                 disabled={busy}
-                onClick={() =>
-                  void updateVendorStatus(
-                    "Active",
-                  )
-                }
+                onClick={() => void updateVendorStatus("Active")}
               >
                 {busy ? (
                   <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                 ) : (
                   <Check className="mr-1.5 h-4 w-4" />
                 )}
-
                 Reactivate
               </Button>
             )}
@@ -449,18 +368,13 @@ function AdminVendorDetail() {
                 variant="outline"
                 className="rounded-xl text-success"
                 disabled={busy}
-                onClick={() =>
-                  void reviewApplication(
-                    "approve",
-                  )
-                }
+                onClick={() => void reviewApplication("approve")}
               >
                 {busy ? (
                   <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                 ) : (
                   <Check className="mr-1.5 h-4 w-4" />
                 )}
-
                 Approve
               </Button>
             )}
@@ -476,121 +390,71 @@ function AdminVendorDetail() {
           icon={Package}
         />
 
-        <StatCard
-          label="Total Orders"
-          value={String(orders.length)}
-          icon={ShoppingBag}
-        />
+        <StatCard label="Total Orders" value={String(orders.length)} icon={ShoppingBag} />
 
         <StatCard
           label="Delivered Orders"
-          value={String(
-            deliveredOrders,
-          )}
+          value={String(deliveredOrders)}
           icon={Truck}
           tone="success"
         />
 
         <StatCard
           label="Total Revenue"
-          value={formatPKR(
-            totalRevenue,
-          )}
+          value={formatPKR(totalRevenue)}
           icon={Wallet}
           tone="warning"
         />
       </div>
 
       <section className="surface-card overflow-hidden">
-        <h2 className="px-5 pt-5 font-bold">
-          Products ({products.length})
-        </h2>
+        <h2 className="px-5 pt-5 font-bold">Products ({products.length})</h2>
 
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[600px] text-sm">
             <thead className="bg-muted/70 text-left text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 font-semibold">
-                  Product
-                </th>
+                <th className="px-4 py-3 font-semibold">Product</th>
 
-                <th className="px-4 py-3 font-semibold">
-                  Price
-                </th>
+                <th className="px-4 py-3 font-semibold">Price</th>
 
-                <th className="px-4 py-3 font-semibold">
-                  Stock
-                </th>
+                <th className="px-4 py-3 font-semibold">Stock</th>
 
-                <th className="px-4 py-3 font-semibold">
-                  Status
-                </th>
+                <th className="px-4 py-3 font-semibold">Status</th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-border">
-              {products.length ===
-              0 ? (
+              {products.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={4}
-                    className="px-4 py-8 text-center text-muted-foreground"
-                  >
+                  <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
                     Koi product nahi.
                   </td>
                 </tr>
               ) : (
-                products.map(
-                  (product) => (
-                    <tr
-                      key={
-                        product.id
-                      }
-                      className="hover:bg-muted/40"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={
-                              product.image ??
-                              ""
-                            }
-                            alt={
-                              product.name
-                            }
-                            className="h-10 w-10 rounded-lg bg-muted object-cover"
-                          />
-
-                          <span className="font-medium">
-                            {
-                              product.name
-                            }
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        {formatPKR(
-                          product.price,
-                        )}
-                      </td>
-
-                      <td className="px-4 py-3">
-                        {product.stock}
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <StatusBadge
-                          status={
-                            product.active
-                              ? "Active"
-                              : "Inactive"
-                          }
+                products.map((product) => (
+                  <tr key={product.id} className="hover:bg-muted/40">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={product.image ?? ""}
+                          alt={product.name}
+                          className="h-10 w-10 rounded-lg bg-muted object-cover"
                         />
-                      </td>
-                    </tr>
-                  ),
-                )
+
+                        <span className="font-medium">{product.name}</span>
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-3">{formatPKR(product.price)}</td>
+
+                    <td className="px-4 py-3">{product.stock}</td>
+
+                    <td className="px-4 py-3">
+                      <StatusBadge status={product.active ? "Active" : "Inactive"} />
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

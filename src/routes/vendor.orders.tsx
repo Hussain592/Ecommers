@@ -23,8 +23,11 @@ export const Route = createFileRoute("/vendor/orders")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "View and manage COD orders received by your Dukaan.pk store." },
-      { property: "og:title", content: "Vendor Orders â€” Dukaan.pk" },
+      {
+        name: "description",
+        content: "View and manage COD orders received by your azadari.store store.",
+      },
+      { property: "og:title", content: "Vendor Orders — azadari.store" },
       { property: "og:description", content: "Track and update your COD order pipeline." },
     ],
   }),
@@ -66,7 +69,11 @@ function VendorOrders() {
         return;
       }
 
-      const { data: vendor } = await supabase.from("vendors").select("id, name").eq("owner_id", authData.user.id).maybeSingle();
+      const { data: vendor } = await supabase
+        .from("vendors")
+        .select("id, name")
+        .eq("owner_id", authData.user.id)
+        .maybeSingle();
       if (!vendor) {
         setLoading(false);
         return;
@@ -94,7 +101,8 @@ function VendorOrders() {
   const list = orderList.filter(
     (o) =>
       (tab === "All" || o.status === tab) &&
-      (o.id.toLowerCase().includes(q.toLowerCase()) || o.customer_name.toLowerCase().includes(q.toLowerCase())),
+      (o.id.toLowerCase().includes(q.toLowerCase()) ||
+        o.customer_name.toLowerCase().includes(q.toLowerCase())),
   );
 
   return (
@@ -117,7 +125,12 @@ function VendorOrders() {
         </Tabs>
         <div className="relative max-w-sm">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Order ID ya customer search karein" className="h-10 rounded-xl pl-9" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Order ID ya customer search karein"
+            className="h-10 rounded-xl pl-9"
+          />
         </div>
       </div>
 
@@ -151,7 +164,9 @@ function VendorOrders() {
                     <td className="px-4 py-3 text-muted-foreground">{o.city}</td>
                     <td className="px-4 py-3">{Array.isArray(o.items) ? o.items.length : 0}</td>
                     <td className="px-4 py-3 font-medium">{formatPKR(Number(o.total))}</td>
-                    <td className="px-4 py-3"><StatusBadge status={o.status as never} /></td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={o.status as never} />
+                    </td>
                     <td className="px-4 py-3 text-right">
                       <select
                         aria-label={`Update ${o.id} status`}
@@ -159,12 +174,17 @@ function VendorOrders() {
                         className="mr-2 h-8 rounded-lg border border-border bg-background px-2 text-xs"
                         onChange={async (event) => {
                           const status = event.target.value;
-                          const { error } = await supabase.from("orders").update({ status }).eq("id", o.id);
+                          const { error } = await supabase
+                            .from("orders")
+                            .update({ status })
+                            .eq("id", o.id);
                           if (error) {
                             toast.error("Order status update nahi ho saka.");
                             return;
                           }
-                          setOrderList((current) => current.map((item) => (item.id === o.id ? { ...item, status } : item)));
+                          setOrderList((current) =>
+                            current.map((item) => (item.id === o.id ? { ...item, status } : item)),
+                          );
                           toast.success("Order status update ho gaya.");
 
                           if (status === "Confirmed") {
@@ -173,7 +193,10 @@ function VendorOrders() {
                               { body: { type: "order", id: o.id } },
                             );
                             if (emailError) {
-                              console.error("Order confirmed but email notification failed:", emailError);
+                              console.error(
+                                "Order confirmed but email notification failed:",
+                                emailError,
+                              );
                               toast.error("Order confirm ho gaya, lekin email nahi bheji ja saki.");
                             } else {
                               toast.success("Customer ko confirmation email bhej di.");
@@ -181,7 +204,11 @@ function VendorOrders() {
                           }
                         }}
                       >
-                        {[o.status, ...(nextStatuses[o.status] ?? [])].map((status) => <option key={status} value={status}>{status}</option>)}
+                        {[o.status, ...(nextStatuses[o.status] ?? [])].map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
                       </select>
                       <Dialog>
                         <DialogTrigger asChild>
@@ -195,12 +222,30 @@ function VendorOrders() {
                             <DialogDescription>Cash on Delivery order details</DialogDescription>
                           </DialogHeader>
                           <div className="space-y-2 text-sm">
-                            <div className="flex justify-between"><span className="text-muted-foreground">Customer</span><span>{o.customer_name}</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">Phone</span><span>{o.phone}</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">City</span><span>{o.city}</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">Items</span><span>{Array.isArray(o.items) ? o.items.length : 0}</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span>{new Date(o.created_at).toLocaleDateString("en-PK")}</span></div>
-                            <div className="flex justify-between font-semibold"><span>Total</span><span>{formatPKR(Number(o.total))}</span></div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Customer</span>
+                              <span>{o.customer_name}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Phone</span>
+                              <span>{o.phone}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">City</span>
+                              <span>{o.city}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Items</span>
+                              <span>{Array.isArray(o.items) ? o.items.length : 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Date</span>
+                              <span>{new Date(o.created_at).toLocaleDateString("en-PK")}</span>
+                            </div>
+                            <div className="flex justify-between font-semibold">
+                              <span>Total</span>
+                              <span>{formatPKR(Number(o.total))}</span>
+                            </div>
                           </div>
                         </DialogContent>
                       </Dialog>
@@ -211,7 +256,9 @@ function VendorOrders() {
             </table>
           </div>
           {list.length === 0 && (
-            <p className="px-4 py-10 text-center text-sm text-muted-foreground">Is filter par koi order nahi hai.</p>
+            <p className="px-4 py-10 text-center text-sm text-muted-foreground">
+              Is filter par koi order nahi hai.
+            </p>
           )}
         </div>
       )}

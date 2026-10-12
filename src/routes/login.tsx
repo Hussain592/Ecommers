@@ -1,8 +1,4 @@
-﻿import {
-  createFileRoute,
-  Link,
-  useNavigate,
-} from "@tanstack/react-router";
+﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   ArrowRight,
@@ -31,8 +27,7 @@ export const Route = createFileRoute("/login")({
       },
       {
         name: "description",
-        content:
-          "Sign in to your azadari.store account or create a customer account.",
+        content: "Sign in to your azadari.store account or create a customer account.",
       },
       {
         property: "og:title",
@@ -40,8 +35,7 @@ export const Route = createFileRoute("/login")({
       },
       {
         property: "og:description",
-        content:
-          "Access your azadari.store account, vendor dashboard or partner dashboard.",
+        content: "Access your azadari.store account, vendor dashboard or partner dashboard.",
       },
     ],
   }),
@@ -50,24 +44,15 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [
-    creatingAccount,
-    setCreatingAccount,
-  ] = useState(false);
+  const [creatingAccount, setCreatingAccount] = useState(false);
 
-  const [
-    showPassword,
-    setShowPassword,
-  ] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
 
-  const handleSubmit = async (
-    event: React.FormEvent<HTMLFormElement>,
-  ) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (loading) {
@@ -77,33 +62,21 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      const formData =
-        new FormData(event.currentTarget);
+      const formData = new FormData(event.currentTarget);
 
-      const email = String(
-        formData.get("email") ?? "",
-      )
+      const email = String(formData.get("email") ?? "")
         .trim()
         .toLowerCase();
 
-      const password = String(
-        formData.get("password") ?? "",
-      );
+      const password = String(formData.get("password") ?? "");
 
-      if (
-        !email ||
-        !password
-      ) {
-        toast.error(
-          "Email aur password enter karein.",
-        );
+      if (!email || !password) {
+        toast.error("Email aur password enter karein.");
         return;
       }
 
       if (password.length < 6) {
-        toast.error(
-          "Password kam az kam 6 characters ka hona chahiye.",
-        );
+        toast.error("Password kam az kam 6 characters ka hona chahiye.");
         return;
       }
 
@@ -113,53 +86,39 @@ function LoginPage() {
        * =====================================
        */
       if (creatingAccount) {
-        const name = String(
-          formData.get("name") ?? "",
-        ).trim();
+        const name = String(formData.get("name") ?? "").trim();
 
         if (!name) {
-          toast.error(
-            "Full name enter karein.",
-          );
+          toast.error("Full name enter karein.");
           return;
         }
 
-        const {
-          data,
-          error,
-        } =
-          await supabase.auth.signUp({
-            email,
-            password,
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
 
-            options: {
-              data: {
-                name,
-                role: "customer",
-              },
+          options: {
+            data: {
+              name,
+              role: "customer",
             },
-          });
+          },
+        });
 
         if (error) {
           throw error;
         }
 
         if (!data.user) {
-          throw new Error(
-            "Account create nahi ho saka.",
-          );
+          throw new Error("Account create nahi ho saka.");
         }
 
         if (!data.session) {
-          toast.success(
-            "Account ban gaya. Email confirm karke phir sign in karein.",
-          );
+          toast.success("Account ban gaya. Email confirm karke phir sign in karein.");
 
           setCreatingAccount(false);
         } else {
-          toast.success(
-            "Account ban gaya!",
-          );
+          toast.success("Account ban gaya!");
 
           await navigate({
             to: "/",
@@ -174,78 +133,43 @@ function LoginPage() {
        * SIGN IN
        * =====================================
        */
-      const {
-        data,
-        error,
-      } =
-        await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
       if (error) {
         throw error;
       }
 
-      const {
-        data: profile,
-      } = await supabase
+      const { data: profile } = await supabase
         .from("users")
-        .select(
-          "role, status",
-        )
-        .eq(
-          "auth_id",
-          data.user.id,
-        )
+        .select("role, status")
+        .eq("auth_id", data.user.id)
         .maybeSingle();
 
       let target = "/";
 
-      if (
-        profile?.role ===
-        "admin"
-      ) {
+      if (profile?.role === "admin") {
         target = "/admin";
-      } else if (
-        profile?.role ===
-        "vendor"
-      ) {
-        const {
-          data: vendorRow,
-        } = await supabase
+      } else if (profile?.role === "vendor") {
+        const { data: vendorRow } = await supabase
           .from("vendors")
           .select("status")
-          .eq(
-            "owner_id",
-            data.user.id,
-          )
+          .eq("owner_id", data.user.id)
           .maybeSingle();
 
-        if (
-          vendorRow?.status !==
-          "Active"
-        ) {
-          toast.error(
-            "Aapka vendor account abhi active nahi hai. Admin se rabta karein.",
-          );
+        if (vendorRow?.status !== "Active") {
+          toast.error("Aapka vendor account abhi active nahi hai. Admin se rabta karein.");
 
           await supabase.auth.signOut();
           return;
         }
 
         target = "/vendor";
-      } else if (
-        profile?.role ===
-        "partner"
-      ) {
-        if (
-          profile?.status !==
-          "Active"
-        ) {
-          toast.error(
-            "Aapka partner account abhi active nahi hai. Admin se rabta karein.",
-          );
+      } else if (profile?.role === "partner") {
+        if (profile?.status !== "Active") {
+          toast.error("Aapka partner account abhi active nahi hai. Admin se rabta karein.");
 
           await supabase.auth.signOut();
           return;
@@ -254,22 +178,15 @@ function LoginPage() {
         target = "/partner";
       }
 
-      toast.success(
-        "Welcome back!",
-      );
+      toast.success("Welcome back!");
 
       /*
        * Full navigation intentionally preserve ki gayi hai
        * taa-ke auth/provider state fresh load ho.
        */
-      window.location.href =
-        target;
+      window.location.href = target;
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Login complete nahi ho saka.",
-      );
+      toast.error(error instanceof Error ? error.message : "Login complete nahi ho saka.");
     } finally {
       setLoading(false);
     }
@@ -297,10 +214,8 @@ function LoginPage() {
           style={{
             backgroundImage:
               "linear-gradient(45deg, #fff 25%, transparent 25%), linear-gradient(-45deg, #fff 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #fff 75%), linear-gradient(-45deg, transparent 75%, #fff 75%)",
-            backgroundSize:
-              "28px 28px",
-            backgroundPosition:
-              "0 0, 0 14px, 14px -14px, -14px 0px",
+            backgroundSize: "28px 28px",
+            backgroundPosition: "0 0, 0 14px, 14px -14px, -14px 0px",
           }}
         />
 
@@ -310,16 +225,11 @@ function LoginPage() {
           className="relative inline-flex w-fit items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a24b]"
         >
           <span className="grid h-11 w-11 place-items-center rounded-xl border border-[#c9a24b]/40 bg-white/5 text-[#e2c56c]">
-            <MoonStar
-              aria-hidden="true"
-              className="h-5 w-5"
-            />
+            <MoonStar aria-hidden="true" className="h-5 w-5" />
           </span>
 
           <div>
-            <p className="font-display text-lg font-extrabold">
-              azadari.store
-            </p>
+            <p className="font-display text-lg font-extrabold">azadari.store</p>
 
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#c9a24b]">
               Islamic Marketplace
@@ -328,35 +238,24 @@ function LoginPage() {
         </Link>
 
         <div className="relative max-w-md">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d8b85c]">
-            Welcome
-          </p>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d8b85c]">Welcome</p>
 
           <h1 className="mt-3 font-display text-4xl font-extrabold leading-tight">
             Your marketplace account,
-            <span className="text-[#e2c56c]">
-              {" "}
-              one simple sign in.
-            </span>
+            <span className="text-[#e2c56c]"> one simple sign in.</span>
           </h1>
 
           <p className="mt-4 text-sm leading-7 text-[#d8d1bf]">
-            Customer orders, vendor dashboard aur partner tools —
-            account role ke mutabiq aapko automatically sahi jagah
-            bheja jayega.
+            Customer orders, vendor dashboard aur partner tools — account role ke mutabiq aapko
+            automatically sahi jagah bheja jayega.
           </p>
 
           <div className="mt-7 grid gap-3">
             <div className="flex items-start gap-3 rounded-2xl border border-[#c9a24b]/15 bg-white/5 p-4">
-              <ShieldCheck
-                aria-hidden="true"
-                className="mt-0.5 h-5 w-5 shrink-0 text-[#d8b85c]"
-              />
+              <ShieldCheck aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#d8b85c]" />
 
               <div>
-                <p className="text-sm font-bold">
-                  Secure account access
-                </p>
+                <p className="text-sm font-bold">Secure account access</p>
 
                 <p className="mt-1 text-xs leading-5 text-[#cfc7b5]">
                   Vendor aur partner access sirf active approved accounts ko milta hai.
@@ -365,15 +264,10 @@ function LoginPage() {
             </div>
 
             <div className="flex items-start gap-3 rounded-2xl border border-[#c9a24b]/15 bg-white/5 p-4">
-              <ShoppingBag
-                aria-hidden="true"
-                className="mt-0.5 h-5 w-5 shrink-0 text-[#d8b85c]"
-              />
+              <ShoppingBag aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#d8b85c]" />
 
               <div>
-                <p className="text-sm font-bold">
-                  Guest shopping available
-                </p>
+                <p className="text-sm font-bold">Guest shopping available</p>
 
                 <p className="mt-1 text-xs leading-5 text-[#cfc7b5]">
                   Customer account zaroori nahi — guest checkout se bhi order ho sakta hai.
@@ -383,9 +277,7 @@ function LoginPage() {
           </div>
         </div>
 
-        <p className="relative text-xs text-[#a9a294]">
-          © 2026 azadari.store
-        </p>
+        <p className="relative text-xs text-[#a9a294]">© 2026 azadari.store</p>
       </section>
 
       {/* =====================================
@@ -400,16 +292,11 @@ function LoginPage() {
             className="mb-8 inline-flex items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a24b] lg:hidden"
           >
             <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#c9a24b]/35 bg-[#082b21] text-[#e2c56c]">
-              <MoonStar
-                aria-hidden="true"
-                className="h-5 w-5"
-              />
+              <MoonStar aria-hidden="true" className="h-5 w-5" />
             </span>
 
             <div>
-              <p className="font-display text-lg font-extrabold text-[#102d24]">
-                azadari.store
-              </p>
+              <p className="font-display text-lg font-extrabold text-[#102d24]">azadari.store</p>
 
               <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#9a7927]">
                 Islamic Marketplace
@@ -421,15 +308,11 @@ function LoginPage() {
           <section className="rounded-3xl border border-[#ded5bd] bg-[#fffdf7] p-5 shadow-[0_12px_32px_rgba(8,43,33,0.07)] sm:p-7">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9a7927]">
-                {creatingAccount
-                  ? "Create Account"
-                  : "Account Access"}
+                {creatingAccount ? "Create Account" : "Account Access"}
               </p>
 
               <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-[#102d24] sm:text-3xl">
-                {creatingAccount
-                  ? "Create your account"
-                  : "Welcome back"}
+                {creatingAccount ? "Create your account" : "Welcome back"}
               </h2>
 
               <p className="mt-2 text-sm leading-6 text-[#6f7d75]">
@@ -439,18 +322,10 @@ function LoginPage() {
               </p>
             </div>
 
-            <form
-              className="mt-6 space-y-4"
-              onSubmit={
-                handleSubmit
-              }
-            >
+            <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
               {creatingAccount && (
                 <div className="space-y-1.5">
-                  <Label
-                    htmlFor="name"
-                    className="text-sm font-semibold text-[#102d24]"
-                  >
+                  <Label htmlFor="name" className="text-sm font-semibold text-[#102d24]">
                     Full Name
                   </Label>
 
@@ -473,10 +348,7 @@ function LoginPage() {
               )}
 
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="email"
-                  className="text-sm font-semibold text-[#102d24]"
-                >
+                <Label htmlFor="email" className="text-sm font-semibold text-[#102d24]">
                   Email
                 </Label>
 
@@ -499,12 +371,20 @@ function LoginPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="password"
-                  className="text-sm font-semibold text-[#102d24]"
-                >
-                  Password
-                </Label>
+                <div className="flex items-center justify-between gap-3">
+                  <Label htmlFor="password" className="text-sm font-semibold text-[#102d24]">
+                    Password
+                  </Label>
+
+                  {!creatingAccount && (
+                    <Link
+                      to="/forgot-password"
+                      className="rounded-md text-xs font-semibold text-[#0b513b] underline decoration-[#c9a24b] underline-offset-4 hover:text-[#082b21] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a24b]"
+                    >
+                      Password bhool gaye?
+                    </Link>
+                  )}
+                </div>
 
                 <div className="relative">
                   <LockKeyhole
@@ -515,58 +395,31 @@ function LoginPage() {
                   <Input
                     id="password"
                     name="password"
-                    type={
-                      showPassword
-                        ? "text"
-                        : "password"
-                    }
+                    type={showPassword ? "text" : "password"}
                     minLength={6}
                     required
-                    autoComplete={
-                      creatingAccount
-                        ? "new-password"
-                        : "current-password"
-                    }
+                    autoComplete={creatingAccount ? "new-password" : "current-password"}
                     placeholder="At least 6 characters"
                     className="h-11 rounded-xl border-[#d8cdae] bg-white pl-10 pr-11 focus-visible:ring-[#c9a24b]"
                   />
 
                   <button
                     type="button"
-                    onClick={() =>
-                      setShowPassword(
-                        (value) =>
-                          !value,
-                      )
-                    }
-                    aria-label={
-                      showPassword
-                        ? "Hide password"
-                        : "Show password"
-                    }
-                    aria-pressed={
-                      showPassword
-                    }
+                    onClick={() => setShowPassword((value) => !value)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
                     className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-[#718078] transition-colors hover:bg-[#f7efd9] hover:text-[#0b513b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a24b]"
                   >
                     {showPassword ? (
-                      <EyeOff
-                        aria-hidden="true"
-                        className="h-4 w-4"
-                      />
+                      <EyeOff aria-hidden="true" className="h-4 w-4" />
                     ) : (
-                      <Eye
-                        aria-hidden="true"
-                        className="h-4 w-4"
-                      />
+                      <Eye aria-hidden="true" className="h-4 w-4" />
                     )}
                   </button>
                 </div>
 
                 {creatingAccount && (
-                  <p className="text-[11px] text-[#89938e]">
-                    Kam az kam 6 characters.
-                  </p>
+                  <p className="text-[11px] text-[#89938e]">Kam az kam 6 characters.</p>
                 )}
               </div>
 
@@ -574,20 +427,12 @@ function LoginPage() {
                 type="submit"
                 size="lg"
                 className="h-11 w-full rounded-xl border border-[#c9a24b]/35 bg-[#082b21] font-bold text-[#fffaf0] shadow-none hover:bg-[#0d3d2f] focus-visible:ring-2 focus-visible:ring-[#c9a24b] focus-visible:ring-offset-2 disabled:opacity-60"
-                disabled={
-                  loading
-                }
+                disabled={loading}
               >
                 {loading ? (
-                  <Loader2
-                    aria-hidden="true"
-                    className="mr-2 h-4 w-4 animate-spin"
-                  />
+                  <Loader2 aria-hidden="true" className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <ArrowRight
-                    aria-hidden="true"
-                    className="mr-2 h-4 w-4"
-                  />
+                  <ArrowRight aria-hidden="true" className="mr-2 h-4 w-4" />
                 )}
 
                 {loading
@@ -603,44 +448,30 @@ function LoginPage() {
             {/* Mode switch */}
             <div className="mt-5 border-t border-[#eee6d2] pt-5 text-center">
               <p className="text-sm text-[#6f7d75]">
-                {creatingAccount
-                  ? "Already have an account?"
-                  : "New here?"}
+                {creatingAccount ? "Already have an account?" : "New here?"}
               </p>
 
               <button
                 type="button"
                 disabled={loading}
                 onClick={() => {
-                  setCreatingAccount(
-                    (value) =>
-                      !value,
-                  );
+                  setCreatingAccount((value) => !value);
 
-                  setShowPassword(
-                    false,
-                  );
+                  setShowPassword(false);
                 }}
                 className="mt-1 rounded-md font-semibold text-[#0b513b] underline decoration-[#c9a24b] underline-offset-4 transition-colors hover:text-[#082b21] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a24b] disabled:opacity-50"
               >
-                {creatingAccount
-                  ? "Sign in instead"
-                  : "Create an account"}
+                {creatingAccount ? "Sign in instead" : "Create an account"}
               </button>
             </div>
           </section>
 
           {/* Guest checkout */}
           <div className="mt-5 flex items-start gap-3 rounded-2xl border border-[#c9a24b]/20 bg-[#f7efd9]/55 p-4">
-            <ShoppingBag
-              aria-hidden="true"
-              className="mt-0.5 h-5 w-5 shrink-0 text-[#0b513b]"
-            />
+            <ShoppingBag aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#0b513b]" />
 
             <div>
-              <p className="text-sm font-bold text-[#102d24]">
-                Sirf shopping karni hai?
-              </p>
+              <p className="text-sm font-bold text-[#102d24]">Sirf shopping karni hai?</p>
 
               <p className="mt-1 text-xs leading-5 text-[#6f7d75]">
                 Customer account ki zaroorat nahi.{" "}

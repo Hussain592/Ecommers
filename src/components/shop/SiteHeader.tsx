@@ -1,17 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import {
-  Menu,
-  MoonStar,
-  Search,
-  ShoppingCart,
-  Truck,
-  X,
-} from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Menu, MoonStar, Search, ShoppingCart, Truck, X } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatPKR } from "@/data/mock";
 import { useCart } from "@/lib/cart";
+import { useDeliverySettings } from "@/lib/delivery";
 
 const nav = [
   {
@@ -32,42 +27,19 @@ const nav = [
   },
   {
     to: "/sell",
-    label: "Sell on Dukaan",
+    label: "Sell on azadari.store",
   },
 ];
 
 export function SiteHeader() {
   const { count } = useCart();
 
+  const { freeDeliveryThreshold } = useDeliverySettings();
+
   const [open, setOpen] = useState(false);
-  const headerRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const closeWhenPointerLeavesHeader = (event: PointerEvent) => {
-      if (event.pointerType !== "mouse") return;
-
-      const bounds = headerRef.current?.getBoundingClientRect();
-      if (
-        bounds &&
-        (event.clientX < bounds.left ||
-          event.clientX > bounds.right ||
-          event.clientY < bounds.top ||
-          event.clientY > bounds.bottom)
-      ) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener("pointermove", closeWhenPointerLeavesHeader);
-    return () =>
-      document.removeEventListener("pointermove", closeWhenPointerLeavesHeader);
-  }, [open]);
 
   return (
     <header
-      ref={headerRef}
       className="sticky top-0 z-40 border-b border-[#c9a24b]/30 bg-[#082b21]/95 shadow-sm backdrop-blur-xl"
       onMouseLeave={() => setOpen(false)}
     >
@@ -76,12 +48,8 @@ export function SiteHeader() {
       ===================================================== */}
       <div className="hidden border-b border-[#c9a24b]/20 bg-[#041c15] py-1.5 text-center text-xs font-medium tracking-wide text-[#f8f1df] sm:block">
         Cash on Delivery all over Pakistan
-
-        <span className="mx-2 text-[#c9a24b]">
-          •
-        </span>
-
-        Free delivery on orders above Rs. 3,000
+        <span className="mx-2 text-[#c9a24b]">•</span>
+        Free delivery on orders above {formatPKR(freeDeliveryThreshold)}
       </div>
 
       {/* =====================================================
@@ -98,16 +66,11 @@ export function SiteHeader() {
           className="group flex shrink-0 items-center gap-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b85c] focus-visible:ring-offset-2 focus-visible:ring-offset-[#082b21]"
         >
           <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#d8b85c]/70 bg-[#0d4031] text-[#f2d883] shadow-sm transition-transform group-hover:scale-[1.03]">
-            <MoonStar
-              aria-hidden="true"
-              className="h-5 w-5"
-            />
+            <MoonStar aria-hidden="true" className="h-5 w-5" />
           </span>
 
           <div className="hidden xl:block">
-            <p className="text-sm font-extrabold tracking-tight text-[#fffaf0]">
-              azadari.store
-            </p>
+            <p className="text-sm font-extrabold tracking-tight text-[#fffaf0]">azadari.store</p>
 
             <p className="text-[10px] font-medium tracking-wide text-[#d8cdae]">
               Islamic Marketplace
@@ -136,10 +99,7 @@ export function SiteHeader() {
         {/* =================================================
             DESKTOP NAVIGATION
         ================================================= */}
-        <nav
-          className="hidden items-center gap-1 lg:flex"
-          aria-label="Main navigation"
-        >
+        <nav className="hidden items-center gap-1 lg:flex" aria-label="Main navigation">
           {nav.map((item) => (
             <Link
               key={item.to}
@@ -165,9 +125,7 @@ export function SiteHeader() {
             size="sm"
             className="hidden whitespace-nowrap rounded-lg text-[#f7f0df] hover:bg-white/10 hover:text-white focus-visible:ring-[#d8b85c] sm:inline-flex"
           >
-            <Link to="/orders">
-              My Orders
-            </Link>
+            <Link to="/orders">My Orders</Link>
           </Button>
 
           {/* Login */}
@@ -177,9 +135,7 @@ export function SiteHeader() {
             size="sm"
             className="hidden rounded-lg text-[#f7f0df] hover:bg-white/10 hover:text-white focus-visible:ring-[#d8b85c] sm:inline-flex"
           >
-            <Link to="/login">
-              Login
-            </Link>
+            <Link to="/login">Login</Link>
           </Button>
 
           {/* Cart */}
@@ -189,14 +145,7 @@ export function SiteHeader() {
             size="icon"
             className="relative shrink-0 rounded-xl border-[#d8b85c]/60 bg-[#fffaf0] text-[#16392d] shadow-sm hover:border-[#d8b85c] hover:bg-[#f5ead0] hover:text-[#082b21]"
           >
-            <Link
-              to="/cart"
-              aria-label={
-                count > 0
-                  ? `Cart, ${count} items`
-                  : "Cart"
-              }
-            >
+            <Link to="/cart" aria-label={count > 0 ? `Cart, ${count} items` : "Cart"}>
               <ShoppingCart className="h-4 w-4" />
 
               {count > 0 && (
@@ -217,19 +166,11 @@ export function SiteHeader() {
             size="icon"
             className="shrink-0 rounded-xl border-[#d8b85c]/60 bg-[#fffaf0] text-[#16392d] hover:bg-[#f5ead0] lg:hidden"
             onClick={() => setOpen((value) => !value)}
-            aria-label={
-              open
-                ? "Close navigation menu"
-                : "Open navigation menu"
-            }
+            aria-label={open ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={open}
             aria-controls="mobile-navigation"
           >
-            {open ? (
-              <X className="h-4 w-4" />
-            ) : (
-              <Menu className="h-4 w-4" />
-            )}
+            {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </Button>
         </div>
       </div>
@@ -242,6 +183,7 @@ export function SiteHeader() {
           id="mobile-navigation"
           className="border-t border-[#d8b85c]/25 bg-[#061f18] px-4 py-3 shadow-lg lg:hidden"
           aria-label="Mobile navigation"
+          onMouseLeave={() => setOpen(false)}
         >
           <div className="space-y-1">
             {nav.map((item) => (
@@ -251,9 +193,7 @@ export function SiteHeader() {
                 activeOptions={{
                   exact: item.to === "/",
                 }}
-                onClick={() =>
-                  setOpen(false)
-                }
+                onClick={() => setOpen(false)}
                 className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-[#f2ecdc] transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b85c]"
               >
                 {item.label}
@@ -264,9 +204,7 @@ export function SiteHeader() {
 
             <Link
               to="/orders"
-              onClick={() =>
-                setOpen(false)
-              }
+              onClick={() => setOpen(false)}
               className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-[#f2ecdc] transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b85c]"
             >
               My Orders
@@ -274,9 +212,7 @@ export function SiteHeader() {
 
             <Link
               to="/login"
-              onClick={() =>
-                setOpen(false)
-              }
+              onClick={() => setOpen(false)}
               className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-[#f2ecdc] transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b85c]"
             >
               Login
@@ -285,14 +221,9 @@ export function SiteHeader() {
 
           {/* Mobile Trust Message */}
           <div className="mt-3 flex items-center gap-2 rounded-xl border border-[#d8b85c]/20 bg-white/5 px-3 py-2.5 text-xs text-[#d9d1bd]">
-            <Truck
-              aria-hidden="true"
-              className="h-4 w-4 shrink-0 text-[#d8b85c]"
-            />
+            <Truck aria-hidden="true" className="h-4 w-4 shrink-0 text-[#d8b85c]" />
 
-            <span>
-              Cash on Delivery available nationwide
-            </span>
+            <span>Cash on Delivery available nationwide</span>
           </div>
         </nav>
       )}

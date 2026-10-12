@@ -4,13 +4,17 @@ import { CheckCircle2, Package, Phone } from "lucide-react";
 import { ShopLayout } from "@/components/shop/ShopLayout";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useSupportHelpline } from "@/lib/store-info";
 
 export const Route = createFileRoute("/order-confirmation")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "Your Cash on Delivery order has been placed on Dukaan.pk." },
-      { property: "og:title", content: "Order Confirmed â€” Dukaan.pk" },
+      {
+        name: "description",
+        content: "Your Cash on Delivery order has been placed on azadari.store.",
+      },
+      { property: "og:title", content: "Order Confirmed — azadari.store" },
       { property: "og:description", content: "Order placed successfully with Cash on Delivery." },
     ],
   }),
@@ -19,6 +23,7 @@ export const Route = createFileRoute("/order-confirmation")({
 
 function OrderConfirmation() {
   const [orderIds, setOrderIds] = useState<string[]>([]);
+  const helpline = useSupportHelpline();
 
   useEffect(() => {
     try {
@@ -38,14 +43,17 @@ function OrderConfirmation() {
           </span>
           <h1 className="mt-5 text-2xl font-extrabold">Order Confirm Ho Gaya!</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Shukriya! Aapka order receive ho gaya hai. Confirmation ke liye hamari team jald call karegi.
+            Shukriya! Aapka order receive ho gaya hai. Confirmation ke liye hamari team jald call
+            karegi.
           </p>
 
           <div className="mt-6 rounded-2xl bg-muted p-5 text-left">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{orderIds.length > 1 ? "Order IDs" : "Order ID"}</span>
+              <span className="text-muted-foreground">
+                {orderIds.length > 1 ? "Order IDs" : "Order ID"}
+              </span>
               <span className="font-display font-bold">
-                {orderIds.length > 0 ? orderIds.join(", ") : "â€”"}
+                {orderIds.length > 0 ? orderIds.join(", ") : "—"}
               </span>
             </div>
             <Separator className="my-3" />
@@ -71,9 +79,11 @@ function OrderConfirmation() {
             </Button>
           </div>
 
-          <p className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-            <Phone className="h-3.5 w-3.5" /> Helpline: 0311-DUKAAN
-          </p>
+          {helpline && (
+            <p className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <Phone className="h-3.5 w-3.5" /> Helpline: {helpline}
+            </p>
+          )}
         </div>
       </div>
     </ShopLayout>

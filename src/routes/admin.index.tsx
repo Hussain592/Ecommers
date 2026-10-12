@@ -11,9 +11,12 @@ export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "Restricted admin access for Dukaan.pk platform owners." },
+      {
+        name: "description",
+        content: "Restricted admin access for azadari.store platform owners.",
+      },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Admin Login â€” Dukaan.pk" },
+      { property: "og:title", content: "Admin Login — azadari.store" },
       { property: "og:description", content: "Restricted area for platform administrators." },
     ],
   }),
@@ -32,7 +35,7 @@ function AdminLogin() {
         </span>
         <h1 className="mt-5 text-center text-2xl font-extrabold">Admin Control Panel</h1>
         <p className="mt-1 text-center text-sm text-muted-foreground">
-          Dukaan.pk owner access â€” sirf authorized staff ke liye.
+          azadari.store owner access — sirf authorized staff ke liye.
         </p>
 
         <form
@@ -71,11 +74,25 @@ function AdminLogin() {
         >
           <div className="space-y-1.5">
             <Label htmlFor="ae">Admin Email</Label>
-            <Input id="ae" name="email" type="email" required placeholder="owner@dukaan.pk" className="h-11 rounded-xl" />
+            <Input
+              id="ae"
+              name="email"
+              type="email"
+              required
+              placeholder="owner@azadari.store"
+              className="h-11 rounded-xl"
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="ap">Password</Label>
-            <Input id="ap" name="password" type="password" required placeholder="Aapka password" className="h-11 rounded-xl" />
+            <Input
+              id="ap"
+              name="password"
+              type="password"
+              required
+              placeholder="Aapka password"
+              className="h-11 rounded-xl"
+            />
           </div>
           <Button type="submit" size="lg" className="w-full rounded-xl" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

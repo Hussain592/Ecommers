@@ -11,9 +11,15 @@ export const Route = createFileRoute("/partner/")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "Add products and update stock as a Dukaan.pk listing partner." },
-      { property: "og:title", content: "Partner Dashboard â€” Dukaan.pk" },
-      { property: "og:description", content: "Simple tools for partners to manage listings and stock." },
+      {
+        name: "description",
+        content: "Add products and update stock as a azadari.store listing partner.",
+      },
+      { property: "og:title", content: "Partner Dashboard — azadari.store" },
+      {
+        property: "og:description",
+        content: "Simple tools for partners to manage listings and stock.",
+      },
     ],
   }),
   component: PartnerDashboard,
@@ -41,7 +47,11 @@ function PartnerDashboard() {
         return;
       }
 
-      const { data: profile } = await supabase.from("users").select("name").eq("auth_id", authData.user.id).maybeSingle();
+      const { data: profile } = await supabase
+        .from("users")
+        .select("name")
+        .eq("auth_id", authData.user.id)
+        .maybeSingle();
       if (profile?.name) setPartnerName(profile.name);
 
       const { data, error } = await supabase
@@ -68,7 +78,13 @@ function PartnerDashboard() {
 
   if (loading) {
     return (
-      <DashboardShell brand={partnerName} role="Partner Account" title="Dashboard" subtitle="Aapki listings ka summary" nav={partnerNav}>
+      <DashboardShell
+        brand={partnerName}
+        role="Partner Account"
+        title="Dashboard"
+        subtitle="Aapki listings ka summary"
+        nav={partnerNav}
+      >
         <div className="flex justify-center p-10">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -94,7 +110,13 @@ function PartnerDashboard() {
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="My Products" value={String(products.length)} icon={Package} />
         <StatCard label="Active" value={String(approved)} icon={CheckCircle2} tone="success" />
-        <StatCard label="Low Stock Items" value={String(lowStock)} hint="Update karna zaroori hai" icon={Boxes} tone="warning" />
+        <StatCard
+          label="Low Stock Items"
+          value={String(lowStock)}
+          hint="Update karna zaroori hai"
+          icon={Boxes}
+          tone="warning"
+        />
       </div>
 
       <section className="surface-card p-5">
@@ -104,11 +126,23 @@ function PartnerDashboard() {
         ) : (
           <div className="mt-4 space-y-3">
             {recent.map((p) => (
-              <div key={p.id} className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 rounded-xl bg-muted/60 p-3">
-                <img src={p.image ?? ""} alt={p.name} loading="lazy" width={800} height={800} className="h-11 w-11 rounded-xl bg-muted object-cover" />
+              <div
+                key={p.id}
+                className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 rounded-xl bg-muted/60 p-3"
+              >
+                <img
+                  src={p.image ?? ""}
+                  alt={p.name}
+                  loading="lazy"
+                  width={800}
+                  height={800}
+                  className="h-11 w-11 rounded-xl bg-muted object-cover"
+                />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{p.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{p.category} Â· Stock {p.stock}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {p.category} · Stock {p.stock}
+                  </p>
                 </div>
                 <Button asChild variant="outline" size="sm" className="rounded-lg">
                   <Link to="/partner/stock">Update Stock</Link>

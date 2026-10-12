@@ -40,8 +40,7 @@ export const Route = createFileRoute("/services/$id")({
       },
       {
         property: "og:description",
-        content:
-          "View Islamic and Azadari service details and send a simple booking request.",
+        content: "View Islamic and Azadari service details and send a simple booking request.",
       },
     ],
   }),
@@ -190,9 +189,7 @@ function ServiceDetail() {
   const { id } = Route.useParams();
   const [submitting, setSubmitting] = useState(false);
 
-  const service = islamicServices.find(
-    (item) => item.id === id,
-  );
+  const service = islamicServices.find((item) => item.id === id);
 
   if (!service) {
     return (
@@ -202,9 +199,7 @@ function ServiceDetail() {
             <CheckCircle2 className="h-6 w-6" />
           </div>
 
-          <h1 className="mt-4 text-2xl font-extrabold text-[#102d24]">
-            Service not found
-          </h1>
+          <h1 className="mt-4 text-2xl font-extrabold text-[#102d24]">Service not found</h1>
 
           <p className="mt-2 text-sm text-[#6f7d75]">
             Ye service available nahi hai ya iska link change ho chuka hai.
@@ -214,9 +209,7 @@ function ServiceDetail() {
             asChild
             className="mt-5 rounded-xl bg-[#082b21] text-[#fffaf0] hover:bg-[#0d3d2f]"
           >
-            <Link to="/services">
-              Back to services
-            </Link>
+            <Link to="/services">Back to services</Link>
           </Button>
         </main>
       </ShopLayout>
@@ -229,10 +222,7 @@ function ServiceDetail() {
     <ShopLayout>
       <main className="mx-auto max-w-7xl px-4 py-8 sm:py-10">
         {/* Breadcrumb */}
-        <nav
-          aria-label="Breadcrumb"
-          className="text-xs text-[#748078]"
-        >
+        <nav aria-label="Breadcrumb" className="text-xs text-[#748078]">
           <Link
             to="/"
             className="rounded-sm hover:text-[#0b513b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a24b]"
@@ -251,9 +241,7 @@ function ServiceDetail() {
 
           <span className="mx-2 text-[#b7b1a4]">/</span>
 
-          <span className="text-[#102d24]">
-            {service.name}
-          </span>
+          <span className="text-[#102d24]">{service.name}</span>
         </nav>
 
         <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_390px] lg:items-start">
@@ -281,29 +269,18 @@ function ServiceDetail() {
 
                   <div className="mt-5 flex flex-wrap gap-x-5 gap-y-3 text-xs text-[#d8d1bf]">
                     <span className="inline-flex items-center gap-1.5">
-                      <MapPin
-                        className="h-4 w-4 text-[#d8b85c]"
-                        aria-hidden="true"
-                      />
+                      <MapPin className="h-4 w-4 text-[#d8b85c]" aria-hidden="true" />
                       {service.city}
                     </span>
 
                     <span className="inline-flex items-center gap-1.5">
-                      <Clock
-                        className="h-4 w-4 text-[#d8b85c]"
-                        aria-hidden="true"
-                      />
+                      <Clock className="h-4 w-4 text-[#d8b85c]" aria-hidden="true" />
                       {service.duration}
                     </span>
 
                     <span className="inline-flex items-center gap-1.5">
-                      <Star
-                        className="h-4 w-4 fill-[#d8b85c] text-[#d8b85c]"
-                        aria-hidden="true"
-                      />
-                      <strong className="font-semibold text-[#fffaf0]">
-                        {service.rating}
-                      </strong>
+                      <Star className="h-4 w-4 fill-[#d8b85c] text-[#d8b85c]" aria-hidden="true" />
+                      <strong className="font-semibold text-[#fffaf0]">{service.rating}</strong>
                       <span>({service.reviews} reviews)</span>
                     </span>
                   </div>
@@ -318,12 +295,11 @@ function ServiceDetail() {
                   Service details
                 </p>
 
-                <h2 className="mt-1 text-xl font-extrabold text-[#102d24]">
-                  Kya include hai
-                </h2>
+                <h2 className="mt-1 text-xl font-extrabold text-[#102d24]">Kya include hai</h2>
 
                 <p className="mt-1 text-sm text-[#6f7d75]">
-                  Booking se pehle clear information taa-ke customer ko pata ho ke kya expect karna hai.
+                  Booking se pehle clear information taa-ke customer ko pata ho ke kya expect karna
+                  hai.
                 </p>
               </div>
 
@@ -334,15 +310,10 @@ function ServiceDetail() {
                     className="flex items-start gap-3 rounded-2xl border border-[#ded5bd] bg-[#fffdf7] p-4 text-sm text-[#33463e] shadow-[0_3px_12px_rgba(8,43,33,0.04)]"
                   >
                     <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#e8f3ed] text-[#0b6b4c]">
-                      <Check
-                        className="h-3.5 w-3.5"
-                        aria-hidden="true"
-                      />
+                      <Check className="h-3.5 w-3.5" aria-hidden="true" />
                     </span>
 
-                    <span className="leading-6">
-                      {item}
-                    </span>
+                    <span className="leading-6">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -352,10 +323,7 @@ function ServiceDetail() {
             <section className="mt-8 rounded-2xl border border-[#ded5bd] bg-[#fffdf7] p-5 shadow-[0_4px_16px_rgba(8,43,33,0.05)]">
               <div className="flex items-start gap-4">
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[#c9a24b]/25 bg-[#f7efd9] text-[#0b513b]">
-                  <ShieldCheck
-                    className="h-5 w-5"
-                    aria-hidden="true"
-                  />
+                  <ShieldCheck className="h-5 w-5" aria-hidden="true" />
                 </span>
 
                 <div>
@@ -363,12 +331,11 @@ function ServiceDetail() {
                     Service provider
                   </p>
 
-                  <h3 className="mt-1 font-extrabold text-[#102d24]">
-                    {service.provider}
-                  </h3>
+                  <h3 className="mt-1 font-extrabold text-[#102d24]">{service.provider}</h3>
 
                   <p className="mt-1 text-sm leading-6 text-[#6f7d75]">
-                    Provider details aur booking availability request confirm hone ke baad verify ki jayegi.
+                    Provider details aur booking availability request confirm hone ke baad verify ki
+                    jayegi.
                   </p>
                 </div>
               </div>
@@ -400,22 +367,22 @@ function ServiceDetail() {
                 const form = event.currentTarget;
                 const formData = new FormData(form);
                 const customerName = String(formData.get("name") ?? "").trim();
-                const email = String(formData.get("email") ?? "").trim().toLowerCase();
+                const email = String(formData.get("email") ?? "")
+                  .trim()
+                  .toLowerCase();
                 const phone = String(formData.get("phone") ?? "").trim();
                 const details = String(formData.get("details") ?? "").trim();
 
                 setSubmitting(true);
                 try {
-                  const { error } = await supabase
-                    .from("booking_requests")
-                    .insert({
-                      service_id: service.id,
-                      service_name: service.name,
-                      customer_name: customerName,
-                      email,
-                      phone,
-                      details: details || null,
-                    });
+                  const { error } = await supabase.from("booking_requests").insert({
+                    service_id: service.id,
+                    service_name: service.name,
+                    customer_name: customerName,
+                    email,
+                    phone,
+                    details: details || null,
+                  });
 
                   if (error) throw error;
 
@@ -435,10 +402,7 @@ function ServiceDetail() {
               }}
             >
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="service-name"
-                  className="text-sm font-semibold text-[#102d24]"
-                >
+                <Label htmlFor="service-name" className="text-sm font-semibold text-[#102d24]">
                   Full Name
                 </Label>
 
@@ -453,10 +417,7 @@ function ServiceDetail() {
               </div>
 
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="service-email"
-                  className="text-sm font-semibold text-[#102d24]"
-                >
+                <Label htmlFor="service-email" className="text-sm font-semibold text-[#102d24]">
                   Email for booking updates
                 </Label>
 
@@ -473,10 +434,7 @@ function ServiceDetail() {
               </div>
 
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="service-phone"
-                  className="text-sm font-semibold text-[#102d24]"
-                >
+                <Label htmlFor="service-phone" className="text-sm font-semibold text-[#102d24]">
                   Phone Number
                 </Label>
 
@@ -493,10 +451,7 @@ function ServiceDetail() {
               </div>
 
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="service-details"
-                  className="text-sm font-semibold text-[#102d24]"
-                >
+                <Label htmlFor="service-details" className="text-sm font-semibold text-[#102d24]">
                   Address / Requirements
                 </Label>
 
@@ -515,9 +470,7 @@ function ServiceDetail() {
                 disabled={submitting}
                 className="h-11 w-full rounded-xl border border-[#c9a24b]/35 bg-[#082b21] font-bold text-[#fffaf0] hover:bg-[#0d3d2f] focus-visible:ring-[#c9a24b]"
               >
-                {submitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {submitting ? "Saving request..." : "Request Booking"}
               </Button>
 
@@ -529,7 +482,8 @@ function ServiceDetail() {
                   />
 
                   <p className="text-xs leading-5 text-[#5f6d65]">
-                    Request bhejne se payment charge nahi hogi. Booking details pehle confirm ki jayengi.
+                    Request bhejne se payment charge nahi hogi. Booking details pehle confirm ki
+                    jayengi.
                   </p>
                 </div>
               </div>

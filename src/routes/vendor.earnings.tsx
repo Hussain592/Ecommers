@@ -13,15 +13,31 @@ export const Route = createFileRoute("/vendor/earnings")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "Track your store earnings, payouts and settlement history on Dukaan.pk." },
-      { property: "og:title", content: "Vendor Earnings â€” Dukaan.pk" },
+      {
+        name: "description",
+        content: "Track your store earnings, payouts and settlement history on azadari.store.",
+      },
+      { property: "og:title", content: "Vendor Earnings — azadari.store" },
       { property: "og:description", content: "Revenue, pending payouts and settlement history." },
     ],
   }),
   component: VendorEarnings,
 });
 
-const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTH_LABELS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 type OrderRow = { total: number; delivery_fee: number; status: string; created_at: string };
 type PayoutRow = { id: string; amount: number; method: string; status: string; created_at: string };
@@ -40,7 +56,11 @@ function VendorEarnings() {
         return;
       }
 
-      const { data: vendor } = await supabase.from("vendors").select("id, name").eq("owner_id", authData.user.id).maybeSingle();
+      const { data: vendor } = await supabase
+        .from("vendors")
+        .select("id, name")
+        .eq("owner_id", authData.user.id)
+        .maybeSingle();
       if (!vendor) {
         setLoading(false);
         return;
@@ -48,8 +68,15 @@ function VendorEarnings() {
       setStoreName(vendor.name);
 
       const [ordersRes, payoutsRes] = await Promise.all([
-        supabase.from("orders").select("total, delivery_fee, status, created_at").eq("vendor_id", vendor.id),
-        supabase.from("payouts").select("id, amount, method, status, created_at").eq("recipient_vendor_id", vendor.id).order("created_at", { ascending: false }),
+        supabase
+          .from("orders")
+          .select("total, delivery_fee, status, created_at")
+          .eq("vendor_id", vendor.id),
+        supabase
+          .from("payouts")
+          .select("id, amount, method, status, created_at")
+          .eq("recipient_vendor_id", vendor.id)
+          .order("created_at", { ascending: false }),
       ]);
 
       setOrders(ordersRes.data ?? []);
@@ -60,8 +87,7 @@ function VendorEarnings() {
   }, []);
 
   const now = new Date();
-  const itemSubtotal = (order: OrderRow) =>
-    Number(order.total) - Number(order.delivery_fee ?? 0);
+  const itemSubtotal = (order: OrderRow) => Number(order.total) - Number(order.delivery_fee ?? 0);
   const lifetimeEarnings = orders.reduce((s, o) => s + itemSubtotal(o), 0);
   const thisMonthEarnings = orders
     .filter((o) => {
@@ -69,8 +95,12 @@ function VendorEarnings() {
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     })
     .reduce((s, o) => s + itemSubtotal(o), 0);
-  const pendingPayout = payouts.filter((p) => p.status === "Pending").reduce((s, p) => s + Number(p.amount), 0);
-  const codCollected = orders.filter((o) => o.status === "Delivered").reduce((s, o) => s + Number(o.total), 0);
+  const pendingPayout = payouts
+    .filter((p) => p.status === "Pending")
+    .reduce((s, p) => s + Number(p.amount), 0);
+  const codCollected = orders
+    .filter((o) => o.status === "Delivered")
+    .reduce((s, o) => s + Number(o.total), 0);
 
   const salesChart = Array.from({ length: 6 }).map((_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
@@ -85,7 +115,13 @@ function VendorEarnings() {
 
   if (loading) {
     return (
-      <DashboardShell brand={storeName} role="Vendor Account" title="Earnings" subtitle="Revenue aur payout ka record" nav={vendorNav}>
+      <DashboardShell
+        brand={storeName}
+        role="Vendor Account"
+        title="Earnings"
+        subtitle="Revenue aur payout ka record"
+        nav={vendorNav}
+      >
         <div className="flex justify-center p-10">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -103,9 +139,23 @@ function VendorEarnings() {
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Lifetime Earnings" value={formatPKR(lifetimeEarnings)} icon={TrendingUp} />
-        <StatCard label="This Month" value={formatPKR(thisMonthEarnings)} icon={Banknote} tone="success" />
-        <StatCard label="Pending Payout" value={formatPKR(pendingPayout)} icon={Clock} tone="warning" />
-        <StatCard label="COD Collected (Delivered)" value={formatPKR(codCollected)} icon={Banknote} />
+        <StatCard
+          label="This Month"
+          value={formatPKR(thisMonthEarnings)}
+          icon={Banknote}
+          tone="success"
+        />
+        <StatCard
+          label="Pending Payout"
+          value={formatPKR(pendingPayout)}
+          icon={Clock}
+          tone="warning"
+        />
+        <StatCard
+          label="COD Collected (Delivered)"
+          value={formatPKR(codCollected)}
+          icon={Banknote}
+        />
       </div>
 
       <section className="surface-card p-5">
@@ -114,11 +164,27 @@ function VendorEarnings() {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={salesChart}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-              <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+              <XAxis
+                dataKey="month"
+                stroke="var(--muted-foreground)"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                stroke="var(--muted-foreground)"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
               <Tooltip
                 cursor={{ fill: "var(--muted)" }}
-                contentStyle={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--card)", fontSize: 12 }}
+                contentStyle={{
+                  borderRadius: 12,
+                  border: "1px solid var(--border)",
+                  background: "var(--card)",
+                  fontSize: 12,
+                }}
               />
               <Bar dataKey="sales" fill="var(--primary)" radius={[8, 8, 0, 0]} />
             </BarChart>
@@ -142,16 +208,22 @@ function VendorEarnings() {
             <tbody className="divide-y divide-border">
               {payouts.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Abhi koi payout record nahi.</td>
+                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                    Abhi koi payout record nahi.
+                  </td>
                 </tr>
               ) : (
                 payouts.map((p) => (
                   <tr key={p.id} className="hover:bg-muted/40">
                     <td className="px-4 py-3 font-medium">{p.id}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{new Date(p.created_at).toLocaleDateString("en-PK")}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {new Date(p.created_at).toLocaleDateString("en-PK")}
+                    </td>
                     <td className="px-4 py-3">{p.method}</td>
                     <td className="px-4 py-3 font-medium">{formatPKR(Number(p.amount))}</td>
-                    <td className="px-4 py-3"><StatusBadge status={p.status as never} /></td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={p.status as never} />
+                    </td>
                   </tr>
                 ))
               )}

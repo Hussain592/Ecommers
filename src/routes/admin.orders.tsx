@@ -22,7 +22,7 @@ export const Route = createFileRoute("/admin/orders")({
       { title: "azadari.store" },
       { name: "description", content: "All marketplace COD orders across every vendor." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Orders â€” Dukaan.pk Admin" },
+      { property: "og:title", content: "Orders — azadari.store Admin" },
       { property: "og:description", content: "Full order pipeline across the marketplace." },
     ],
   }),
@@ -53,7 +53,10 @@ function AdminOrders() {
   const loadOrders = async () => {
     setLoading(true);
     const [ordersRes, vendorsRes] = await Promise.all([
-      supabase.from("orders").select("id, customer_name, phone, city, vendor_id, total, status, created_at").order("created_at", { ascending: false }),
+      supabase
+        .from("orders")
+        .select("id, customer_name, phone, city, vendor_id, total, status, created_at")
+        .order("created_at", { ascending: false }),
       supabase.from("vendors").select("id, name"),
     ]);
 
@@ -91,10 +94,9 @@ function AdminOrders() {
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
 
     if (status === "Confirmed") {
-      const { error: emailError } = await supabase.functions.invoke(
-        "send-confirmation-email",
-        { body: { type: "order", id } },
-      );
+      const { error: emailError } = await supabase.functions.invoke("send-confirmation-email", {
+        body: { type: "order", id },
+      });
       if (emailError) {
         console.error("Order confirmed but email notification failed:", emailError);
         toast.error("Order confirm ho gaya, lekin email nahi bheji ja saki.");
@@ -107,22 +109,37 @@ function AdminOrders() {
   const list = orders.filter(
     (o) =>
       (tab === "All" || o.status === tab) &&
-      (o.id.toLowerCase().includes(q.toLowerCase()) || (o.vendor_id && (vendorNames.get(o.vendor_id) ?? "").toLowerCase().includes(q.toLowerCase()))),
+      (o.id.toLowerCase().includes(q.toLowerCase()) ||
+        (o.vendor_id &&
+          (vendorNames.get(o.vendor_id) ?? "").toLowerCase().includes(q.toLowerCase()))),
   );
 
   return (
-    <DashboardShell brand="Dukaan.pk" role="Owner / Admin" title="Orders" subtitle="Saare vendors ke COD orders" nav={adminNav}>
+    <DashboardShell
+      brand="azadari.store"
+      role="Owner / Admin"
+      title="Orders"
+      subtitle="Saare vendors ke COD orders"
+      nav={adminNav}
+    >
       <div className="surface-card space-y-4 p-4">
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl">
             {tabs.map((t) => (
-              <TabsTrigger key={t} value={t} className="rounded-lg text-xs">{t}</TabsTrigger>
+              <TabsTrigger key={t} value={t} className="rounded-lg text-xs">
+                {t}
+              </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
         <div className="relative max-w-sm">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Order ID ya vendor" className="h-10 rounded-xl pl-9" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Order ID ya vendor"
+            className="h-10 rounded-xl pl-9"
+          />
         </div>
       </div>
 
@@ -153,9 +170,13 @@ function AdminOrders() {
                       <p>{o.customer_name}</p>
                       <p className="text-xs text-muted-foreground">{o.phone}</p>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{o.vendor_id ? vendorNames.get(o.vendor_id) ?? "-" : "-"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {o.vendor_id ? (vendorNames.get(o.vendor_id) ?? "-") : "-"}
+                    </td>
                     <td className="px-4 py-3">{o.city}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {new Date(o.created_at).toLocaleDateString()}
+                    </td>
                     <td className="px-4 py-3 font-medium">{formatPKR(Number(o.total))}</td>
                     <td className="px-4 py-3">
                       <Select
@@ -168,7 +189,9 @@ function AdminOrders() {
                         </SelectTrigger>
                         <SelectContent>
                           {tabs.slice(1).map((s) => (
-                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                            <SelectItem key={s} value={s}>
+                              {s}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -178,7 +201,11 @@ function AdminOrders() {
               </tbody>
             </table>
           </div>
-          {list.length === 0 && <p className="px-4 py-10 text-center text-sm text-muted-foreground">Koi order nahi mila.</p>}
+          {list.length === 0 && (
+            <p className="px-4 py-10 text-center text-sm text-muted-foreground">
+              Koi order nahi mila.
+            </p>
+          )}
         </div>
       )}
     </DashboardShell>

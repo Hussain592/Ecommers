@@ -177,11 +177,7 @@
   --accent: oklch(0.96 0.015 160);
   --accent-foreground: oklch(0.39 0.08 163);
   --ring: oklch(0.72 0.12 85);
-  --gradient-primary: linear-gradient(
-    135deg,
-    oklch(0.39 0.08 163),
-    oklch(0.49 0.09 158)
-  );
+  --gradient-primary: linear-gradient(135deg, oklch(0.39 0.08 163), oklch(0.49 0.09 158));
 }
 
 @utility surface-card {
@@ -224,11 +220,7 @@
   --sidebar-ring: oklch(0.72 0.12 85);
   --shadow-soft: 0 1px 2px oklch(0.23 0.035 160 / 0.04), 0 8px 24px oklch(0.23 0.035 160 / 0.06);
   --shadow-card: 0 1px 3px oklch(0.23 0.035 160 / 0.06), 0 12px 32px oklch(0.23 0.035 160 / 0.08);
-  --gradient-primary: linear-gradient(
-    135deg,
-    oklch(0.39 0.08 163),
-    oklch(0.49 0.09 158)
-  );
+  --gradient-primary: linear-gradient(135deg, oklch(0.39 0.08 163), oklch(0.49 0.09 158));
 }
 
 .admin-theme .surface-card {
@@ -255,7 +247,11 @@
 @layer base {
   button,
   a {
-    transition: transform 160ms ease, opacity 160ms ease, background-color 160ms ease, color 160ms ease;
+    transition:
+      transform 160ms ease,
+      opacity 160ms ease,
+      background-color 160ms ease,
+      color 160ms ease;
   }
 
   button:active:not(:disabled),

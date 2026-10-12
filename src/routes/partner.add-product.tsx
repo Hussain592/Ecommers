@@ -7,8 +7,11 @@ export const Route = createFileRoute("/partner/add-product")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "Submit a new product listing for vendor approval on Dukaan.pk." },
-      { property: "og:title", content: "Add Product â€” Partner | Dukaan.pk" },
+      {
+        name: "description",
+        content: "Submit a new product listing for vendor approval on azadari.store.",
+      },
+      { property: "og:title", content: "Add Product — Partner | azadari.store" },
       { property: "og:description", content: "Partner product submission form." },
     ],
   }),
@@ -21,15 +24,10 @@ function PartnerAddProduct() {
       brand="Zeeshan Ali"
       role="Partner Account"
       title="Add Product"
-      subtitle="Product submit karein â€” vendor approve karega"
+      subtitle="Product submit karein — vendor approve karega"
       nav={partnerNav}
     >
-      <ProductForm
-        mode="create"
-        showStatus={false}
-        actorType="partner"
-      />
+      <ProductForm mode="create" showStatus={false} actorType="partner" />
     </DashboardShell>
   );
 }
-

@@ -33,8 +33,11 @@ export const Route = createFileRoute("/vendor/products/")({
   head: () => ({
     meta: [
       { title: "azadari.store" },
-      { name: "description", content: "Manage your product catalog, stock and status on Dukaan.pk." },
-      { property: "og:title", content: "Vendor Products â€” Dukaan.pk" },
+      {
+        name: "description",
+        content: "Manage your product catalog, stock and status on azadari.store.",
+      },
+      { property: "og:title", content: "Vendor Products — azadari.store" },
       { property: "og:description", content: "Add, edit and manage your store products." },
     ],
   }),
@@ -69,7 +72,11 @@ function VendorProducts() {
         return;
       }
 
-      const { data: vendor } = await supabase.from("vendors").select("id, name").eq("owner_id", authData.user.id).maybeSingle();
+      const { data: vendor } = await supabase
+        .from("vendors")
+        .select("id, name")
+        .eq("owner_id", authData.user.id)
+        .maybeSingle();
       if (!vendor) {
         setLoading(false);
         return;
@@ -113,7 +120,11 @@ function VendorProducts() {
 
   const toggleActive = async (id: string, active: boolean) => {
     setBusyId(id);
-    const { data, error } = await supabase.from("products").update({ active }).eq("id", id).select();
+    const { data, error } = await supabase
+      .from("products")
+      .update({ active })
+      .eq("id", id)
+      .select();
     setBusyId(null);
 
     if (error || !data || data.length === 0) {
@@ -155,17 +166,30 @@ function VendorProducts() {
       <div className="surface-card grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products..." className="h-10 rounded-xl pl-9" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search products..."
+            className="h-10 rounded-xl pl-9"
+          />
         </div>
         <Select value={cat} onValueChange={setCat}>
-          <SelectTrigger className="h-10 w-full rounded-xl sm:w-48"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-10 w-full rounded-xl sm:w-48">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
-            {categoryOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            {categoryOptions.map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="h-10 w-full rounded-xl sm:w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-10 w-full rounded-xl sm:w-40">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="active">Active</SelectItem>
@@ -208,7 +232,14 @@ function VendorProducts() {
                   <tr key={p.id} className="hover:bg-muted/40">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <img src={p.image ?? ""} alt={p.name} loading="lazy" width={800} height={800} className="h-11 w-11 rounded-xl bg-muted object-cover" />
+                        <img
+                          src={p.image ?? ""}
+                          alt={p.name}
+                          loading="lazy"
+                          width={800}
+                          height={800}
+                          className="h-11 w-11 rounded-xl bg-muted object-cover"
+                        />
                         <div className="min-w-0">
                           <p className="truncate font-medium">{p.name}</p>
                           <p className="text-xs text-muted-foreground">{p.id}</p>
@@ -218,7 +249,15 @@ function VendorProducts() {
                     <td className="px-4 py-3 text-muted-foreground">{p.category}</td>
                     <td className="px-4 py-3 font-medium">{formatPKR(p.price)}</td>
                     <td className="px-4 py-3">
-                      <span className={p.stock === 0 ? "font-medium text-destructive" : p.stock < 10 ? "font-medium text-warning-foreground" : ""}>
+                      <span
+                        className={
+                          p.stock === 0
+                            ? "font-medium text-destructive"
+                            : p.stock < 10
+                              ? "font-medium text-warning-foreground"
+                              : ""
+                        }
+                      >
                         {p.stock}
                       </span>
                     </td>
@@ -231,14 +270,24 @@ function VendorProducts() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
-                        <Button asChild variant="outline" size="icon" className="h-8 w-8 rounded-lg">
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 rounded-lg"
+                        >
                           <Link to="/vendor/products/$id/edit" params={{ id: p.id }}>
                             <Pencil className="h-3.5 w-3.5" />
                           </Link>
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg text-destructive" disabled={busyId === p.id}>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8 rounded-lg text-destructive"
+                              disabled={busyId === p.id}
+                            >
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </AlertDialogTrigger>

@@ -3,32 +3,20 @@ import { ShoppingCart, Star } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import {
-  formatPKR,
-  productImageFallback,
-  type Product,
-} from "@/data/mock";
+import { formatPKR, productImageFallback, productImageSource, type Product } from "@/data/mock";
 import { useCart } from "@/lib/cart";
 
-export function ProductCard({
-  product,
-}: {
-  product: Product;
-}) {
+export function ProductCard({ product }: { product: Product }) {
   const { add } = useCart();
 
   const outOfStock = product.stock === 0;
 
   const discount =
     product.oldPrice && product.oldPrice > product.price
-      ? Math.round(
-          ((product.oldPrice - product.price) / product.oldPrice) * 100,
-        )
+      ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
       : 0;
 
-  const hasRating =
-    Number(product.reviews ?? 0) > 0 &&
-    Number(product.rating ?? 0) > 0;
+  const hasRating = Number(product.reviews ?? 0) > 0 && Number(product.rating ?? 0) > 0;
 
   const handleAddToCart = () => {
     if (outOfStock) return;
@@ -51,18 +39,14 @@ export function ProductCard({
       >
         <div className="relative aspect-[4/5] w-full overflow-hidden">
           <img
-            src={product.image}
+            src={productImageSource(product.name, product.image)}
             alt={product.name}
             width={800}
             height={800}
             onError={(event) => {
               event.currentTarget.onerror = null;
 
-              event.currentTarget.src =
-                productImageFallback(
-                  product.name,
-                  product.image,
-                );
+              event.currentTarget.src = productImageFallback(product.name, product.image);
             }}
             className="h-full w-full object-contain p-3 transition-transform duration-500 ease-out group-hover:scale-[1.035]"
           />
@@ -114,10 +98,7 @@ export function ProductCard({
         {hasRating && (
           <div className="mt-2 flex items-center gap-1.5 text-xs text-[#6f746f]">
             <span className="inline-flex items-center gap-1 font-semibold text-[#102d24]">
-              <Star
-                aria-hidden="true"
-                className="h-3.5 w-3.5 fill-[#c99a20] text-[#c99a20]"
-              />
+              <Star aria-hidden="true" className="h-3.5 w-3.5 fill-[#c99a20] text-[#c99a20]" />
 
               {Number(product.rating).toFixed(1)}
             </span>
@@ -125,10 +106,7 @@ export function ProductCard({
             <span aria-hidden="true">·</span>
 
             <span>
-              {product.reviews}{" "}
-              {Number(product.reviews) === 1
-                ? "review"
-                : "reviews"}
+              {product.reviews} {Number(product.reviews) === 1 ? "review" : "reviews"}
             </span>
           </div>
         )}
@@ -139,12 +117,11 @@ export function ProductCard({
             {formatPKR(product.price)}
           </span>
 
-          {product.oldPrice &&
-            product.oldPrice > product.price && (
-              <span className="text-[11px] text-[#8b8b82] line-through">
-                {formatPKR(product.oldPrice)}
-              </span>
-            )}
+          {product.oldPrice && product.oldPrice > product.price && (
+            <span className="text-[11px] text-[#8b8b82] line-through">
+              {formatPKR(product.oldPrice)}
+            </span>
+          )}
         </div>
 
         {/* COD */}
@@ -152,9 +129,7 @@ export function ProductCard({
           <div className="mt-1.5 flex items-center gap-2 text-[10px] font-medium text-[#748078]">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#1b8b60]" />
 
-            <span>
-              Cash on Delivery available
-            </span>
+            <span>Cash on Delivery available</span>
           </div>
         )}
 
@@ -165,20 +140,13 @@ export function ProductCard({
             disabled={outOfStock}
             onClick={handleAddToCart}
             aria-label={
-              outOfStock
-                ? `${product.name} is out of stock`
-                : `Add ${product.name} to cart`
+              outOfStock ? `${product.name} is out of stock` : `Add ${product.name} to cart`
             }
             className="h-10 w-full rounded-xl border border-[#c9a24b]/35 bg-[#082b21] text-xs font-bold text-[#fffaf0] shadow-none transition-all hover:bg-[#0d3d2f] hover:shadow-[0_6px_16px_rgba(8,43,33,0.18)] focus-visible:ring-2 focus-visible:ring-[#c9a24b] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <ShoppingCart
-              aria-hidden="true"
-              className="mr-2 h-4 w-4"
-            />
+            <ShoppingCart aria-hidden="true" className="mr-2 h-4 w-4" />
 
-            {outOfStock
-              ? "Out of Stock"
-              : "Add to Cart"}
+            {outOfStock ? "Out of Stock" : "Add to Cart"}
           </Button>
         </div>
       </div>

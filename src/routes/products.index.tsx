@@ -1,11 +1,5 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Check,
@@ -33,7 +27,7 @@ import {
 } from "@/components/ui/select";
 
 import { supabase } from "@/lib/supabase";
-import type { Product } from "@/data/mock";
+import type { Product, ProductRow } from "@/data/mock";
 
 /* ============================================================
    CONFIG
@@ -78,24 +72,15 @@ const pageCache = new Map<
   }
 >();
 
-const pendingPages = new Map<
-  string,
-  Promise<ProductPageResult>
->();
+const pendingPages = new Map<string, Promise<ProductPageResult>>();
 
 /* ============================================================
    ROUTE
 ============================================================ */
 
 export const Route = createFileRoute("/products/")({
-  validateSearch: (
-    search: Record<string, unknown>,
-  ) => ({
-    category:
-      typeof search["category"] === "string"
-        ? search["category"]
-        : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { category?: string } =>
+    typeof search["category"] === "string" ? { category: search["category"] } : {},
 
   head: () => ({
     meta: [
@@ -126,55 +111,33 @@ export const Route = createFileRoute("/products/")({
    PRODUCT MAPPER
 ============================================================ */
 
-function mapListProduct(
-  item: any,
-): Product {
+function mapListProduct(item: ProductRow): Product {
   return {
     id: item.id,
 
-    name: item.name,
+    name: item.name ?? "",
 
-    slug: String(
-      item.name ?? "",
-    )
+    slug: String(item.name ?? "")
       .toLowerCase()
-      .replace(
-        /[^a-z0-9]+/g,
-        "-",
-      )
-      .replace(
-        /(^-|-$)/g,
-        "",
-      ),
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, ""),
 
-    category:
-      item.category ??
-      "Uncategorized",
+    category: item.category ?? "Uncategorized",
 
-    price: Number(
-      item.price ?? 0,
-    ),
+    price: Number(item.price ?? 0),
 
     oldPrice:
-      item.compare_price !== null &&
-      item.compare_price !== undefined
-        ? Number(
-            item.compare_price,
-          )
+      item.compare_price !== null && item.compare_price !== undefined
+        ? Number(item.compare_price)
         : undefined,
 
-    stock: Number(
-      item.stock ?? 0,
-    ),
+    stock: Number(item.stock ?? 0),
 
     active: true,
 
-    vendor:
-      "azadari.store Seller",
+    vendor: "azadari.store Seller",
 
-    vendorId:
-      item.vendor_id ??
-      undefined,
+    vendorId: item.vendor_id ?? undefined,
 
     city: "",
 
@@ -182,14 +145,11 @@ function mapListProduct(
 
     reviews: 0,
 
-    image:
-      item.image ||
-      "/favicon.ico",
+    image: item.image || "/favicon.ico",
 
     images: Array.isArray(item.images)
       ? item.images.filter(
-          (image: unknown): image is string =>
-            typeof image === "string" && image.length > 0,
+          (image: unknown): image is string => typeof image === "string" && image.length > 0,
         )
       : item.image
         ? [item.image]
@@ -207,51 +167,29 @@ function mapListProduct(
  * Selected category ke children / grandchildren.
  */
 
-function getDescendantNames(
-  categoryId: string,
-  categories: CategoryRow[],
-) {
+function getDescendantNames(categoryId: string, categories: CategoryRow[]) {
   const names: string[] = [];
 
-  const visited =
-    new Set<string>();
+  const visited = new Set<string>();
 
-  const visit = (
-    id: string,
-  ) => {
-    if (
-      visited.has(id)
-    ) {
+  const visit = (id: string) => {
+    if (visited.has(id)) {
       return;
     }
 
     visited.add(id);
 
-    const current =
-      categories.find(
-        (item) =>
-          item.id === id,
-      );
+    const current = categories.find((item) => item.id === id);
 
     if (!current) {
       return;
     }
 
-    names.push(
-      current.name,
-    );
+    names.push(current.name);
 
-    const children =
-      categories.filter(
-        (item) =>
-          item.parent_id ===
-          current.id,
-      );
+    const children = categories.filter((item) => item.parent_id === current.id);
 
-    children.forEach(
-      (child) =>
-        visit(child.id),
-    );
+    children.forEach((child) => visit(child.id));
   };
 
   visit(categoryId);
@@ -272,50 +210,27 @@ function getDescendantNames(
  * kyun ke unki category abhi "Tasbeeh" hai.
  */
 
-function getAncestorNames(
-  categoryId: string,
-  categories: CategoryRow[],
-) {
+function getAncestorNames(categoryId: string, categories: CategoryRow[]) {
   const names: string[] = [];
 
-  let current =
-    categories.find(
-      (item) =>
-        item.id === categoryId,
-    );
+  let current = categories.find((item) => item.id === categoryId);
 
-  const visited =
-    new Set<string>();
+  const visited = new Set<string>();
 
   while (current) {
-    if (
-      visited.has(
-        current.id,
-      )
-    ) {
+    if (visited.has(current.id)) {
       break;
     }
 
-    visited.add(
-      current.id,
-    );
+    visited.add(current.id);
 
-    names.push(
-      current.name,
-    );
+    names.push(current.name);
 
-    if (
-      !current.parent_id
-    ) {
+    if (!current.parent_id) {
       break;
     }
 
-    current =
-      categories.find(
-        (item) =>
-          item.id ===
-          current?.parent_id,
-      );
+    current = categories.find((item) => item.id === current?.parent_id);
   }
 
   return names;
@@ -337,81 +252,40 @@ function getAncestorNames(
  * child click par show ho sakte hain.
  */
 
-function getCategoryFilterNames(
-  categoryId: string,
-  categories: CategoryRow[],
-) {
-  const descendants =
-    getDescendantNames(
-      categoryId,
-      categories,
-    );
+function getCategoryFilterNames(categoryId: string, categories: CategoryRow[]) {
+  const descendants = getDescendantNames(categoryId, categories);
 
-  const ancestors =
-    getAncestorNames(
-      categoryId,
-      categories,
-    );
+  const ancestors = getAncestorNames(categoryId, categories);
 
-  return Array.from(
-    new Set([
-      ...descendants,
-      ...ancestors,
-    ]),
-  );
+  return Array.from(new Set([...descendants, ...ancestors]));
 }
 
 /*
  * Child category ka root/main category.
  */
 
-function getRootCategoryId(
-  categoryId: string,
-  categories: CategoryRow[],
-) {
-  let current =
-    categories.find(
-      (item) =>
-        item.id === categoryId,
-    );
+function getRootCategoryId(categoryId: string, categories: CategoryRow[]) {
+  let current = categories.find((item) => item.id === categoryId);
 
-  const visited =
-    new Set<string>();
+  const visited = new Set<string>();
 
-  while (
-    current?.parent_id
-  ) {
-    if (
-      visited.has(
-        current.id,
-      )
-    ) {
+  while (current?.parent_id) {
+    if (visited.has(current.id)) {
       break;
     }
 
-    visited.add(
-      current.id,
-    );
+    visited.add(current.id);
 
-    const parent =
-      categories.find(
-        (item) =>
-          item.id ===
-          current?.parent_id,
-      );
+    const parent = categories.find((item) => item.id === current?.parent_id);
 
     if (!parent) {
       break;
     }
 
-    current =
-      parent;
+    current = parent;
   }
 
-  return (
-    current?.id ??
-    categoryId
-  );
+  return current?.id ?? categoryId;
 }
 
 /* ============================================================
@@ -429,206 +303,110 @@ async function getProductPage({
   search: string;
   sort: string;
 }): Promise<ProductPageResult> {
-  const normalizedSearch =
-    search.trim();
+  const normalizedSearch = search.trim();
 
-  const normalizedCategories =
-    [...categoryValues].sort(
-      (a, b) =>
-        a.localeCompare(b),
-    );
+  const normalizedCategories = [...categoryValues].sort((a, b) => a.localeCompare(b));
 
-  const cacheKey =
-    JSON.stringify({
-      pageNum,
+  const cacheKey = JSON.stringify({
+    pageNum,
 
-      categories:
-        normalizedCategories,
+    categories: normalizedCategories,
 
-      search:
-        normalizedSearch.toLowerCase(),
+    search: normalizedSearch.toLowerCase(),
 
-      sort,
-    });
+    sort,
+  });
 
-  const now =
-    Date.now();
+  const now = Date.now();
 
-  const cached =
-    pageCache.get(
-      cacheKey,
-    );
+  const cached = pageCache.get(cacheKey);
 
-  if (
-    cached &&
-    cached.expiresAt > now
-  ) {
+  if (cached && cached.expiresAt > now) {
     return cached.result;
   }
 
-  const existingPending =
-    pendingPages.get(
-      cacheKey,
-    );
+  const existingPending = pendingPages.get(cacheKey);
 
-  if (
-    existingPending
-  ) {
+  if (existingPending) {
     return existingPending;
   }
 
-  const request =
-    (async () => {
-      let query =
-        supabase
-          .from(
-            "products",
-          )
-          .select(
-            PRODUCT_LIST_SELECT,
-          )
-          .eq(
-            "active",
-            true,
-          );
+  const request = (async () => {
+    let query = supabase.from("products").select(PRODUCT_LIST_SELECT).eq("active", true);
 
-      /*
-       * Multiple category names support.
-       */
+    /*
+     * Multiple category names support.
+     */
 
-      if (
-        normalizedCategories.length >
-        0
-      ) {
-        query =
-          query.in(
-            "category",
-            normalizedCategories,
-          );
-      }
+    if (normalizedCategories.length > 0) {
+      query = query.in("category", normalizedCategories);
+    }
 
-      /*
-       * Search.
-       */
+    /*
+     * Search.
+     */
 
-      if (
-        normalizedSearch
-      ) {
-        query =
-          query.ilike(
-            "name",
-            `%${normalizedSearch}%`,
-          );
-      }
+    if (normalizedSearch) {
+      query = query.ilike("name", `%${normalizedSearch}%`);
+    }
 
-      /*
-       * Sort.
-       */
+    /*
+     * Sort.
+     */
 
-      if (
-        sort === "low"
-      ) {
-        query =
-          query.order(
-            "price",
-            {
-              ascending: true,
-            },
-          );
-      } else if (
-        sort === "high"
-      ) {
-        query =
-          query.order(
-            "price",
-            {
-              ascending: false,
-            },
-          );
-      } else {
-        query =
-          query
-            .order(
-              "sales_count",
-              {
-                ascending: false,
-              },
-            )
-            .order(
-              "created_at",
-              {
-                ascending: false,
-              },
-            );
-      }
+    if (sort === "low") {
+      query = query.order("price", {
+        ascending: true,
+      });
+    } else if (sort === "high") {
+      query = query.order("price", {
+        ascending: false,
+      });
+    } else {
+      query = query
+        .order("sales_count", {
+          ascending: false,
+        })
+        .order("created_at", {
+          ascending: false,
+        });
+    }
 
-      const start =
-        pageNum *
-        PAGE_SIZE;
+    const start = pageNum * PAGE_SIZE;
 
-      const end =
-        start +
-        PAGE_SIZE;
+    const end = start + PAGE_SIZE;
 
-      const {
-        data,
-        error,
-      } =
-        await query.range(
-          start,
-          end,
-        );
+    const { data, error } = await query.range(start, end);
 
-      if (error) {
-        throw error;
-      }
+    if (error) {
+      throw error;
+    }
 
-      const rows =
-        data ?? [];
+    const rows = data ?? [];
 
-      const visibleRows =
-        rows.slice(
-          0,
-          PAGE_SIZE,
-        );
+    const visibleRows = rows.slice(0, PAGE_SIZE);
 
-      const result: ProductPageResult =
-        {
-          products:
-            visibleRows.map(
-              mapListProduct,
-            ),
+    const result: ProductPageResult = {
+      products: visibleRows.map(mapListProduct),
 
-          hasMore:
-            rows.length >
-            PAGE_SIZE,
-        };
+      hasMore: rows.length > PAGE_SIZE,
+    };
 
-      pageCache.set(
-        cacheKey,
-        {
-          expiresAt:
-            Date.now() +
-            CACHE_TTL,
+    pageCache.set(cacheKey, {
+      expiresAt: Date.now() + CACHE_TTL,
 
-          result,
-        },
-      );
+      result,
+    });
 
-      return result;
-    })();
+    return result;
+  })();
 
-  pendingPages.set(
-    cacheKey,
-    request,
-  );
+  pendingPages.set(cacheKey, request);
 
   try {
     return await request;
   } finally {
-    pendingPages.delete(
-      cacheKey,
-    );
+    pendingPages.delete(cacheKey);
   }
 }
 
@@ -637,55 +415,25 @@ async function getProductPage({
 ============================================================ */
 
 function ProductsPage() {
-  const {
-    category,
-  } =
-    Route.useSearch();
+  const { category } = Route.useSearch();
 
   /* Search */
 
-  const [
-    q,
-    setQ,
-  ] =
-    useState("");
+  const [q, setQ] = useState("");
 
-  const [
-    debouncedQ,
-    setDebouncedQ,
-  ] =
-    useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
 
   /* Selected category */
 
-  const [
-    cat,
-    setCat,
-  ] =
-    useState(
-      category ??
-        "all",
-    );
+  const [cat, setCat] = useState(category ?? "all");
 
   /* Sort */
 
-  const [
-    sort,
-    setSort,
-  ] =
-    useState(
-      "popular",
-    );
+  const [sort, setSort] = useState("popular");
 
   /* Category tree */
 
-  const [
-    categories,
-    setCategories,
-  ] =
-    useState<CategoryRow[]>(
-      [],
-    );
+  const [categories, setCategories] = useState<CategoryRow[]>([]);
 
   /*
    * Active products mein jo category names
@@ -694,71 +442,31 @@ function ProductsPage() {
    * null = abhi load nahi huay / load fail hua.
    */
 
-  const [
-    activeProductCategoryNames,
-    setActiveProductCategoryNames,
-  ] =
-    useState<Set<string> | null>(
-      null,
-    );
+  const [activeProductCategoryNames, setActiveProductCategoryNames] = useState<Set<string> | null>(
+    null,
+  );
 
   /* Menu */
 
-  const [
-    categoryMenuOpen,
-    setCategoryMenuOpen,
-  ] =
-    useState(false);
+  const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
 
-  const [
-    activeRootId,
-    setActiveRootId,
-  ] =
-    useState<string | null>(
-      null,
-    );
+  const [activeRootId, setActiveRootId] = useState<string | null>(null);
 
-  const categoryMenuRef =
-    useRef<HTMLDivElement | null>(
-      null,
-    );
+  const categoryMenuRef = useRef<HTMLDivElement | null>(null);
 
   /* Products */
 
-  const [
-    products,
-    setProducts,
-  ] =
-    useState<Product[]>(
-      [],
-    );
+  const [products, setProducts] = useState<Product[]>([]);
 
-  const [
-    page,
-    setPage,
-  ] =
-    useState(0);
+  const [page, setPage] = useState(0);
 
-  const [
-    hasMore,
-    setHasMore,
-  ] =
-    useState(true);
+  const [hasMore, setHasMore] = useState(true);
 
-  const [
-    loading,
-    setLoading,
-  ] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [
-    loadingMore,
-    setLoadingMore,
-  ] =
-    useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const requestIdRef =
-    useRef(0);
+  const requestIdRef = useRef(0);
 
   /* ========================================================
      URL CATEGORY
@@ -766,105 +474,64 @@ function ProductsPage() {
 
   useEffect(() => {
     if (category) {
-      setCat(
-        category,
-      );
+      setCat(category);
     }
-  }, [
-    category,
-  ]);
+  }, [category]);
 
   /* ========================================================
      SEARCH DEBOUNCE
   ======================================================== */
 
   useEffect(() => {
-    const timer =
-      window.setTimeout(
-        () => {
-          setDebouncedQ(
-            q.trim(),
-          );
-        },
+    const timer = window.setTimeout(
+      () => {
+        setDebouncedQ(q.trim());
+      },
 
-        350,
-      );
+      350,
+    );
 
     return () => {
-      window.clearTimeout(
-        timer,
-      );
+      window.clearTimeout(timer);
     };
-  }, [
-    q,
-  ]);
+  }, [q]);
 
   /* ========================================================
      LOAD CATEGORY TREE
   ======================================================== */
 
   useEffect(() => {
-    let cancelled =
-      false;
+    let cancelled = false;
 
-    const loadCategories =
-      async () => {
-        const {
-          data,
-          error,
-        } =
-          await supabase
-            .from(
-              "categories",
-            )
-            .select(
-              "id, name, parent_id, sort_order",
-            )
-            .eq(
-              "active",
-              true,
-            )
-            .order(
-              "sort_order",
-              {
-                ascending: true,
-              },
-            )
-            .order(
-              "name",
-              {
-                ascending: true,
-              },
-            );
+    const loadCategories = async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, parent_id, sort_order")
+        .eq("active", true)
+        .order("sort_order", {
+          ascending: true,
+        })
+        .order("name", {
+          ascending: true,
+        });
 
-        if (
-          cancelled
-        ) {
-          return;
-        }
+      if (cancelled) {
+        return;
+      }
 
-        if (error) {
-          console.error(
-            "Unable to load category tree",
-            error,
-          );
+      if (error) {
+        console.error("Unable to load category tree", error);
 
-          return;
-        }
+        return;
+      }
 
-        setCategories(
-          (
-            data ??
-            []
-          ) as CategoryRow[],
-        );
-      };
+      setCategories((data ?? []) as CategoryRow[]);
+    };
 
     void loadCategories();
 
     return () => {
-      cancelled =
-        true;
+      cancelled = true;
     };
   }, []);
 
@@ -876,111 +543,68 @@ function ProductsPage() {
   ======================================================== */
 
   useEffect(() => {
-    let cancelled =
-      false;
+    let cancelled = false;
 
-    const loadActiveProductCategoryNames =
-      async () => {
-        try {
-          const names =
-            new Set<string>();
+    const loadActiveProductCategoryNames = async () => {
+      try {
+        const names = new Set<string>();
 
-          const chunkSize =
-            1000;
+        const chunkSize = 1000;
 
-          let offset =
-            0;
+        let offset = 0;
 
-          while (true) {
-            const {
-              data,
-              error,
-            } =
-              await supabase
-                .from(
-                  "products",
-                )
-                .select(
-                  "category",
-                )
-                .eq(
-                  "active",
-                  true,
-                )
-                .range(
-                  offset,
-                  offset +
-                    chunkSize -
-                    1,
-                );
+        while (true) {
+          const { data, error } = await supabase
+            .from("products")
+            .select("category")
+            .eq("active", true)
+            .range(offset, offset + chunkSize - 1);
 
-            if (error) {
-              throw error;
+          if (error) {
+            throw error;
+          }
+
+          const rows: ProductCategoryRow[] = (data ?? []) as ProductCategoryRow[];
+
+          rows.forEach((row) => {
+            const categoryName =
+              typeof row.category === "string" ? row.category.trim().toLowerCase() : "";
+
+            if (categoryName) {
+              names.add(categoryName);
             }
+          });
 
-            const rows: ProductCategoryRow[] =
-              (data ?? []) as ProductCategoryRow[];
-
-            rows.forEach(
-              (row) => {
-                const categoryName =
-                  typeof row.category ===
-                  "string"
-                    ? row.category
-                        .trim()
-                        .toLowerCase()
-                    : "";
-
-                if (categoryName) {
-                  names.add(
-                    categoryName,
-                  );
-                }
-              },
-            );
-
-            if (
-              rows.length <
-              chunkSize
-            ) {
-              break;
-            }
-
-            offset +=
-              chunkSize;
+          if (rows.length < chunkSize) {
+            break;
           }
 
-          if (cancelled) {
-            return;
-          }
-
-          setActiveProductCategoryNames(
-            names,
-          );
-        } catch (error) {
-          console.error(
-            "Unable to load active product category names",
-            error,
-          );
-
-          /*
-           * Agar ye query fail ho jaye
-           * to menu completely disappear nahi hoga.
-           */
-
-          if (!cancelled) {
-            setActiveProductCategoryNames(
-              null,
-            );
-          }
+          offset += chunkSize;
         }
-      };
+
+        if (cancelled) {
+          return;
+        }
+
+        setActiveProductCategoryNames(names);
+      } catch (error) {
+        console.error("Unable to load active product category names", error);
+
+        /*
+         * Agar ye query fail ho jaye
+         * to menu completely disappear nahi hoga.
+         */
+
+        if (!cancelled) {
+          setActiveProductCategoryNames(null);
+        }
+      }
+    };
 
     void loadActiveProductCategoryNames();
 
     return () => {
-      cancelled =
-        true;
+      cancelled = true;
     };
   }, []);
 
@@ -993,80 +617,41 @@ function ProductsPage() {
      - Warna storefront se hide
   ======================================================== */
 
-  const visibleCategoryIds =
-    useMemo(() => {
-      /*
-       * Product query abhi load nahi hui
-       * ya fail hui ho to safe fallback.
-       */
+  const visibleCategoryIds = useMemo(() => {
+    /*
+     * Product query abhi load nahi hui
+     * ya fail hui ho to safe fallback.
+     */
 
-      if (
-        activeProductCategoryNames ===
-        null
-      ) {
-        return new Set(
-          categories.map(
-            (item) =>
-              item.id,
-          ),
-        );
-      }
+    if (activeProductCategoryNames === null) {
+      return new Set(categories.map((item) => item.id));
+    }
 
-      const visibleIds =
-        new Set<string>();
+    const visibleIds = new Set<string>();
 
-      categories.forEach(
-        (item) => {
-          const namesInTree =
-            getDescendantNames(
-              item.id,
-              categories,
-            );
+    categories.forEach((item) => {
+      const namesInTree = getDescendantNames(item.id, categories);
 
-          const hasActiveProduct =
-            namesInTree.some(
-              (name) =>
-                activeProductCategoryNames.has(
-                  name
-                    .trim()
-                    .toLowerCase(),
-                ),
-            );
-
-          if (hasActiveProduct) {
-            visibleIds.add(
-              item.id,
-            );
-          }
-        },
+      const hasActiveProduct = namesInTree.some((name) =>
+        activeProductCategoryNames.has(name.trim().toLowerCase()),
       );
 
-      return visibleIds;
-    }, [
-      categories,
-      activeProductCategoryNames,
-    ]);
+      if (hasActiveProduct) {
+        visibleIds.add(item.id);
+      }
+    });
+
+    return visibleIds;
+  }, [categories, activeProductCategoryNames]);
 
   /* ========================================================
      ROOT CATEGORIES
   ======================================================== */
 
-  const rootCategories =
-    useMemo(
-      () =>
-        categories.filter(
-          (item) =>
-            item.parent_id ===
-              null &&
-            visibleCategoryIds.has(
-              item.id,
-            ),
-        ),
-      [
-        categories,
-        visibleCategoryIds,
-      ],
-    );
+  const rootCategories = useMemo(
+    () => categories.filter((item) => item.parent_id === null && visibleCategoryIds.has(item.id)),
+    [categories, visibleCategoryIds],
+  );
 
   /*
    * Agar URL ya purani selection kisi aisi category par ho
@@ -1074,485 +659,259 @@ function ProductsPage() {
    */
 
   useEffect(() => {
-    if (
-      cat === "all" ||
-      activeProductCategoryNames ===
-        null
-    ) {
+    if (cat === "all" || activeProductCategoryNames === null) {
       return;
     }
 
-    const current =
-      categories.find(
-        (item) =>
-          item.name ===
-          cat,
-      );
+    const current = categories.find((item) => item.name === cat);
 
-    if (
-      current &&
-      !visibleCategoryIds.has(
-        current.id,
-      )
-    ) {
-      setCat(
-        "all",
-      );
+    if (current && !visibleCategoryIds.has(current.id)) {
+      setCat("all");
 
-      setActiveRootId(
-        null,
-      );
+      setActiveRootId(null);
     }
-  }, [
-    cat,
-    categories,
-    visibleCategoryIds,
-    activeProductCategoryNames,
-  ]);
+  }, [cat, categories, visibleCategoryIds, activeProductCategoryNames]);
 
   /* ========================================================
      SELECTED CATEGORY
   ======================================================== */
 
-  const selectedCategory =
-    useMemo(() => {
-      if (
-        cat === "all"
-      ) {
-        return null;
-      }
+  const selectedCategory = useMemo(() => {
+    if (cat === "all") {
+      return null;
+    }
 
-      return (
-        categories.find(
-          (item) =>
-            item.name ===
-            cat,
-        ) ??
-        null
-      );
-    }, [
-      cat,
-      categories,
-    ]);
+    return categories.find((item) => item.name === cat) ?? null;
+  }, [cat, categories]);
 
   /* ========================================================
      SELECTED ROOT
   ======================================================== */
 
-  const selectedRootId =
-    useMemo(() => {
-      if (
-        !selectedCategory
-      ) {
-        return null;
-      }
+  const selectedRootId = useMemo(() => {
+    if (!selectedCategory) {
+      return null;
+    }
 
-      return getRootCategoryId(
-        selectedCategory.id,
-        categories,
-      );
-    }, [
-      selectedCategory,
-      categories,
-    ]);
+    return getRootCategoryId(selectedCategory.id, categories);
+  }, [selectedCategory, categories]);
 
   /* ========================================================
      ACTIVE ROOT
   ======================================================== */
 
-  const activeRoot =
-    useMemo(() => {
-      if (
-        !activeRootId
-      ) {
-        return null;
-      }
+  const activeRoot = useMemo(() => {
+    if (!activeRootId) {
+      return null;
+    }
 
-      return (
-        rootCategories.find(
-          (item) =>
-            item.id ===
-            activeRootId,
-        ) ??
-        null
-      );
-    }, [
-      activeRootId,
-      rootCategories,
-    ]);
+    return rootCategories.find((item) => item.id === activeRootId) ?? null;
+  }, [activeRootId, rootCategories]);
 
   /* ========================================================
      CHILDREN
   ======================================================== */
 
-  const activeChildren =
-    useMemo(() => {
-      if (
-        !activeRoot
-      ) {
-        return [];
-      }
+  const activeChildren = useMemo(() => {
+    if (!activeRoot) {
+      return [];
+    }
 
-      return categories.filter(
-        (item) =>
-          item.parent_id ===
-            activeRoot.id &&
-          visibleCategoryIds.has(
-            item.id,
-          ),
-      );
-    }, [
-      categories,
-      activeRoot,
-      visibleCategoryIds,
-    ]);
+    return categories.filter(
+      (item) => item.parent_id === activeRoot.id && visibleCategoryIds.has(item.id),
+    );
+  }, [categories, activeRoot, visibleCategoryIds]);
 
   /* ========================================================
      PRODUCT FILTER VALUES
   ======================================================== */
 
-  const categoryFilterValues =
-    useMemo(() => {
-      if (
-        cat === "all"
-      ) {
-        return [];
-      }
+  const categoryFilterValues = useMemo(() => {
+    if (cat === "all") {
+      return [];
+    }
 
-      /*
-       * Categories load hone se pehle fallback.
-       */
+    /*
+     * Categories load hone se pehle fallback.
+     */
 
-      if (
-        !selectedCategory
-      ) {
-        return [
-          cat,
-        ];
-      }
+    if (!selectedCategory) {
+      return [cat];
+    }
 
-      /*
-       * Temporary compatibility:
-       * child + ancestors + descendants.
-       */
+    /*
+     * Temporary compatibility:
+     * child + ancestors + descendants.
+     */
 
-      return getCategoryFilterNames(
-        selectedCategory.id,
-        categories,
-      );
-    }, [
-      cat,
-      selectedCategory,
-      categories,
-    ]);
+    return getCategoryFilterNames(selectedCategory.id, categories);
+  }, [cat, selectedCategory, categories]);
 
   /* ========================================================
      CLICK OUTSIDE
   ======================================================== */
 
   useEffect(() => {
-    if (
-      !categoryMenuOpen
-    ) {
+    if (!categoryMenuOpen) {
       return;
     }
 
-    const handleMouseDown =
-      (
-        event: MouseEvent,
-      ) => {
-        if (
-          categoryMenuRef.current &&
-          !categoryMenuRef.current.contains(
-            event.target as Node,
-          )
-        ) {
-          setCategoryMenuOpen(
-            false,
-          );
+    const handleMouseDown = (event: MouseEvent) => {
+      if (categoryMenuRef.current && !categoryMenuRef.current.contains(event.target as Node)) {
+        setCategoryMenuOpen(false);
 
-          setActiveRootId(
-            null,
-          );
-        }
-      };
+        setActiveRootId(null);
+      }
+    };
 
-    const handleKeyDown =
-      (
-        event: KeyboardEvent,
-      ) => {
-        if (
-          event.key ===
-          "Escape"
-        ) {
-          setCategoryMenuOpen(
-            false,
-          );
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setCategoryMenuOpen(false);
 
-          setActiveRootId(
-            null,
-          );
-        }
-      };
+        setActiveRootId(null);
+      }
+    };
 
-    document.addEventListener(
-      "mousedown",
-      handleMouseDown,
-    );
+    document.addEventListener("mousedown", handleMouseDown);
 
-    document.addEventListener(
-      "keydown",
-      handleKeyDown,
-    );
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleMouseDown,
-      );
+      document.removeEventListener("mousedown", handleMouseDown);
 
-      document.removeEventListener(
-        "keydown",
-        handleKeyDown,
-      );
+      document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [
-    categoryMenuOpen,
-  ]);
+  }, [categoryMenuOpen]);
 
   /* ========================================================
      MENU TOGGLE
   ======================================================== */
 
-  const toggleCategoryMenu =
-    () => {
-      if (
-        categoryMenuOpen
-      ) {
-        setCategoryMenuOpen(
-          false,
-        );
+  const toggleCategoryMenu = () => {
+    if (categoryMenuOpen) {
+      setCategoryMenuOpen(false);
 
-        setActiveRootId(
-          null,
-        );
+      setActiveRootId(null);
 
-        return;
-      }
+      return;
+    }
 
-      /*
-       * Fresh open:
-       * Explore hidden.
-       */
+    /*
+     * Fresh open:
+     * Explore hidden.
+     */
 
-      setActiveRootId(
-        null,
-      );
+    setActiveRootId(null);
 
-      setCategoryMenuOpen(
-        true,
-      );
-    };
+    setCategoryMenuOpen(true);
+  };
 
   /* ========================================================
      SELECT CATEGORY
   ======================================================== */
 
-  const selectProductCategory =
-    (
-      categoryName: string,
-    ) => {
-      setCat(
-        categoryName,
-      );
+  const selectProductCategory = (categoryName: string) => {
+    setCat(categoryName);
 
-      setCategoryMenuOpen(
-        false,
-      );
+    setCategoryMenuOpen(false);
 
-      setActiveRootId(
-        null,
-      );
-    };
+    setActiveRootId(null);
+  };
 
   /* ========================================================
      FETCH PRODUCTS
   ======================================================== */
 
-  const fetchPage =
-    useCallback(
-      async (
-        pageNum: number,
-        replace: boolean,
-      ) => {
-        const requestId =
-          ++requestIdRef.current;
+  const fetchPage = useCallback(
+    async (pageNum: number, replace: boolean) => {
+      const requestId = ++requestIdRef.current;
 
-        try {
-          const result =
-            await getProductPage(
-              {
-                pageNum,
+      try {
+        const result = await getProductPage({
+          pageNum,
 
-                categoryValues:
-                  categoryFilterValues,
+          categoryValues: categoryFilterValues,
 
-                search:
-                  debouncedQ,
+          search: debouncedQ,
 
-                sort,
-              },
-            );
+          sort,
+        });
 
-          if (
-            requestId !==
-            requestIdRef.current
-          ) {
-            return;
-          }
-
-          setProducts(
-            (
-              previous,
-            ) => {
-              if (
-                replace
-              ) {
-                return result.products;
-              }
-
-              const merged =
-                [
-                  ...previous,
-                  ...result.products,
-                ];
-
-              return Array.from(
-                new Map(
-                  merged.map(
-                    (
-                      product,
-                    ) => [
-                      product.id,
-                      product,
-                    ],
-                  ),
-                ).values(),
-              );
-            },
-          );
-
-          setHasMore(
-            result.hasMore,
-          );
-
-          setPage(
-            pageNum,
-          );
-        } catch (
-          error
-        ) {
-          if (
-            requestId !==
-            requestIdRef.current
-          ) {
-            return;
-          }
-
-          console.error(
-            "Unable to load products",
-            error,
-          );
-
-          if (
-            replace
-          ) {
-            setProducts(
-              [],
-            );
-          }
-
-          setHasMore(
-            false,
-          );
+        if (requestId !== requestIdRef.current) {
+          return;
         }
-      },
-      [
-        categoryFilterValues,
-        debouncedQ,
-        sort,
-      ],
-    );
+
+        setProducts((previous) => {
+          if (replace) {
+            return result.products;
+          }
+
+          const merged = [...previous, ...result.products];
+
+          return Array.from(new Map(merged.map((product) => [product.id, product])).values());
+        });
+
+        setHasMore(result.hasMore);
+
+        setPage(pageNum);
+      } catch (error) {
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
+
+        console.error("Unable to load products", error);
+
+        if (replace) {
+          setProducts([]);
+        }
+
+        setHasMore(false);
+      }
+    },
+    [categoryFilterValues, debouncedQ, sort],
+  );
 
   /* ========================================================
      FILTER CHANGE
   ======================================================== */
 
   useEffect(() => {
-    let active =
-      true;
+    let active = true;
 
-    setLoading(
-      true,
-    );
+    setLoading(true);
 
-    setLoadingMore(
-      false,
-    );
+    setLoadingMore(false);
 
-    setPage(
-      0,
-    );
+    setPage(0);
 
-    void fetchPage(
-      0,
-      true,
-    ).finally(() => {
-      if (
-        active
-      ) {
-        setLoading(
-          false,
-        );
+    void fetchPage(0, true).finally(() => {
+      if (active) {
+        setLoading(false);
       }
     });
 
     return () => {
-      active =
-        false;
+      active = false;
     };
-  }, [
-    fetchPage,
-  ]);
+  }, [fetchPage]);
 
   /* ========================================================
      LOAD MORE
   ======================================================== */
 
-  const loadMore =
-    async () => {
-      if (
-        loadingMore ||
-        !hasMore
-      ) {
-        return;
-      }
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) {
+      return;
+    }
 
-      setLoadingMore(
-        true,
-      );
+    setLoadingMore(true);
 
-      try {
-        await fetchPage(
-          page + 1,
-          false,
-        );
-      } finally {
-        setLoadingMore(
-          false,
-        );
-      }
-    };
+    try {
+      await fetchPage(page + 1, false);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   /* ========================================================
      UI
@@ -1566,19 +925,13 @@ function ProductsPage() {
         </p>
 
         <h1 className="mt-1 text-2xl font-extrabold text-[#102d24] sm:text-3xl">
-          {cat === "all"
-            ? "All Products"
-            : cat}
+          {cat === "all" ? "All Products" : cat}
         </h1>
 
         <p className="mt-1 text-sm text-muted-foreground">
           {loading
             ? "Products load ho rahe hain..."
-            : `${products.length}${
-                hasMore
-                  ? "+"
-                  : ""
-              } products shown with Cash on Delivery`}
+            : `${products.length}${hasMore ? "+" : ""} products shown with Cash on Delivery`}
         </p>
 
         {/* =================================================
@@ -1593,14 +946,7 @@ function ProductsPage() {
 
             <Input
               value={q}
-              onChange={(
-                event,
-              ) =>
-                setQ(
-                  event.target
-                    .value,
-                )
-              }
+              onChange={(event) => setQ(event.target.value)}
               placeholder="Search products..."
               aria-label="Search products"
               className="h-10 rounded-xl border-[#d8cdae] bg-white pl-9 focus-visible:ring-[#c9a24b]"
@@ -1612,9 +958,7 @@ function ProductsPage() {
           ================================================= */}
 
           <div
-            ref={
-              categoryMenuRef
-            }
+            ref={categoryMenuRef}
             className="relative"
             onMouseLeave={() => {
               setCategoryMenuOpen(false);
@@ -1624,26 +968,15 @@ function ProductsPage() {
             <button
               type="button"
               aria-label="Filter by category"
-              aria-expanded={
-                categoryMenuOpen
-              }
-              onClick={
-                toggleCategoryMenu
-              }
+              aria-expanded={categoryMenuOpen}
+              onClick={toggleCategoryMenu}
               className="flex h-10 w-full items-center justify-between gap-3 rounded-xl border border-[#d8cdae] bg-white px-3 text-left text-sm text-[#243b32] shadow-sm transition hover:border-[#c9a24b] focus:outline-none focus:ring-2 focus:ring-[#c9a24b]/30 sm:w-52"
             >
-              <span className="min-w-0 truncate">
-                {cat ===
-                "all"
-                  ? "All Categories"
-                  : cat}
-              </span>
+              <span className="min-w-0 truncate">{cat === "all" ? "All Categories" : cat}</span>
 
               <ChevronDown
                 className={`h-4 w-4 shrink-0 text-[#66736c] transition-transform ${
-                  categoryMenuOpen
-                    ? "rotate-180"
-                    : ""
+                  categoryMenuOpen ? "rotate-180" : ""
                 }`}
               />
             </button>
@@ -1651,9 +984,7 @@ function ProductsPage() {
             {categoryMenuOpen && (
               <div
                 className={`absolute right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-[#ddd5c2] bg-white shadow-[0_18px_50px_rgba(8,43,33,0.22)] ${
-                  activeRoot
-                    ? "w-[min(620px,calc(100vw-32px))]"
-                    : "w-[min(260px,calc(100vw-32px))]"
+                  activeRoot ? "w-[min(620px,calc(100vw-32px))]" : "w-[min(260px,calc(100vw-32px))]"
                 }`}
               >
                 <div
@@ -1674,98 +1005,50 @@ function ProductsPage() {
                   >
                     <button
                       type="button"
-                      onMouseEnter={() =>
-                        setActiveRootId(
-                          null,
-                        )
-                      }
-                      onClick={() =>
-                        selectProductCategory(
-                          "all",
-                        )
-                      }
+                      onMouseEnter={() => setActiveRootId(null)}
+                      onClick={() => selectProductCategory("all")}
                       className={`flex min-h-10 w-full items-center justify-between gap-2 px-4 py-2 text-left text-sm ${
-                        cat ===
-                        "all"
+                        cat === "all"
                           ? "bg-[#edf4ef] font-semibold text-[#0b513b]"
                           : "text-[#59655f] hover:bg-[#f3efe5] hover:text-[#0b513b]"
                       }`}
                     >
                       All Categories
-
-                      {cat ===
-                        "all" && (
-                        <Check className="h-4 w-4" />
-                      )}
+                      {cat === "all" && <Check className="h-4 w-4" />}
                     </button>
 
-                    {rootCategories.map(
-                      (
-                        root,
-                      ) => {
-                        const children =
-                          categories.filter(
-                            (
-                              item,
-                            ) =>
-                              item.parent_id ===
-                                root.id &&
-                              visibleCategoryIds.has(
-                                item.id,
-                              ),
-                          );
+                    {rootCategories.map((root) => {
+                      const children = categories.filter(
+                        (item) => item.parent_id === root.id && visibleCategoryIds.has(item.id),
+                      );
 
-                        const isActive =
-                          activeRootId ===
-                          root.id;
+                      const isActive = activeRootId === root.id;
 
-                        const selectedInside =
-                          selectedRootId ===
-                          root.id;
+                      const selectedInside = selectedRootId === root.id;
 
-                        return (
-                          <button
-                            key={
-                              root.id
-                            }
-                            type="button"
-                            onMouseEnter={() =>
-                              setActiveRootId(
-                                root.id,
-                              )
-                            }
-                            onFocus={() =>
-                              setActiveRootId(
-                                root.id,
-                              )
-                            }
-                            onClick={() =>
-                              setActiveRootId(
-                                root.id,
-                              )
-                            }
-                            className={`flex min-h-10 w-full items-center justify-between gap-2 px-4 py-2 text-left text-sm ${
-                              isActive
-                                ? "bg-[#edf4ef] font-semibold text-[#0b513b]"
-                                : selectedInside
-                                  ? "font-semibold text-[#0b513b]"
-                                  : "text-[#59655f] hover:bg-[#f3efe5] hover:text-[#0b513b]"
-                            }`}
-                          >
-                            <span className="truncate">
-                              {
-                                root.name
-                              }
-                            </span>
+                      return (
+                        <button
+                          key={root.id}
+                          type="button"
+                          onMouseEnter={() => setActiveRootId(root.id)}
+                          onFocus={() => setActiveRootId(root.id)}
+                          onClick={() => setActiveRootId(root.id)}
+                          className={`flex min-h-10 w-full items-center justify-between gap-2 px-4 py-2 text-left text-sm ${
+                            isActive
+                              ? "bg-[#edf4ef] font-semibold text-[#0b513b]"
+                              : selectedInside
+                                ? "font-semibold text-[#0b513b]"
+                                : "text-[#59655f] hover:bg-[#f3efe5] hover:text-[#0b513b]"
+                          }`}
+                        >
+                          <span className="truncate">{root.name}</span>
 
-                            {children.length >
-                            0 && (
-                              <ChevronRight className="h-4 w-4 shrink-0 text-[#c09435]" />
-                            )}
-                          </button>
-                        );
-                      },
-                    )}
+                          {children.length > 0 && (
+                            <ChevronRight className="h-4 w-4 shrink-0 text-[#c09435]" />
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
 
                   {/* RIGHT */}
@@ -1778,9 +1061,7 @@ function ProductsPage() {
                         </p>
 
                         <h3 className="mt-1 text-lg font-extrabold text-[#102d24]">
-                          {
-                            activeRoot.name
-                          }
+                          {activeRoot.name}
                         </h3>
                       </div>
 
@@ -1788,79 +1069,43 @@ function ProductsPage() {
 
                       <button
                         type="button"
-                        onClick={() =>
-                          selectProductCategory(
-                            activeRoot.name,
-                          )
-                        }
+                        onClick={() => selectProductCategory(activeRoot.name)}
                         className={`mt-2 flex min-h-10 w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-semibold ${
-                          cat ===
-                          activeRoot.name
+                          cat === activeRoot.name
                             ? "bg-[#edf4ef] text-[#0b513b]"
                             : "text-[#0b513b] hover:bg-[#f7f1e4]"
                         }`}
                       >
-                        <span>
-                          View all{" "}
-                          {
-                            activeRoot.name
-                          }
-                        </span>
+                        <span>View all {activeRoot.name}</span>
 
-                        {cat ===
-                          activeRoot.name && (
-                          <Check className="h-4 w-4" />
-                        )}
+                        {cat === activeRoot.name && <Check className="h-4 w-4" />}
                       </button>
 
                       {/* Children */}
 
-                      {activeChildren.length >
-                      0 ? (
+                      {activeChildren.length > 0 ? (
                         <div className="mt-1 space-y-0.5">
-                          {activeChildren.map(
-                            (
-                              child,
-                            ) => (
-                              <button
-                                key={
-                                  child.id
-                                }
-                                type="button"
-                                onClick={() =>
-                                  selectProductCategory(
-                                    child.name,
-                                  )
-                                }
-                                className={`flex min-h-10 w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm ${
-                                  cat ===
-                                  child.name
-                                    ? "bg-[#edf4ef] font-semibold text-[#0b513b]"
-                                    : "text-[#647069] hover:bg-[#f7f1e4] hover:text-[#0b513b]"
-                                }`}
-                              >
-                                <span>
-                                  {
-                                    child.name
-                                  }
-                                </span>
+                          {activeChildren.map((child) => (
+                            <button
+                              key={child.id}
+                              type="button"
+                              onClick={() => selectProductCategory(child.name)}
+                              className={`flex min-h-10 w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm ${
+                                cat === child.name
+                                  ? "bg-[#edf4ef] font-semibold text-[#0b513b]"
+                                  : "text-[#647069] hover:bg-[#f7f1e4] hover:text-[#0b513b]"
+                              }`}
+                            >
+                              <span>{child.name}</span>
 
-                                {cat ===
-                                  child.name && (
-                                  <Check className="h-4 w-4" />
-                                )}
-                              </button>
-                            ),
-                          )}
+                              {cat === child.name && <Check className="h-4 w-4" />}
+                            </button>
+                          ))}
                         </div>
                       ) : (
                         <button
                           type="button"
-                          onClick={() =>
-                            selectProductCategory(
-                              activeRoot.name,
-                            )
-                          }
+                          onClick={() => selectProductCategory(activeRoot.name)}
                           className="mt-4 text-sm font-semibold text-[#0b513b]"
                         >
                           View products
@@ -1875,12 +1120,7 @@ function ProductsPage() {
 
           {/* Sort */}
 
-          <Select
-            value={sort}
-            onValueChange={
-              setSort
-            }
-          >
+          <Select value={sort} onValueChange={setSort}>
             <SelectTrigger
               aria-label="Sort products"
               className="h-10 w-full rounded-xl border-[#d8cdae] bg-white sm:w-44"
@@ -1891,17 +1131,11 @@ function ProductsPage() {
             </SelectTrigger>
 
             <SelectContent>
-              <SelectItem value="popular">
-                Most Popular
-              </SelectItem>
+              <SelectItem value="popular">Most Popular</SelectItem>
 
-              <SelectItem value="low">
-                Price: Low to High
-              </SelectItem>
+              <SelectItem value="low">Price: Low to High</SelectItem>
 
-              <SelectItem value="high">
-                Price: High to Low
-              </SelectItem>
+              <SelectItem value="high">Price: High to Low</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -1913,18 +1147,13 @@ function ProductsPage() {
             <div className="text-center">
               <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#0b513b]" />
 
-              <p className="mt-3 text-sm text-muted-foreground">
-                Products load ho rahe hain...
-              </p>
+              <p className="mt-3 text-sm text-muted-foreground">Products load ho rahe hain...</p>
             </div>
           </div>
-        ) : products.length ===
-          0 ? (
+        ) : products.length === 0 ? (
           <div className="mt-6">
             <EmptyState
-              icon={
-                PackageSearch
-              }
+              icon={PackageSearch}
               title="Koi product nahi mila"
               description="Filter change karein ya doosra keyword try karein."
               action={
@@ -1945,20 +1174,9 @@ function ProductsPage() {
         ) : (
           <>
             <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-              {products.map(
-                (
-                  product,
-                ) => (
-                  <ProductCard
-                    key={
-                      product.id
-                    }
-                    product={
-                      product
-                    }
-                  />
-                ),
-              )}
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
             </div>
 
             {hasMore && (
@@ -1966,20 +1184,12 @@ function ProductsPage() {
                 <Button
                   variant="outline"
                   size="lg"
-                  disabled={
-                    loadingMore
-                  }
-                  onClick={() =>
-                    void loadMore()
-                  }
+                  disabled={loadingMore}
+                  onClick={() => void loadMore()}
                 >
-                  {loadingMore && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
+                  {loadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 
-                  {loadingMore
-                    ? "Loading..."
-                    : "Load more products"}
+                  {loadingMore ? "Loading..." : "Load more products"}
                 </Button>
               </div>
             )}
