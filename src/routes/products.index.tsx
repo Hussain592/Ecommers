@@ -1655,7 +1655,7 @@ function ProductsPage() {
                 <div
                   className={
                     activeRoot
-                      ? "grid min-h-90 max-h-110 grid-cols-[minmax(210px,0.9fr)_minmax(260px,1.1fr)]"
+                      ? "grid max-h-110 grid-cols-1 grid-rows-[minmax(0,1fr)_minmax(0,1fr)] sm:min-h-90 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] sm:grid-rows-1"
                       : "block max-h-110"
                   }
                 >
@@ -1664,7 +1664,7 @@ function ProductsPage() {
                   <div
                     className={`overflow-y-auto bg-[#fffdf7] py-2 ${
                       activeRoot
-                        ? "max-h-110 border-r border-[#e7e0d1]"
+                        ? "min-h-0 border-b border-[#e7e0d1] sm:border-b-0 sm:border-r"
                         : "max-h-110"
                     }`}
                   >
@@ -1767,7 +1767,7 @@ function ProductsPage() {
                   {/* RIGHT */}
 
                   {activeRoot && (
-                    <div className="max-h-110 overflow-y-auto bg-white p-4">
+                    <div className="min-h-0 overflow-y-auto bg-white p-4">
                       <div className="border-b border-[#eee7d8] pb-3">
                         <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#9a7927]">
                           Explore
