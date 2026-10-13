@@ -70,12 +70,12 @@ function BecomeVendorPage() {
       const address = String(formData.get("address") ?? "").trim();
 
       if (!fullName || !email || !password || !storeName || !phone || !city || !address) {
-        toast.error("Tamam required fields fill karein.");
+        toast.error("Please fill in all required fields.");
         return;
       }
 
       if (password.length < 6) {
-        toast.error("Password kam az kam 6 characters ka hona chahiye.");
+        toast.error("Password must be at least 6 characters.");
         return;
       }
 
@@ -98,7 +98,7 @@ function BecomeVendorPage() {
       if (error) throw error;
 
       if (!data.user) {
-        throw new Error("Vendor account create nahi ho saka.");
+        throw new Error("Couldn't create your vendor account. Please try again.");
       }
 
       if (data.session) {
@@ -107,12 +107,14 @@ function BecomeVendorPage() {
 
       setSubmittedEmail(email);
       setSubmitted(true);
-      toast.success("Vendor application submit ho gayi!");
+      toast.success("Application submitted!");
     } catch (error) {
       console.error("Unable to submit vendor application", error);
 
       toast.error(
-        error instanceof Error ? error.message : "Vendor application submit nahi ho saki.",
+        error instanceof Error
+          ? error.message
+          : "Couldn't submit your application. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -138,8 +140,8 @@ function BecomeVendorPage() {
               </h1>
 
               <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#6f7d75]">
-                Aapki application successfully submit ho gayi hai. Ab admin review ke baad account
-                status update hoga.
+                Your application has been submitted. We'll update your account status after an admin
+                reviews it.
               </p>
             </div>
 
@@ -170,12 +172,12 @@ function BecomeVendorPage() {
                   />
 
                   <div>
-                    <h2 className="text-sm font-extrabold text-[#102d24]">Ab kya hoga?</h2>
+                    <h2 className="text-sm font-extrabold text-[#102d24]">What happens next?</h2>
 
                     <ol className="mt-3 space-y-2.5 text-sm leading-5 text-[#5f6d65]">
-                      <li>1. Admin aapki application review karega.</li>
-                      <li>2. Approval ke baad vendor account active hoga.</li>
-                      <li>3. Phir aap sign in karke Vendor Dashboard access kar sakenge.</li>
+                      <li>1. An admin reviews your application.</li>
+                      <li>2. Once approved, your vendor account is activated.</li>
+                      <li>3. Sign in to open your Vendor Dashboard.</li>
                     </ol>
                   </div>
                 </div>
@@ -194,7 +196,7 @@ function BecomeVendorPage() {
                   variant="outline"
                   className="h-11 rounded-xl border-[#d8cdae] bg-white px-6 text-[#0b513b] hover:bg-[#f7efd9] focus-visible:ring-[#c9a24b]"
                 >
-                  <Link to="/login">Sign In</Link>
+                  <Link to="/login">Sign in</Link>
                 </Button>
               </div>
             </div>
@@ -227,8 +229,8 @@ function BecomeVendorPage() {
               </h1>
 
               <p className="mt-3 max-w-xl text-sm leading-6 text-[#6f7d75] sm:text-base">
-                Apni account aur store details fill karein. Application review hone ke baad selling
-                access activate hoga.
+                Fill in your account and store details. Selling is switched on after your
+                application is reviewed.
               </p>
             </div>
 
@@ -246,7 +248,7 @@ function BecomeVendorPage() {
                     <h2 className="text-lg font-extrabold text-[#102d24]">Account Information</h2>
 
                     <p className="mt-1 text-xs leading-5 text-[#6f7d75]">
-                      Ye details aapke vendor login aur account ke liye use hongi.
+                      You'll use these details to sign in to your vendor account.
                     </p>
                   </div>
                 </div>
@@ -320,7 +322,7 @@ function BecomeVendorPage() {
                       />
                     </div>
 
-                    <p className="text-[11px] text-[#89938e]">Kam az kam 6 characters.</p>
+                    <p className="text-[11px] text-[#89938e]">At least 6 characters.</p>
                   </div>
                 </div>
               </section>
@@ -335,7 +337,7 @@ function BecomeVendorPage() {
                     <h2 className="text-lg font-extrabold text-[#102d24]">Store Information</h2>
 
                     <p className="mt-1 text-xs leading-5 text-[#6f7d75]">
-                      Customers ko aapka business isi store name se nazar aayega.
+                      Customers will see your business under this store name.
                     </p>
                   </div>
                 </div>
@@ -437,8 +439,8 @@ function BecomeVendorPage() {
                     <p className="text-sm font-extrabold text-[#102d24]">Admin approval required</p>
 
                     <p className="mt-1 text-xs leading-5 text-[#5f6d65]">
-                      Submit hone ke baad application Pending Review mein rahegi. Approval ke baad
-                      Vendor Dashboard access milega.
+                      After you submit, your application stays in Pending Review. Once approved, you
+                      get access to the Vendor Dashboard.
                     </p>
                   </div>
                 </div>
@@ -486,7 +488,7 @@ function BecomeVendorPage() {
                   <p className="text-sm font-extrabold text-[#102d24]">Simple vendor setup</p>
 
                   <p className="mt-1 text-xs leading-5 text-[#6f7d75]">
-                    Form complete karein, approval ka wait karein, phir selling start karein.
+                    Complete the form, wait for approval, then start selling.
                   </p>
                 </div>
               </div>
@@ -517,7 +519,7 @@ function BecomeVendorPage() {
                   <p className="text-sm font-bold text-[#0b513b]">No selling before approval</p>
 
                   <p className="mt-1 text-xs leading-5 text-[#517066]">
-                    Application approve hone tak vendor account selling ke liye active nahi hoga.
+                    Your vendor account can't sell until the application is approved.
                   </p>
                 </div>
               </div>

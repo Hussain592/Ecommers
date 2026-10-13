@@ -119,7 +119,7 @@ function VendorEarnings() {
         brand={storeName}
         role="Vendor Account"
         title="Earnings"
-        subtitle="Revenue aur payout ka record"
+        subtitle="Revenue and payout history"
         nav={vendorNav}
       >
         <div className="flex justify-center p-10">
@@ -134,7 +134,7 @@ function VendorEarnings() {
       brand={storeName}
       role="Vendor Account"
       title="Earnings"
-      subtitle="Revenue aur payout ka record"
+      subtitle="Revenue and payout history"
       nav={vendorNav}
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -209,7 +209,7 @@ function VendorEarnings() {
               {payouts.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                    Abhi koi payout record nahi.
+                    No payouts yet.
                   </td>
                 </tr>
               ) : (

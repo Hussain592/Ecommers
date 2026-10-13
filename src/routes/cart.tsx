@@ -100,11 +100,10 @@ function CartPage() {
               <ShoppingCart aria-hidden="true" className="h-7 w-7" />
             </div>
 
-            <h2 className="mt-5 text-xl font-extrabold text-[#102d24]">Aapka cart khali hai</h2>
+            <h2 className="mt-5 text-xl font-extrabold text-[#102d24]">Your cart is empty</h2>
 
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#6f7d75]">
-              Islamic aur Azadari products browse karein aur Cash on Delivery par order place
-              karein.
+              Browse Islamic and Azadari products and order with Cash on Delivery.
             </p>
 
             <Button
@@ -316,11 +315,11 @@ function CartPage() {
                       />
 
                       <p className="text-xs leading-5 text-[#5f6d65]">
-                        Free delivery ke liye{" "}
+                        Add{" "}
                         <strong className="text-[#0b513b]">
                           {formatPKR(amountForFreeDelivery)}
                         </strong>{" "}
-                        aur add karein.
+                        more to get free delivery.
                       </p>
                     </div>
                   </div>
@@ -356,8 +355,7 @@ function CartPage() {
                 />
 
                 <p className="text-xs leading-5 text-[#517066]">
-                  Koi online payment nahi. Payment parcel receive karte waqt Cash on Delivery par
-                  hogi.
+                  No online payment needed. You pay in cash when the parcel arrives.
                 </p>
               </div>
             </aside>

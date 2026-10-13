@@ -172,7 +172,7 @@ export const getVendorProfile = (vendor: string, city: string): VendorProfile =>
   followers: 1200 + vendor.length * 37,
   rating: 4.7,
   verified: true,
-  description: `${vendor} Pakistan bhar mein original products aur reliable Cash on Delivery service provide karta hai. Har order dispatch se pehle quality check hota hai.`,
+  description: `${vendor} sells original products across Pakistan with reliable Cash on Delivery. Every order is quality-checked before dispatch.`,
 });
 
 export const productReviews: ProductReview[] = [
@@ -181,8 +181,8 @@ export const productReviews: ProductReview[] = [
     city: "Karachi",
     rating: 5,
     date: "2 days ago",
-    title: "Bilkul waisa hi jaisa photo mein tha",
-    body: "Packing achi thi aur delivery bhi time par hui. Product ki quality price ke hisaab se bohat achi hai.",
+    title: "Exactly as shown in the photo",
+    body: "Well packed and delivered on time. Great quality for the price.",
     verified: true,
   },
   {
@@ -191,7 +191,7 @@ export const productReviews: ProductReview[] = [
     rating: 4,
     date: "1 week ago",
     title: "Good value for money",
-    body: "Product theek mila, seller ne call bhi confirm ki. Overall experience smooth raha.",
+    body: "Product arrived in good condition and the seller confirmed by phone. Smooth experience overall.",
     verified: true,
   },
   {
@@ -200,7 +200,7 @@ export const productReviews: ProductReview[] = [
     rating: 5,
     date: "2 weeks ago",
     title: "Recommended seller",
-    body: "Fast dispatch aur secure packing. Dobara bhi isi store se order karunga.",
+    body: "Fast dispatch and secure packing. I will order from this store again.",
     verified: true,
   },
 ];

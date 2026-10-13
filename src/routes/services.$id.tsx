@@ -202,7 +202,7 @@ function ServiceDetail() {
           <h1 className="mt-4 text-2xl font-extrabold text-[#102d24]">Service not found</h1>
 
           <p className="mt-2 text-sm text-[#6f7d75]">
-            Ye service available nahi hai ya iska link change ho chuka hai.
+            This service isn't available, or its link has changed.
           </p>
 
           <Button
@@ -295,11 +295,10 @@ function ServiceDetail() {
                   Service details
                 </p>
 
-                <h2 className="mt-1 text-xl font-extrabold text-[#102d24]">Kya include hai</h2>
+                <h2 className="mt-1 text-xl font-extrabold text-[#102d24]">What's included</h2>
 
                 <p className="mt-1 text-sm text-[#6f7d75]">
-                  Booking se pehle clear information taa-ke customer ko pata ho ke kya expect karna
-                  hai.
+                  Clear information before you book, so you know exactly what to expect.
                 </p>
               </div>
 
@@ -334,8 +333,7 @@ function ServiceDetail() {
                   <h3 className="mt-1 font-extrabold text-[#102d24]">{service.provider}</h3>
 
                   <p className="mt-1 text-sm leading-6 text-[#6f7d75]">
-                    Provider details aur booking availability request confirm hone ke baad verify ki
-                    jayegi.
+                    Provider details and availability are verified once your request is confirmed.
                   </p>
                 </div>
               </div>
@@ -354,7 +352,8 @@ function ServiceDetail() {
               </p>
 
               <p className="mt-1 text-xs leading-5 text-[#748078]">
-                Final price service details, quantity aur requirements ke mutabiq confirm hogi.
+                The final price is confirmed based on the service details, quantity and your
+                requirements.
               </p>
             </div>
 
@@ -387,14 +386,13 @@ function ServiceDetail() {
                   if (error) throw error;
 
                   form.reset();
-                  toast.success("Booking request save ho gayi.", {
-                    description:
-                      "Request Pending hai. Confirm hone par aapko is email par update bheja jayega.",
+                  toast.success("Booking request sent.", {
+                    description: "Your request is pending. We'll email you when it's confirmed.",
                   });
                 } catch (error) {
                   console.error("Unable to save booking request:", error);
                   toast.error(
-                    "Booking request save nahi ho saki. Thori dair baad dobara try karein.",
+                    "Couldn't send your booking request. Please try again in a few minutes.",
                   );
                 } finally {
                   setSubmitting(false);
@@ -459,7 +457,7 @@ function ServiceDetail() {
                   id="service-details"
                   name="details"
                   rows={4}
-                  placeholder="Area, city aur service ki zaroori details..."
+                  placeholder="Area, city and any important details about the service..."
                   className="rounded-xl border-[#d8cdae] bg-white focus-visible:ring-[#c9a24b]"
                 />
               </div>
@@ -482,8 +480,8 @@ function ServiceDetail() {
                   />
 
                   <p className="text-xs leading-5 text-[#5f6d65]">
-                    Request bhejne se payment charge nahi hogi. Booking details pehle confirm ki
-                    jayengi.
+                    Sending a request doesn't charge you anything. Booking details are confirmed
+                    first.
                   </p>
                 </div>
               </div>

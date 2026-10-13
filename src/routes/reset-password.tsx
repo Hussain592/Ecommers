@@ -70,12 +70,12 @@ function ResetPasswordPage() {
     const confirm = String(formData.get("confirm") ?? "");
 
     if (password.length < 6) {
-      toast.error("Password kam az kam 6 characters ka hona chahiye.");
+      toast.error("Password must be at least 6 characters.");
       return;
     }
 
     if (password !== confirm) {
-      toast.error("Dono passwords ek jaise nahi hain.");
+      toast.error("The passwords don't match.");
       return;
     }
 
@@ -86,19 +86,21 @@ function ResetPasswordPage() {
       if (error) throw error;
 
       await supabase.auth.signOut();
-      toast.success("Password badal gaya. Ab naye password se sign in karein.");
+      toast.success("Password changed. Sign in with your new password.");
 
       // Full navigation so the auth provider starts fresh.
       window.location.href = "/login";
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Password update nahi ho saka.");
+      toast.error(
+        error instanceof Error ? error.message : "Couldn't update your password. Please try again.",
+      );
       setSaving(false);
     }
   };
 
   const footer = (
     <Link to="/login" className={authLinkClass}>
-      Sign in page par wapas jayein
+      Back to sign in
     </Link>
   );
 
@@ -106,8 +108,8 @@ function ResetPasswordPage() {
     return (
       <AuthCard
         eyebrow="Reset Password"
-        title="Link check ho raha hai"
-        description="Thora intezar karein."
+        title="Checking your link"
+        description="This will only take a moment."
         footer={footer}
       >
         <div className="flex justify-center py-4">
@@ -121,8 +123,8 @@ function ResetPasswordPage() {
     return (
       <AuthCard
         eyebrow="Reset Password"
-        title="Link valid nahi hai"
-        description="Yeh reset link expire ho chuka hai ya pehle use ho chuka hai. Naya link mangwa lein."
+        title="This link is no longer valid"
+        description="The reset link has expired or was already used. Request a new one."
         footer={footer}
       >
         <Link
@@ -130,7 +132,7 @@ function ResetPasswordPage() {
           className={`${authButtonClass} inline-flex items-center justify-center`}
         >
           <ArrowRight aria-hidden="true" className="mr-2 h-4 w-4" />
-          Naya reset link mangwayein
+          Request a new link
         </Link>
       </AuthCard>
     );
@@ -139,15 +141,15 @@ function ResetPasswordPage() {
   return (
     <AuthCard
       eyebrow="Reset Password"
-      title="Naya password set karein"
-      description="Apna naya password do dafa likhein."
+      title="Set a new password"
+      description="Enter your new password twice."
       footer={footer}
     >
       <form className="space-y-4" onSubmit={handleSubmit}>
         {(
           [
-            ["password", "Naya Password"],
-            ["confirm", "Password dobara likhein"],
+            ["password", "New password"],
+            ["confirm", "Confirm new password"],
           ] as const
         ).map(([name, label]) => (
           <div key={name} className="space-y-1.5">
@@ -180,7 +182,7 @@ function ResetPasswordPage() {
           ) : (
             <ArrowRight aria-hidden="true" className="mr-2 h-4 w-4" />
           )}
-          {saving ? "Save ho raha hai..." : "Password save karein"}
+          {saving ? "Saving..." : "Save password"}
         </Button>
       </form>
     </AuthCard>

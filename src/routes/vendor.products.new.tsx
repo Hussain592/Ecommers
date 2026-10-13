@@ -21,7 +21,7 @@ function AddProduct() {
       brand="Al-Madina Traders"
       role="Vendor Account"
       title="Add Product"
-      subtitle="Naya product apne catalog mein shamil karein"
+      subtitle="Add a new product to your catalog"
       nav={vendorNav}
     >
       <ProductForm mode="create" />

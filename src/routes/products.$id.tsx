@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 
 import {
   CheckCircle2,
@@ -20,11 +20,10 @@ import { toast } from "sonner";
 
 import { ShopLayout } from "@/components/shop/ShopLayout";
 import { ProductCard } from "@/components/shop/ProductCard";
+import { ProductReviews } from "@/components/shop/ProductReviews";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 
 import {
   formatPKR,
@@ -34,8 +33,8 @@ import {
   type VendorProfile,
 } from "@/data/mock";
 
-import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
+import { summarize, useProductReviews } from "@/lib/reviews";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/products/$id")({
@@ -61,33 +60,6 @@ export const Route = createFileRoute("/products/$id")({
 
   component: ProductDetail,
 });
-
-type ProductReview = {
-  id: string;
-  reviewer_name: string;
-  rating: number;
-  title: string | null;
-  body: string;
-  created_at: string;
-  user_id: string;
-  verified_purchase: boolean;
-};
-function hasDeliveredOrderForProduct(orders: unknown, productId: string): boolean {
-  if (!Array.isArray(orders)) {
-    return false;
-  }
-
-  return orders.some((order: unknown) => {
-    if (!order || typeof order !== "object" || !("items" in order) || !Array.isArray(order.items)) {
-      return false;
-    }
-
-    return order.items.some(
-      (item: unknown) =>
-        item !== null && typeof item === "object" && "id" in item && item.id === productId,
-    );
-  });
-}
 
 type DatabaseProductRow = {
   id: string;
@@ -173,8 +145,6 @@ function ProductDetail() {
 
   const { add, catalog } = useCart();
 
-  const { user, profile } = useAuth();
-
   /*
    * ------------------------------------------------
    * PRODUCT LOADING
@@ -202,21 +172,6 @@ function ProductDetail() {
   const [backendVendor, setBackendVendor] = useState<Partial<VendorProfile> | null>(null);
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-
-  const [reviews, setReviews] = useState<ProductReview[]>([]);
-
-  const [reviewsLoading, setReviewsLoading] = useState(false);
-
-  const [reviewRating, setReviewRating] = useState(5);
-
-  const [reviewTitle, setReviewTitle] = useState("");
-
-  const [reviewBody, setReviewBody] = useState("");
-
-  const [reviewSaving, setReviewSaving] = useState(false);
-  const [reviewEligibility, setReviewEligibility] = useState<
-    "loading" | "eligible" | "ineligible" | "error"
-  >("loading");
 
   const [realFollowerCount, setRealFollowerCount] = useState(0);
 
@@ -386,111 +341,14 @@ function ProductDetail() {
   }, [product?.vendorId]);
 
   const productId = product?.id;
-  const userId = user?.id;
 
-  /*
-   * ------------------------------------------------
-   * LOAD IMAGE + REVIEWS
-   * ------------------------------------------------
-   */
+  const { data: productReviews = [] } = useProductReviews(productId);
+
+  const { rating, count: reviewCount } = summarize(productReviews);
+
   useEffect(() => {
-    let cancelled = false;
-
-    if (!productId) {
-      return;
-    }
-
     setSelectedImageIndex(0);
-
-    setReviews([]);
-
-    const loadReviews = async () => {
-      setReviewsLoading(true);
-
-      const { data, error } = await supabase
-        .from("product_reviews")
-        .select(
-          `
-            id,
-            reviewer_name,
-            rating,
-            title,
-            body,
-            created_at,
-            user_id,
-            verified_purchase
-            `,
-        )
-        .eq("product_id", productId)
-        .eq("verified_purchase", true)
-        .order("created_at", {
-          ascending: false,
-        });
-
-      if (cancelled) {
-        return;
-      }
-
-      if (error) {
-        console.error("Unable to load product reviews", error);
-
-        setReviews([]);
-      } else {
-        setReviews(
-          (data ?? []).map((review) => ({
-            ...review,
-
-            rating: Number(review.rating),
-          })),
-        );
-      }
-
-      setReviewsLoading(false);
-    };
-
-    void loadReviews();
-
-    return () => {
-      cancelled = true;
-    };
   }, [productId]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const checkReviewEligibility = async () => {
-      if (!productId || !userId) {
-        setReviewEligibility("ineligible");
-        return;
-      }
-
-      setReviewEligibility("loading");
-
-      const { data, error } = await supabase
-        .from("orders")
-        .select("items")
-        .eq("customer_id", userId)
-        .eq("status", "Delivered");
-
-      if (cancelled) return;
-
-      if (error) {
-        console.error("Unable to verify product purchase:", error);
-        setReviewEligibility("error");
-        return;
-      }
-
-      setReviewEligibility(
-        hasDeliveredOrderForProduct(data, productId) ? "eligible" : "ineligible",
-      );
-    };
-
-    void checkReviewEligibility();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [productId, userId]);
 
   /*
    * ------------------------------------------------
@@ -504,7 +362,7 @@ function ProductDetail() {
           <div className="text-center">
             <div className="mx-auto h-9 w-9 animate-spin rounded-full border-2 border-muted border-t-primary" />
 
-            <p className="mt-4 text-sm text-muted-foreground">Product load ho raha hai...</p>
+            <p className="mt-4 text-sm text-muted-foreground">Loading product...</p>
           </div>
         </div>
       </ShopLayout>
@@ -523,7 +381,7 @@ function ProductDetail() {
           <h1 className="text-2xl font-bold">Product not found</h1>
 
           <p className="mt-2 text-sm text-muted-foreground">
-            Product available nahi hai ya remove ho chuka hai.
+            This product is no longer available or has been removed.
           </p>
 
           <Button asChild className="mt-4 rounded-xl">
@@ -554,16 +412,6 @@ function ProductDetail() {
 
   /*
    * ------------------------------------------------
-   * REVIEWS
-   * ------------------------------------------------
-   */
-  const reviewCount = reviews.length;
-
-  const rating =
-    reviewCount === 0 ? 0 : reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount;
-
-  /*
-   * ------------------------------------------------
    * VENDOR
    * ------------------------------------------------
    */
@@ -582,97 +430,6 @@ function ProductDetail() {
     product.oldPrice && product.oldPrice > product.price
       ? Math.round((1 - product.price / product.oldPrice) * 100)
       : 0;
-
-  /*
-   * ------------------------------------------------
-   * SUBMIT REVIEW
-   * ------------------------------------------------
-   */
-  const submitReview = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!user) {
-      toast.error("Review dene ke liye login karein.");
-
-      return;
-    }
-
-    if (reviewEligibility !== "eligible") {
-      toast.error(
-        reviewEligibility === "error"
-          ? "Purchase verify nahi ho saki. Dobara try karein."
-          : "Review dene ke liye pehle yeh product khareed kar receive karein.",
-      );
-
-      return;
-    }
-
-    if (reviewBody.trim().length < 3) {
-      toast.error("Review kam az kam 3 characters ka likhein.");
-
-      return;
-    }
-
-    setReviewSaving(true);
-
-    const { data, error } = await supabase
-      .from("product_reviews")
-      .upsert(
-        {
-          product_id: product.id,
-
-          user_id: user.id,
-          verified_purchase: true,
-
-          reviewer_name: profile?.name || user.email?.split("@")[0] || "Customer",
-
-          rating: reviewRating,
-
-          title: reviewTitle.trim() || null,
-
-          body: reviewBody.trim(),
-        },
-        {
-          onConflict: "product_id,user_id",
-        },
-      )
-      .select(
-        `
-          id,
-          reviewer_name,
-          rating,
-          title,
-          body,
-          created_at,
-          user_id,
-          verified_purchase
-          `,
-      )
-      .single();
-
-    setReviewSaving(false);
-
-    if (error || !data) {
-      toast.error(error?.message || "Review save nahi ho saka.");
-
-      return;
-    }
-
-    setReviews((current) => [
-      {
-        ...data,
-
-        rating: Number(data.rating),
-      },
-
-      ...current.filter((review) => review.id !== data.id && review.user_id !== user.id),
-    ]);
-
-    setReviewTitle("");
-    setReviewBody("");
-
-    toast.success("Aapka review save ho gaya.");
-  };
 
   return (
     <ShopLayout>
@@ -769,8 +526,14 @@ function ProductDetail() {
                 {rating > 0 ? rating.toFixed(1) : "No ratings"}
               </span>
 
-              <a href="#reviews" className="text-primary underline-offset-4 hover:underline">
-                {reviewCount} ratings
+              <a
+                href="#reviews"
+                onClick={() => setActiveTab("reviews")}
+                className="text-primary underline-offset-4 hover:underline"
+              >
+                {reviewCount > 0
+                  ? `See ${reviewCount} ${reviewCount === 1 ? "rating" : "ratings"}`
+                  : "Write a review"}
               </a>
             </div>
 
@@ -798,7 +561,7 @@ function ProductDetail() {
               <p className="font-semibold text-success">Flash deal price</p>
 
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Limited stock offer. Price checkout par lock ho jayegi.
+                Limited stock offer. This price is locked in at checkout.
               </p>
             </div>
 
@@ -888,7 +651,7 @@ function ProductDetail() {
                 onClick={() => {
                   add(product.id, qty);
 
-                  toast.success("Cart mein add ho gaya", {
+                  toast.success("Added to cart", {
                     description: product.name,
                   });
                 }}
@@ -974,7 +737,7 @@ function ProductDetail() {
         </div>
 
         {/* Product tabs */}
-        <section id="reviews" className="mt-12">
+        <section id="reviews" className="mt-12 scroll-mt-28">
           <div className="flex flex-wrap gap-2 border-b border-border">
             {[
               {
@@ -1014,8 +777,8 @@ function ProductDetail() {
                 <h2 className="text-lg font-bold">About this product</h2>
 
                 <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                  {product.description} Yeh item carefully selected hai taa-ke aapko quality, value
-                  aur reliable delivery ek hi order mein mil sake.
+                  {product.description} Carefully selected so you get quality, value and reliable
+                  delivery in one order.
                 </p>
               </div>
 
@@ -1025,7 +788,7 @@ function ProductDetail() {
                 <div className="mt-3 space-y-3 text-sm">
                   <p className="flex gap-2">
                     <ShieldCheck className="h-4 w-4 shrink-0 text-success" />
-                    Verified sellers aur transparent ratings
+                    Verified sellers and transparent ratings
                   </p>
 
                   <p className="flex gap-2">
@@ -1043,126 +806,7 @@ function ProductDetail() {
           )}
 
           {/* Reviews */}
-          {activeTab === "reviews" && (
-            <div className="grid gap-6 py-6 lg:grid-cols-[260px_1fr]">
-              <div className="rounded-2xl bg-muted/60 p-5 text-center">
-                <p className="font-display text-5xl font-extrabold">
-                  {rating > 0 ? rating.toFixed(1) : "—"}
-                </p>
-
-                <div className="mt-2 flex justify-center text-warning">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      className={`h-4 w-4 ${
-                        star <= Math.round(rating) ? "fill-current" : "text-border"
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Based on {reviewCount} verified ratings
-                </p>
-              </div>
-
-              <div className="space-y-6">
-                {/* Review Form */}
-                <form onSubmit={submitReview} className="rounded-2xl border border-border p-4">
-                  <h3 className="text-sm font-bold">Apna review likhein</h3>
-                  {reviewEligibility !== "eligible" && (
-                    <p className="mt-2 text-sm text-muted-foreground" role="status">
-                      {reviewEligibility === "loading"
-                        ? "Purchase verify ho rahi hai..."
-                        : reviewEligibility === "error"
-                          ? "Purchase verification abhi nahi ho saki. Page refresh karke dobara try karein."
-                          : user
-                            ? "Review sirf us product ke liye diya ja sakta hai jo aapke delivered order mein ho."
-                            : "Review dene ke liye login karein aur product receive hone ka intezar karein."}
-                    </p>
-                  )}
-                  <div className="mt-3 flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => setReviewRating(star)}
-                        aria-label={`Rate ${star} stars`}
-                      >
-                        <Star
-                          className={`h-6 w-6 ${
-                            star <= reviewRating ? "fill-warning text-warning" : "text-border"
-                          }`}
-                        />
-                      </button>
-                    ))}
-                  </div>
-
-                  <Input
-                    className="mt-3 rounded-xl"
-                    placeholder="Title (optional)"
-                    value={reviewTitle}
-                    onChange={(event) => setReviewTitle(event.target.value)}
-                  />
-
-                  <Textarea
-                    className="mt-3 rounded-xl"
-                    rows={3}
-                    placeholder="Aapka review likhein..."
-                    value={reviewBody}
-                    onChange={(event) => setReviewBody(event.target.value)}
-                  />
-
-                  <Button
-                    type="submit"
-                    className="mt-3 rounded-xl"
-                    disabled={reviewSaving || reviewEligibility !== "eligible"}
-                  >
-                    {reviewSaving ? "Save ho raha hai..." : "Review Submit karein"}
-                  </Button>
-                </form>
-
-                {/* Reviews List */}
-                {reviewsLoading ? (
-                  <p className="text-sm text-muted-foreground">Reviews load ho rahe hain...</p>
-                ) : reviews.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Abhi koi review nahi hai. Pehla review aap likh sakte hain!
-                  </p>
-                ) : (
-                  reviews.map((review) => (
-                    <article key={review.id} className="border-b border-border pb-4">
-                      <div>
-                        <p className="font-semibold">{review.reviewer_name}</p>
-                        <span className="mt-1 inline-flex items-center gap-1 text-xs text-success">
-                          <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-                          Verified purchase
-                        </span>
-                        <div className="flex items-center gap-2 text-warning">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`h-3.5 w-3.5 ${
-                                star <= review.rating ? "fill-current" : "text-border"
-                              }`}
-                            />
-                          ))}
-
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(review.created_at).toLocaleDateString("en-PK")}
-                          </span>
-                        </div>
-                      </div>
-
-                      {review.title && <h3 className="mt-3 text-sm font-bold">{review.title}</h3>}
-
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">{review.body}</p>
-                    </article>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
+          {activeTab === "reviews" && <ProductReviews productId={product.id} />}
 
           {/* Seller */}
           {activeTab === "seller" && (

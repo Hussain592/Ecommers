@@ -41,10 +41,9 @@ function OrderConfirmation() {
           <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-success/10 text-success">
             <CheckCircle2 className="h-8 w-8" />
           </span>
-          <h1 className="mt-5 text-2xl font-extrabold">Order Confirm Ho Gaya!</h1>
+          <h1 className="mt-5 text-2xl font-extrabold">Order placed!</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Shukriya! Aapka order receive ho gaya hai. Confirmation ke liye hamari team jald call
-            karegi.
+            Thank you! We've received your order. The seller will call you soon to confirm it.
           </p>
 
           <div className="mt-6 rounded-2xl bg-muted p-5 text-left">

@@ -82,7 +82,7 @@ function PartnerDashboard() {
         brand={partnerName}
         role="Partner Account"
         title="Dashboard"
-        subtitle="Aapki listings ka summary"
+        subtitle="Summary of your listings"
         nav={partnerNav}
       >
         <div className="flex justify-center p-10">
@@ -97,7 +97,7 @@ function PartnerDashboard() {
       brand={partnerName}
       role="Partner Account"
       title="Dashboard"
-      subtitle="Aapki listings ka summary"
+      subtitle="Summary of your listings"
       nav={partnerNav}
       actions={
         <Button asChild size="sm" className="rounded-xl">
@@ -113,7 +113,7 @@ function PartnerDashboard() {
         <StatCard
           label="Low Stock Items"
           value={String(lowStock)}
-          hint="Update karna zaroori hai"
+          hint="Needs an update"
           icon={Boxes}
           tone="warning"
         />
@@ -122,7 +122,7 @@ function PartnerDashboard() {
       <section className="surface-card p-5">
         <h2 className="font-bold">Recent Listings</h2>
         {recent.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">Abhi koi product add nahi kiya.</p>
+          <p className="mt-4 text-sm text-muted-foreground">You haven't added any products yet.</p>
         ) : (
           <div className="mt-4 space-y-3">
             {recent.map((p) => (
@@ -154,7 +154,7 @@ function PartnerDashboard() {
       </section>
 
       <p className="text-center text-xs text-muted-foreground">
-        Note: Partner account par earnings, commission aur payout information available nahi hoti.
+        Note: Earnings, commission and payout details aren't shown on partner accounts.
       </p>
     </DashboardShell>
   );

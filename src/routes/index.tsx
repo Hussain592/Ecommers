@@ -46,12 +46,12 @@ const perks = [
   {
     icon: Wallet,
     title: "Cash on Delivery",
-    text: "Parcel milne par cash payment",
+    text: "Pay in cash when your parcel arrives",
   },
   {
     icon: Truck,
     title: "Nationwide Delivery",
-    text: "Pooray Pakistan mein delivery",
+    text: "Delivery all over Pakistan",
   },
   {
     icon: RotateCcw,
@@ -61,7 +61,7 @@ const perks = [
   {
     icon: Headphones,
     title: "Local Support",
-    text: "Madad jab aapko zaroorat ho",
+    text: "Help whenever you need it",
   },
 ];
 const homeIslamicServices = [
@@ -69,7 +69,7 @@ const homeIslamicServices = [
     id: "quran-tajweed-classes",
     name: "Quran & Tajweed Classes",
     category: "Quran Learning",
-    description: "One-to-one Quran, Nazra aur Tajweed learning for children and adults.",
+    description: "One-to-one Quran, Nazra and Tajweed lessons for children and adults.",
     startingPrice: 2500,
     meta: "Online · 30–45 mins",
     icon: BookOpen,
@@ -78,7 +78,7 @@ const homeIslamicServices = [
     id: "majlis-setup",
     name: "Majlis Setup & Decoration",
     category: "Majlis Services",
-    description: "Majlis floor setup, black draping, seating aur respectful decoration.",
+    description: "Majlis floor setup, black draping, seating and respectful decoration.",
     startingPrice: 7000,
     meta: "Karachi · 2–4 hours",
     icon: Users,
@@ -87,7 +87,7 @@ const homeIslamicServices = [
     id: "niyaz-catering",
     name: "Niyaz & Tabarruk Catering",
     category: "Food & Niyaz",
-    description: "Niyaz preparation, clean packing aur delivery for Majalis and gatherings.",
+    description: "Niyaz preparation, clean packing and delivery for Majalis and gatherings.",
     startingPrice: 5000,
     meta: "Karachi · Same day",
     icon: Utensils,
@@ -159,12 +159,12 @@ function HeroProductSlider({ deals }: { deals: Product[] }) {
             Islamic Marketplace
           </p>
           <h1 className="mt-3 max-w-xl text-3xl font-extrabold leading-tight text-[#fffaf0] sm:text-5xl">
-            Deen ke Sath,
-            <span className="text-[#e2c56c]"> Har Zaroorat</span>
+            Faith-first shopping,
+            <span className="text-[#e2c56c]"> for every need</span>
           </h1>
           <p className="mt-5 max-w-xl text-sm leading-7 text-[#ddd6c4] sm:text-base">
-            Islamic books, prayer essentials, Majlis items, clothing aur accessories — trusted
-            sellers se, Pakistan bhar mein Cash on Delivery ke saath.
+            Islamic books, prayer essentials, Majlis items, clothing and accessories from trusted
+            sellers, with Cash on Delivery across Pakistan.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Button
@@ -404,7 +404,7 @@ function Index() {
           </div>
         ) : featured.length === 0 ? (
           <div className="mt-5 rounded-2xl border border-[#d8cdae]/70 bg-[#fffdf7] p-6 text-sm text-[#6f7e77]">
-            Abhi koi product nahi hai.
+            No products yet. Please check back soon.
           </div>
         ) : (
           <>
@@ -439,8 +439,8 @@ function Index() {
               Popular Services
             </h2>
             <p className="mt-1 max-w-xl text-xs leading-5 text-[#6f7e77] sm:text-sm">
-              Quran learning, Majlis arrangements aur Niyaz services — clear details aur simple
-              booking ke saath.
+              Quran learning, Majlis arrangements and Niyaz services, with clear details and simple
+              booking.
             </p>
           </div>
           <Button
@@ -510,11 +510,11 @@ function Index() {
                 azadari.store promise
               </p>
               <h2 className="mt-2 font-display text-2xl font-extrabold text-[#fffaf0] sm:text-3xl">
-                Bharose ke saath Islamic shopping
+                Islamic shopping you can trust
               </h2>
               <p className="mt-2 max-w-xl text-sm leading-6 text-[#d9d1bd]">
-                Trusted sellers, clear prices aur Cash on Delivery. Shopping ko simple,
-                understandable aur reliable rakhna hamari priority hai.
+                Trusted sellers, clear prices and Cash on Delivery. Our priority is to keep shopping
+                simple, clear and reliable.
               </p>
             </div>
             <Button
@@ -533,17 +533,17 @@ function Index() {
               {
                 icon: ShieldCheck,
                 title: "Trusted sellers",
-                text: "Marketplace sellers se products",
+                text: "Products from verified marketplace sellers",
               },
               {
                 icon: PackageCheck,
                 title: "COD nationwide",
-                text: "Parcel milne par payment",
+                text: "Pay when your parcel arrives",
               },
               {
                 icon: CheckCircle2,
                 title: "Easy shopping",
-                text: "Clear actions aur simple checkout",
+                text: "Clear steps and a simple checkout",
               },
             ].map((item) => (
               <div key={item.title} className="flex items-center gap-3 px-6 py-4">

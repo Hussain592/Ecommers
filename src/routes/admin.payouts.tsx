@@ -49,7 +49,7 @@ function AdminPayouts() {
       .order("created_at", { ascending: false });
     if (error) {
       console.error("Unable to load payouts:", error);
-      toast.error("Payouts load nahi ho sake.");
+      toast.error("Couldn't load payouts.");
     } else {
       setPayouts(data ?? []);
     }
@@ -74,11 +74,11 @@ function AdminPayouts() {
       return;
     }
     if (!data || data.length === 0) {
-      toast.error("Permission nahi mili.");
+      toast.error("You don't have permission to do this.");
       return;
     }
 
-    toast.success("Payout release ho gaya.");
+    toast.success("Payout released.");
     setPayouts((prev) =>
       prev.map((p) =>
         p.id === payoutId ? { ...p, status: "Paid", paid_at: new Date().toISOString() } : p,
@@ -106,7 +106,7 @@ function AdminPayouts() {
         brand="azadari.store"
         role="Owner / Admin"
         title="Payouts"
-        subtitle="Vendors aur partners ki settlements"
+        subtitle="Vendor and partner settlements"
         nav={adminNav}
       >
         <div className="flex justify-center p-10">
@@ -121,7 +121,7 @@ function AdminPayouts() {
       brand="azadari.store"
       role="Owner / Admin"
       title="Payouts"
-      subtitle="Vendors aur partners ki settlements"
+      subtitle="Vendor and partner settlements"
       nav={adminNav}
     >
       <div className="grid gap-4 sm:grid-cols-3">
@@ -160,7 +160,7 @@ function AdminPayouts() {
               {payouts.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
-                    Koi payout record nahi.
+                    No payout records yet.
                   </td>
                 </tr>
               ) : (

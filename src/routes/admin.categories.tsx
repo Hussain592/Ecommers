@@ -197,7 +197,7 @@ function AdminCategories() {
     if (error) {
       console.error("Unable to load categories", error);
 
-      toast.error("Categories load nahi ho sakein.");
+      toast.error("Couldn't load categories.");
 
       setLoading(false);
 
@@ -373,7 +373,7 @@ function AdminCategories() {
      * Same option twice.
      */
     if (new Set(lowerSubcategoryNames).size !== lowerSubcategoryNames.length) {
-      toast.error("Subcategory names repeat ho rahe hain. Duplicate option remove karein.");
+      toast.error("Some subcategory names are repeated. Remove the duplicates.");
 
       return;
     }
@@ -384,7 +384,7 @@ function AdminCategories() {
      * another Janimaz child.
      */
     if (lowerSubcategoryNames.includes(name.toLowerCase())) {
-      toast.error("Main category aur subcategory ka naam same nahi ho sakta.");
+      toast.error("A subcategory can't have the same name as its main category.");
 
       return;
     }
@@ -395,7 +395,7 @@ function AdminCategories() {
     const existingNames = new Set(categoryList.map((category) => category.name.toLowerCase()));
 
     if (existingNames.has(name.toLowerCase())) {
-      toast.error("Ye category pehle se mojood hai.");
+      toast.error("This category already exists.");
 
       return;
     }
@@ -403,7 +403,7 @@ function AdminCategories() {
     const existingChild = cleanSubcategories.find((item) => existingNames.has(item.toLowerCase()));
 
     if (existingChild) {
-      toast.error(`"${existingChild}" category pehle se mojood hai.`);
+      toast.error(`The category "${existingChild}" already exists.`);
 
       return;
     }
@@ -453,7 +453,7 @@ function AdminCategories() {
     if (parentError || !parentCategory) {
       setSaving(false);
 
-      toast.error(parentError?.message ?? "Category create nahi ho saki.");
+      toast.error(parentError?.message ?? "Couldn't create the category.");
 
       return;
     }
@@ -511,8 +511,8 @@ function AdminCategories() {
 
     toast.success(
       cleanSubcategories.length > 0
-        ? `Category aur ${cleanSubcategories.length} subcategory option(s) add ho gaye.`
-        : "Category add aur approve ho gayi.",
+        ? `Category and ${cleanSubcategories.length} subcategor${cleanSubcategories.length === 1 ? "y" : "ies"} added.`
+        : "Category added and approved.",
     );
 
     await loadCategories();
@@ -558,7 +558,7 @@ function AdminCategories() {
       ),
     );
 
-    toast.success(`"${category.name}" approve ho gayi.`);
+    toast.success(`"${category.name}" approved.`);
   };
 
   /*
@@ -568,9 +568,7 @@ function AdminCategories() {
    */
 
   const rejectCategory = async (category: Category) => {
-    const confirmed = window.confirm(
-      `Kya aap "${category.name}" category reject karna chahte hain?`,
-    );
+    const confirmed = window.confirm(`Reject the category "${category.name}"?`);
 
     if (!confirmed) {
       return;
@@ -628,7 +626,7 @@ function AdminCategories() {
       ),
     );
 
-    toast.success(`"${category.name}" reject ho gayi.`);
+    toast.success(`"${category.name}" rejected.`);
   };
 
   /*
@@ -666,7 +664,7 @@ function AdminCategories() {
     );
 
     if (duplicate) {
-      toast.error("Is naam ki category pehle se mojood hai.");
+      toast.error("A category with this name already exists.");
 
       return;
     }
@@ -709,7 +707,7 @@ function AdminCategories() {
       if (productError) {
         console.error("Unable to update product category names", productError);
 
-        toast.error("Category rename ho gayi lekin kuch products update nahi ho sake.");
+        toast.error("Category renamed, but some products couldn't be updated.");
       }
     }
 
@@ -717,7 +715,7 @@ function AdminCategories() {
 
     setEditTarget(null);
 
-    toast.success("Category update ho gayi.");
+    toast.success("Category updated.");
 
     await loadCategories();
   };
@@ -738,7 +736,7 @@ function AdminCategories() {
 
     if (count > 0) {
       toast.error(
-        `Is category mein ${count} product(s) hain. Pehle products ko doosri category mein move karein.`,
+        `This category has ${count} product${count === 1 ? "" : "s"}. Move them to another category first.`,
       );
 
       return;
@@ -756,14 +754,14 @@ function AdminCategories() {
 
     if (childCount > 0) {
       toast.error(
-        `Is category ke andar ${childCount} subcategory option(s) hain. Pehle unhein delete ya move karein.`,
+        `This category has ${childCount} subcategor${childCount === 1 ? "y" : "ies"}. Delete or move them first.`,
       );
 
       return;
     }
 
     const confirmed = window.confirm(
-      `Kya aap "${category.name}" ko permanently delete karna chahte hain?`,
+      `Permanently delete "${category.name}"? This can't be undone.`,
     );
 
     if (!confirmed) {
@@ -782,7 +780,7 @@ function AdminCategories() {
       return;
     }
 
-    toast.success("Category delete ho gayi.");
+    toast.success("Category deleted.");
 
     setCategoryList((current) => current.filter((item) => item.id !== category.id));
   };
@@ -824,7 +822,7 @@ function AdminCategories() {
       });
 
     if (error) {
-      toast.error("Category products load nahi ho sake.");
+      toast.error("Couldn't load the products in this category.");
 
       setCategoryProducts([]);
 
@@ -863,7 +861,7 @@ function AdminCategories() {
     setProductBusyId(null);
 
     if (error) {
-      toast.error("Product visibility update nahi ho saki.");
+      toast.error("Couldn't update product visibility.");
 
       return;
     }
@@ -881,7 +879,9 @@ function AdminCategories() {
     );
 
     toast.success(
-      product.active ? "Product website se hide ho gaya." : "Product website par show ho gaya.",
+      product.active
+        ? "Product hidden from the website."
+        : "Product is now visible on the website.",
     );
   };
 
@@ -1065,7 +1065,7 @@ function AdminCategories() {
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
             ) : categoryProducts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Is category mein koi product nahi.</p>
+              <p className="text-sm text-muted-foreground">No products in this category.</p>
             ) : (
               <div className="space-y-2">
                 {categoryProducts.slice(0, 20).map((product) => (
@@ -1158,7 +1158,7 @@ function AdminCategories() {
               <DialogTitle>Add Category</DialogTitle>
 
               <DialogDescription>
-                Main category aur uske subcategory options ek saath add kar sakte hain.
+                Add a main category and its subcategories in one step.
               </DialogDescription>
             </DialogHeader>
 
@@ -1203,8 +1203,7 @@ function AdminCategories() {
                 {showSubcategories && (
                   <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3">
                     <p className="text-xs leading-5 text-muted-foreground">
-                      Example: Janimaz ke andar Velvet Janimaz, Kids Janimaz aur Travel Janimaz add
-                      kar sakte hain.
+                      Example: under Janimaz, add Velvet Janimaz, Kids Janimaz and Travel Janimaz.
                     </p>
 
                     <div className="space-y-2">
@@ -1270,13 +1269,13 @@ function AdminCategories() {
               <h2 className="text-lg font-bold">Pending Category Requests</h2>
 
               <p className="mt-1 text-sm text-muted-foreground">
-                Vendor ki new categories ko approve, edit ya reject karein.
+                Approve, edit or reject new categories suggested by vendors.
               </p>
             </div>
 
             {pendingCategories.length === 0 ? (
               <div className="surface-card p-6 text-sm text-muted-foreground">
-                Abhi koi pending category request nahi hai.
+                No pending category requests.
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -1292,13 +1291,13 @@ function AdminCategories() {
               <h2 className="text-lg font-bold">Approved Categories</h2>
 
               <p className="mt-1 text-sm text-muted-foreground">
-                Marketplace ki active approved categories.
+                Active, approved categories on the marketplace.
               </p>
             </div>
 
             {approvedCategories.length === 0 ? (
               <div className="surface-card p-6 text-sm text-muted-foreground">
-                Koi approved category nahi hai.
+                No approved categories yet.
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -1315,7 +1314,7 @@ function AdminCategories() {
                 <h2 className="text-lg font-bold">Rejected Categories</h2>
 
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Rejected requests ko review ya dobara approve kar sakte hain.
+                  You can review rejected requests or approve them again.
                 </p>
               </div>
 
@@ -1344,8 +1343,7 @@ function AdminCategories() {
             <DialogTitle>Edit Category</DialogTitle>
 
             <DialogDescription>
-              Category ka naam update karein. Is category ke products bhi naye naam par move ho
-              jayenge.
+              Rename the category. Its products will move to the new name too.
             </DialogDescription>
           </DialogHeader>
 

@@ -94,7 +94,7 @@ function VendorProducts() {
 
       if (productsRes.error) {
         console.error("Unable to load products", productsRes.error);
-        toast.error("Products load nahi ho sake.");
+        toast.error("Couldn't load products.");
         setLoading(false);
         return;
       }
@@ -128,10 +128,10 @@ function VendorProducts() {
     setBusyId(null);
 
     if (error || !data || data.length === 0) {
-      toast.error("Status update nahi ho saka.");
+      toast.error("Couldn't update the status.");
       return;
     }
-    toast.success(active ? "Product active ho gaya." : "Product inactive ho gaya.");
+    toast.success(active ? "Product activated." : "Product deactivated.");
     setProductList((prev) => prev.map((p) => (p.id === id ? { ...p, active } : p)));
   };
 
@@ -141,10 +141,10 @@ function VendorProducts() {
     setBusyId(null);
 
     if (error || !data || data.length === 0) {
-      toast.error("Product delete nahi ho saka.");
+      toast.error("Couldn't delete the product.");
       return;
     }
-    toast.success(`"${name}" delete ho gaya.`);
+    toast.success(`"${name}" deleted.`);
     setProductList((prev) => prev.filter((p) => p.id !== id));
   };
 
@@ -205,8 +205,8 @@ function VendorProducts() {
       ) : list.length === 0 ? (
         <EmptyState
           icon={PackageSearch}
-          title="Koi product nahi mila"
-          description="Filters clear karein ya naya product add karein."
+          title="No products found"
+          description="Clear the filters or add a new product."
           action={
             <Button asChild className="rounded-xl">
               <Link to="/vendor/products/new">Add Product</Link>
@@ -293,9 +293,9 @@ function VendorProducts() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Product delete karein?</AlertDialogTitle>
+                              <AlertDialogTitle>Delete this product?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                "{p.name}" permanently remove ho jayega. Ye wapas nahi hoga.
+                                "{p.name}" will be permanently removed. This can't be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

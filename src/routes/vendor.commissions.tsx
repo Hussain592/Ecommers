@@ -102,7 +102,7 @@ function VendorCommissions() {
   const rates = [...new Set(commissions.map((c) => Number(c.rate)))];
   const rateHint =
     rates.length === 0
-      ? "Abhi koi commission nahi"
+      ? "No commissions yet"
       : rates.length === 1
         ? `Commission rate ${rates[0]}%`
         : `Rates ${Math.min(...rates)}% – ${Math.max(...rates)}%`;
@@ -112,7 +112,7 @@ function VendorCommissions() {
       brand={storeName}
       role="Vendor Account"
       title="Commissions"
-      subtitle="Partners ko di jane wali commission"
+      subtitle="Commission paid to partners"
       nav={vendorNav}
     >
       {loading ? (
@@ -122,8 +122,8 @@ function VendorCommissions() {
       ) : loadError ? (
         <EmptyState
           icon={BadgePercent}
-          title="Commissions load nahi ho sakin"
-          description="Thori dair baad page refresh karein. Masla rahe to support se rabta karein."
+          title="Couldn't load commissions"
+          description="Refresh the page in a few minutes. If the problem continues, contact support."
         />
       ) : (
         <>
@@ -147,8 +147,8 @@ function VendorCommissions() {
           {commissions.length === 0 ? (
             <EmptyState
               icon={BadgePercent}
-              title="Abhi koi commission nahi"
-              description="Jab koi partner aapke products bechega to us ki commission yahan nazar aayegi."
+              title="No commissions yet"
+              description="When a partner sells your products, their commission will appear here."
             />
           ) : (
             <section className="surface-card overflow-hidden">

@@ -91,7 +91,7 @@ function OrdersPage() {
             <div className="text-center">
               <Loader2 className="mx-auto h-7 w-7 animate-spin text-[#0b513b]" />
 
-              <p className="mt-3 text-sm text-[#6f7d75]">Orders load ho rahe hain...</p>
+              <p className="mt-3 text-sm text-[#6f7d75]">Loading orders...</p>
             </div>
           </div>
         </main>
@@ -127,11 +127,11 @@ function OrdersPage() {
               </div>
 
               <h1 className="mt-5 text-xl font-extrabold tracking-tight text-[#102d24] sm:text-2xl">
-                Order history ke liye login zaroori nahi
+                No account? You can still track your order
               </h1>
 
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#6f7d75]">
-                Guest order ko Order ID aur mobile number se track karein.
+                Track a guest order with its Order ID and mobile number.
               </p>
 
               {/* HCI:
@@ -161,7 +161,7 @@ function OrdersPage() {
               </div>
 
               <p className="mt-5 text-[11px] leading-5 text-[#89938e]">
-                Order track karne ke liye checkout wala mobile number use karein.
+                Use the mobile number you entered at checkout.
               </p>
             </div>
           </section>
@@ -185,7 +185,9 @@ function OrdersPage() {
 
           <h1 className="mt-1 text-2xl font-extrabold text-[#102d24] sm:text-3xl">My Orders</h1>
 
-          <p className="mt-1 text-sm text-[#6f7d75]">Apne COD orders ka status yahan dekhein.</p>
+          <p className="mt-1 text-sm text-[#6f7d75]">
+            Check the status of your Cash on Delivery orders.
+          </p>
         </div>
 
         {orders.length === 0 ? (
@@ -194,10 +196,10 @@ function OrdersPage() {
               <PackageSearch className="h-6 w-6" />
             </div>
 
-            <h2 className="mt-4 text-lg font-extrabold text-[#102d24]">Abhi koi order nahi</h2>
+            <h2 className="mt-4 text-lg font-extrabold text-[#102d24]">No orders yet</h2>
 
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#6f7d75]">
-              Products browse karke apna pehla order place karein.
+              Browse products and place your first order.
             </p>
 
             <Button

@@ -43,7 +43,7 @@ function AdminProfile() {
         .eq("auth_id", authData.user.id)
         .maybeSingle();
 
-      if (error) toast.error("Profile load nahi ho saka.");
+      if (error) toast.error("Couldn't load your profile.");
       setProfile(data);
       setLoading(false);
     };
@@ -73,12 +73,12 @@ function AdminProfile() {
     setSaving(false);
 
     if (error || !data) {
-      toast.error("Profile save nahi ho saka.");
+      toast.error("Couldn't save your profile.");
       return;
     }
 
     setProfile(data);
-    toast.success("Profile save ho gaya.");
+    toast.success("Profile saved.");
   };
 
   if (loading) {
@@ -94,7 +94,7 @@ function AdminProfile() {
   if (!profile) {
     return (
       <DashboardShell brand="azadari.store" role="Owner / Admin" title="My Profile" nav={adminNav}>
-        <p className="text-sm text-muted-foreground">Profile nahi mila.</p>
+        <p className="text-sm text-muted-foreground">Profile not found.</p>
       </DashboardShell>
     );
   }
@@ -106,7 +106,7 @@ function AdminProfile() {
       brand="azadari.store"
       role="Owner / Admin"
       title="My Profile"
-      subtitle="Apni personal details update karein"
+      subtitle="Update your personal details"
       nav={adminNav}
     >
       <form className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]" onSubmit={saveProfile}>

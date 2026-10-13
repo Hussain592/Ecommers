@@ -130,14 +130,12 @@ function AdminVendorDetail() {
           : previous,
       );
 
-      toast.success(
-        action === "approve" ? "Vendor approve ho gaya." : "Vendor application reject ho gayi.",
-      );
+      toast.success(action === "approve" ? "Vendor approved." : "Vendor application rejected.");
     } catch (error) {
       console.error("Unable to review vendor", error);
 
       toast.error(
-        error instanceof Error ? error.message : "Vendor application update nahi ho saki.",
+        error instanceof Error ? error.message : "Couldn't update the vendor application.",
       );
     } finally {
       setBusy(false);
@@ -167,7 +165,7 @@ function AdminVendorDetail() {
       }
 
       if (!data || data.length === 0) {
-        throw new Error("Status update ki permission nahi mili.");
+        throw new Error("You don't have permission to change the status.");
       }
 
       setVendor((previous) =>
@@ -179,13 +177,11 @@ function AdminVendorDetail() {
           : previous,
       );
 
-      toast.success(
-        status === "Active" ? "Vendor dobara active ho gaya." : "Vendor suspend ho gaya.",
-      );
+      toast.success(status === "Active" ? "Vendor reactivated." : "Vendor suspended.");
     } catch (error) {
       console.error("Unable to update vendor status", error);
 
-      toast.error(error instanceof Error ? error.message : "Status update nahi ho saka.");
+      toast.error(error instanceof Error ? error.message : "Couldn't update the status.");
     } finally {
       setBusy(false);
     }
@@ -222,7 +218,7 @@ function AdminVendorDetail() {
         subtitle=""
         nav={adminNav}
       >
-        <p className="text-sm text-muted-foreground">Vendor nahi mila.</p>
+        <p className="text-sm text-muted-foreground">Vendor not found.</p>
       </DashboardShell>
     );
   }
@@ -234,7 +230,7 @@ function AdminVendorDetail() {
       brand="azadari.store"
       role="Owner / Admin"
       title={vendor.name}
-      subtitle="Vendor ki poori details"
+      subtitle="Full vendor details"
       nav={adminNav}
       actions={
         <Link
@@ -428,7 +424,7 @@ function AdminVendorDetail() {
               {products.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                    Koi product nahi.
+                    No products yet.
                   </td>
                 </tr>
               ) : (

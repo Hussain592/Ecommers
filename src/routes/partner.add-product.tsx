@@ -24,7 +24,7 @@ function PartnerAddProduct() {
       brand="Zeeshan Ali"
       role="Partner Account"
       title="Add Product"
-      subtitle="Product submit karein — vendor approve karega"
+      subtitle="Submit a product for the vendor to approve"
       nav={partnerNav}
     >
       <ProductForm mode="create" showStatus={false} actorType="partner" />

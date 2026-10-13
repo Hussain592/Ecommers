@@ -116,7 +116,7 @@ export function ProductForm({
       if (error) {
         console.error("Unable to load categories", error);
 
-        toast.error("Categories load nahi ho sakein.");
+        toast.error("Couldn't load categories. Refresh the page to try again.");
 
         setCategoriesLoading(false);
 
@@ -191,7 +191,7 @@ export function ProductForm({
     const name = newCategory.trim().replace(/\s+/g, " ");
 
     if (name.length < 2) {
-      toast.error("Category ka valid naam likhein.");
+      toast.error("Enter a category name (at least 2 characters).");
 
       return;
     }
@@ -209,7 +209,7 @@ export function ProductForm({
       setNewCategory("");
       setShowNewCategory(false);
 
-      toast.info("Ye category pehle se mojood hai. Select kar di gayi hai.");
+      toast.info("This category already exists, so we selected it for you.");
 
       return;
     }
@@ -223,7 +223,7 @@ export function ProductForm({
       const { data: authData, error: authError } = await supabase.auth.getUser();
 
       if (authError || !authData.user) {
-        throw new Error("Category add karne ke liye login zaroori hai.");
+        throw new Error("Sign in to add a category.");
       }
 
       /*
@@ -240,7 +240,7 @@ export function ProductForm({
       }
 
       if (!vendor) {
-        throw new Error("Aapka vendor account nahi mila.");
+        throw new Error("We couldn't find your vendor account.");
       }
 
       /*
@@ -307,11 +307,13 @@ export function ProductForm({
 
       setShowNewCategory(false);
 
-      toast.success("Category request submit ho gayi. Admin approval pending hai.");
+      toast.success("Category submitted. It will appear once an admin approves it.");
     } catch (error) {
       console.error("Unable to add category", error);
 
-      toast.error(error instanceof Error ? error.message : "Category add nahi ho saki.");
+      toast.error(
+        error instanceof Error ? error.message : "Couldn't add the category. Please try again.",
+      );
     } finally {
       setCategorySaving(false);
     }
@@ -331,20 +333,18 @@ export function ProductForm({
     const availableSlots = 3 - imagePreviews.length;
 
     if (files.length > availableSlots) {
-      toast.error(
-        `Sirf ${availableSlots} aur image${availableSlots === 1 ? "" : "s"} add kar sakte hain.`,
-      );
+      toast.error(`You can add ${availableSlots} more image${availableSlots === 1 ? "" : "s"}.`);
       return;
     }
 
     if (files.some((file) => !file.type.startsWith("image/"))) {
-      toast.error("Sirf image file upload karein.");
+      toast.error("Only image files can be uploaded.");
 
       return;
     }
 
     if (files.some((file) => file.size > 5 * 1024 * 1024)) {
-      toast.error("Har image 5 MB se chhoti honi chahiye.");
+      toast.error("Each image must be smaller than 5 MB.");
 
       return;
     }
@@ -400,15 +400,13 @@ export function ProductForm({
     event.preventDefault();
 
     if (!selectedCategory) {
-      toast.error("Product category select karein.");
+      toast.error("Select a category for the product.");
 
       return;
     }
 
     if (imagePreviews.length !== 3) {
-      toast.error(
-        `Product submit karne ke liye total 3 images chahiye. ${remainingImageCount} aur add karein.`,
-      );
+      toast.error(`A product needs 3 images. Add ${remainingImageCount} more.`);
 
       return;
     }
@@ -423,7 +421,7 @@ export function ProductForm({
       const { data: authData, error: authError } = await supabase.auth.getUser();
 
       if (authError || !authData.user) {
-        throw new Error("Product save karne ke liye login zaroori hai.");
+        throw new Error("Sign in to save the product.");
       }
 
       /*
@@ -443,11 +441,11 @@ export function ProductForm({
         }
 
         if (!profile || profile.role !== "partner" || profile.status !== "Active") {
-          throw new Error("Aapka partner account active nahi hai.");
+          throw new Error("Your partner account isn't active yet.");
         }
 
         if (!profile.vendor_id) {
-          throw new Error("Aapko abhi kisi Vendor ke saath assign nahi kiya gaya.");
+          throw new Error("You haven't been assigned to a vendor yet. Contact the admin.");
         }
 
         vendorId = profile.vendor_id;
@@ -463,7 +461,7 @@ export function ProductForm({
         }
 
         if (!vendor) {
-          throw new Error("Aapka vendor account nahi mila.");
+          throw new Error("We couldn't find your vendor account.");
         }
 
         vendorId = vendor.id;
@@ -517,12 +515,10 @@ export function ProductForm({
         }
 
         if (!updatedProduct) {
-          throw new Error(
-            "Product update nahi ho saka ya aapko is product ki permission nahi hai.",
-          );
+          throw new Error("Couldn't update the product. You may not have permission to edit it.");
         }
 
-        toast.success("Product update ho gaya.");
+        toast.success("Product updated.");
       } else {
         /*
          * CREATE PRODUCT
@@ -541,7 +537,7 @@ export function ProductForm({
           throw error;
         }
 
-        toast.success("Product submit ho gaya. Admin approval ke baad website par show hoga.");
+        toast.success("Product submitted. It will go live after admin approval.");
       }
 
       if (actorType === "partner") {
@@ -557,9 +553,7 @@ export function ProductForm({
       console.error("Unable to save product", error);
 
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Product save nahi ho saka. Please dobara try karein.",
+        error instanceof Error ? error.message : "Couldn't save the product. Please try again.",
       );
     } finally {
       setSaving(false);
@@ -662,8 +656,8 @@ export function ProductForm({
                   />
 
                   <p className="mt-2 text-xs text-muted-foreground">
-                    New category admin approval ke liye submit hogi. Aap is category ko apne pending
-                    product ke liye use kar sakte hain.
+                    New categories need admin approval. You can still use this one on your pending
+                    product.
                   </p>
 
                   <Button
@@ -777,7 +771,7 @@ export function ProductForm({
                 <Upload className="mx-auto h-6 w-6 text-muted-foreground" />
 
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Drag & drop ya click karke image upload karein
+                  Drag and drop images here, or click to choose
                 </p>
               </div>
             )}
@@ -822,8 +816,7 @@ export function ProductForm({
           </Button>
 
           <p className="mt-2 text-xs text-muted-foreground">
-            Pehli image barqarar rahegi. Baqi images add karein; har image 5 MB se chhoti honi
-            chahiye.
+            The first image stays as the cover. Add the remaining images; each must be under 5 MB.
           </p>
         </section>
 
@@ -852,8 +845,8 @@ export function ProductForm({
             <p className="text-sm font-semibold">Admin approval required</p>
 
             <p className="mt-1 text-xs text-muted-foreground">
-              Product pehle review ke liye submit hoga. Agar aapne new category banayi hai to wo bhi
-              admin approval ke liye jayegi.
+              Your product will be reviewed before it goes live. Any new category you created also
+              needs admin approval.
             </p>
           </section>
         )}

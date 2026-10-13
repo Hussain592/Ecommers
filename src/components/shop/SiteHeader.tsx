@@ -135,7 +135,7 @@ export function SiteHeader() {
             size="sm"
             className="hidden rounded-lg text-[#f7f0df] hover:bg-white/10 hover:text-white focus-visible:ring-[#d8b85c] sm:inline-flex"
           >
-            <Link to="/login">Login</Link>
+            <Link to="/login">Sign in</Link>
           </Button>
 
           {/* Cart */}
@@ -215,7 +215,7 @@ export function SiteHeader() {
               onClick={() => setOpen(false)}
               className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-[#f2ecdc] transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8b85c]"
             >
-              Login
+              Sign in
             </Link>
           </div>
 

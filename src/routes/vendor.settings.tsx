@@ -71,7 +71,7 @@ function VendorSettings() {
       brand="Al-Madina Traders"
       role="Vendor Account"
       title="Settings"
-      subtitle="Store profile aur preferences"
+      subtitle="Store profile and preferences"
       nav={vendorNav}
     >
       <form
@@ -79,7 +79,7 @@ function VendorSettings() {
         onSubmit={async (e) => {
           e.preventDefault();
           if (!vendorId) {
-            toast.error("Vendor profile load nahi hua.");
+            toast.error("Couldn't load your vendor profile.");
             return;
           }
           setSaving(true);
@@ -92,7 +92,7 @@ function VendorSettings() {
               .eq("auth_id", authData.user.id);
           setSaving(false);
           if (error) toast.error(error.message);
-          else toast.success("Settings Supabase mein save ho gayi.");
+          else toast.success("Settings saved.");
         }}
       >
         <section className="surface-card p-5">
@@ -168,9 +168,9 @@ function VendorSettings() {
           <h2 className="font-bold">Order Preferences</h2>
           <div className="mt-4 space-y-4">
             {[
-              ["Auto-accept COD orders", "Naye orders khud-ba-khud confirm hon"],
-              ["Low stock alerts", "Stock 10 se kam hone par notify karein"],
-              ["Allow partner listings", "Partners aapke store par products add kar sakein"],
+              ["Auto-accept COD orders", "Confirm new orders automatically"],
+              ["Low stock alerts", "Notify me when stock drops below 10"],
+              ["Allow partner listings", "Let partners add products to your store"],
             ].map(([t, d], i) => (
               <div key={t}>
                 <div className="flex items-center justify-between gap-4">

@@ -55,7 +55,7 @@ function AdminSettings() {
       const { data, error } = await supabase.from("platform_settings").select("key, value");
       if (error) {
         console.error(error);
-        toast.error("Settings load nahi ho sakin, defaults dikha rahe hain.");
+        toast.error("Couldn't load settings. Showing the defaults.");
         setLoading(false);
         return;
       }
@@ -103,7 +103,7 @@ function AdminSettings() {
     }
 
     setSettings(updated);
-    toast.success("Settings save ho gayi.");
+    toast.success("Settings saved.");
   };
 
   if (loading) {
@@ -209,21 +209,21 @@ function AdminSettings() {
               [
                 "cod_only",
                 "Cash on Delivery only",
-                "Online payments disabled rakhein",
+                "Keep online payments turned off",
                 codOnly,
                 setCodOnly,
               ] as const,
               [
                 "guest_checkout",
                 "Guest checkout",
-                "Bina account order allow karein",
+                "Let customers order without an account",
                 guestCheckout,
                 setGuestCheckout,
               ] as const,
               [
                 "auto_approve_vendors",
                 "Auto-approve new vendors",
-                "Naye vendors ko manual review ke baghair activate karein",
+                "Activate new vendors without a manual review",
                 autoApproveVendors,
                 setAutoApproveVendors,
               ] as const,

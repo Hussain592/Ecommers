@@ -133,7 +133,7 @@ function VendorDashboard() {
         brand={storeName}
         role="Vendor Account"
         title="Dashboard Overview"
-        subtitle="Aaj ki performance ek nazar mein"
+        subtitle="Today's performance at a glance"
         nav={vendorNav}
       >
         <div className="flex justify-center p-10">
@@ -148,7 +148,7 @@ function VendorDashboard() {
       brand={storeName}
       role="Vendor Account"
       title="Dashboard Overview"
-      subtitle="Aaj ki performance ek nazar mein"
+      subtitle="Today's performance at a glance"
       nav={vendorNav}
       actions={
         <Button asChild size="sm" className="rounded-xl">
@@ -232,7 +232,7 @@ function VendorDashboard() {
           <h2 className="font-bold">Recent Orders</h2>
           <div className="mt-4 space-y-3">
             {orders.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Abhi koi order nahi aaya.</p>
+              <p className="text-sm text-muted-foreground">No orders yet.</p>
             ) : (
               orders.slice(0, 5).map((o) => (
                 <div

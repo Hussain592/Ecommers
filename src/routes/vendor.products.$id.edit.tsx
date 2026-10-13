@@ -87,20 +87,18 @@ function EditProduct() {
       brand="Al-Madina Traders"
       role="Vendor Account"
       title="Edit Product"
-      subtitle={
-        loading ? "Product load ho raha hai..." : product ? product.name : "Product not found"
-      }
+      subtitle={loading ? "Loading product..." : product ? product.name : "Product not found"}
       nav={vendorNav}
     >
       {loading ? (
         <div className="surface-card p-10 text-center text-sm text-muted-foreground">
-          Product load ho raha hai...
+          Loading product...
         </div>
       ) : product ? (
         <ProductForm mode="edit" product={product} />
       ) : (
         <div className="surface-card p-10 text-center">
-          <p className="text-sm text-muted-foreground">Ye product mojood nahi hai.</p>
+          <p className="text-sm text-muted-foreground">This product doesn't exist.</p>
           <Button asChild className="mt-4 rounded-xl">
             <Link to="/vendor/products">Back to products</Link>
           </Button>

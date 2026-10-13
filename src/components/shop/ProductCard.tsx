@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { formatPKR, productImageFallback, productImageSource, type Product } from "@/data/mock";
 import { useCart } from "@/lib/cart";
+import { useRatingSummary } from "@/lib/reviews";
 
 export function ProductCard({ product }: { product: Product }) {
   const { add } = useCart();
@@ -16,14 +17,18 @@ export function ProductCard({ product }: { product: Product }) {
       ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
       : 0;
 
-  const hasRating = Number(product.reviews ?? 0) > 0 && Number(product.rating ?? 0) > 0;
+  // Live verified-review summary; falls back to whatever the product row carries.
+  const summary = useRatingSummary(product.id);
+  const ratingValue = summary?.rating ?? Number(product.rating ?? 0);
+  const reviewCount = summary?.count ?? Number(product.reviews ?? 0);
+  const hasRating = reviewCount > 0 && ratingValue > 0;
 
   const handleAddToCart = () => {
     if (outOfStock) return;
 
     add(product.id, 1);
 
-    toast.success("Cart mein add ho gaya", {
+    toast.success("Added to cart", {
       description: product.name,
     });
   };
@@ -97,16 +102,24 @@ export function ProductCard({ product }: { product: Product }) {
         {/* Ratings */}
         {hasRating && (
           <div className="mt-2 flex items-center gap-1.5 text-xs text-[#6f746f]">
-            <span className="inline-flex items-center gap-1 font-semibold text-[#102d24]">
-              <Star aria-hidden="true" className="h-3.5 w-3.5 fill-[#c99a20] text-[#c99a20]" />
+            <span className="sr-only">
+              {ratingValue.toFixed(1)} out of 5 stars, {reviewCount}{" "}
+              {reviewCount === 1 ? "review" : "reviews"}
+            </span>
 
-              {Number(product.rating).toFixed(1)}
+            <span
+              aria-hidden="true"
+              className="inline-flex items-center gap-1 font-semibold text-[#102d24]"
+            >
+              <Star className="h-3.5 w-3.5 fill-[#c99a20] text-[#c99a20]" />
+
+              {ratingValue.toFixed(1)}
             </span>
 
             <span aria-hidden="true">·</span>
 
-            <span>
-              {product.reviews} {Number(product.reviews) === 1 ? "review" : "reviews"}
+            <span aria-hidden="true">
+              {reviewCount} {reviewCount === 1 ? "review" : "reviews"}
             </span>
           </div>
         )}

@@ -71,12 +71,12 @@ function LoginPage() {
       const password = String(formData.get("password") ?? "");
 
       if (!email || !password) {
-        toast.error("Email aur password enter karein.");
+        toast.error("Enter your email and password.");
         return;
       }
 
       if (password.length < 6) {
-        toast.error("Password kam az kam 6 characters ka hona chahiye.");
+        toast.error("Password must be at least 6 characters.");
         return;
       }
 
@@ -89,7 +89,7 @@ function LoginPage() {
         const name = String(formData.get("name") ?? "").trim();
 
         if (!name) {
-          toast.error("Full name enter karein.");
+          toast.error("Enter your full name.");
           return;
         }
 
@@ -110,15 +110,15 @@ function LoginPage() {
         }
 
         if (!data.user) {
-          throw new Error("Account create nahi ho saka.");
+          throw new Error("Couldn't create your account. Please try again.");
         }
 
         if (!data.session) {
-          toast.success("Account ban gaya. Email confirm karke phir sign in karein.");
+          toast.success("Account created. Check your email to confirm it, then sign in.");
 
           setCreatingAccount(false);
         } else {
-          toast.success("Account ban gaya!");
+          toast.success("Account created!");
 
           await navigate({
             to: "/",
@@ -160,7 +160,7 @@ function LoginPage() {
           .maybeSingle();
 
         if (vendorRow?.status !== "Active") {
-          toast.error("Aapka vendor account abhi active nahi hai. Admin se rabta karein.");
+          toast.error("Your vendor account isn't active yet. Please contact the admin.");
 
           await supabase.auth.signOut();
           return;
@@ -169,7 +169,7 @@ function LoginPage() {
         target = "/vendor";
       } else if (profile?.role === "partner") {
         if (profile?.status !== "Active") {
-          toast.error("Aapka partner account abhi active nahi hai. Admin se rabta karein.");
+          toast.error("Your partner account isn't active yet. Please contact the admin.");
 
           await supabase.auth.signOut();
           return;
@@ -186,7 +186,9 @@ function LoginPage() {
        */
       window.location.href = target;
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Login complete nahi ho saka.");
+      toast.error(
+        error instanceof Error ? error.message : "Couldn't sign you in. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -246,8 +248,8 @@ function LoginPage() {
           </h1>
 
           <p className="mt-4 text-sm leading-7 text-[#d8d1bf]">
-            Customer orders, vendor dashboard aur partner tools — account role ke mutabiq aapko
-            automatically sahi jagah bheja jayega.
+            Customer orders, the vendor dashboard and partner tools. After you sign in, we'll take
+            you to the right place for your account.
           </p>
 
           <div className="mt-7 grid gap-3">
@@ -258,7 +260,7 @@ function LoginPage() {
                 <p className="text-sm font-bold">Secure account access</p>
 
                 <p className="mt-1 text-xs leading-5 text-[#cfc7b5]">
-                  Vendor aur partner access sirf active approved accounts ko milta hai.
+                  Only approved, active vendor and partner accounts get dashboard access.
                 </p>
               </div>
             </div>
@@ -270,7 +272,7 @@ function LoginPage() {
                 <p className="text-sm font-bold">Guest shopping available</p>
 
                 <p className="mt-1 text-xs leading-5 text-[#cfc7b5]">
-                  Customer account zaroori nahi — guest checkout se bhi order ho sakta hai.
+                  No account needed. You can order with guest checkout.
                 </p>
               </div>
             </div>
@@ -308,7 +310,7 @@ function LoginPage() {
           <section className="rounded-3xl border border-[#ded5bd] bg-[#fffdf7] p-5 shadow-[0_12px_32px_rgba(8,43,33,0.07)] sm:p-7">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9a7927]">
-                {creatingAccount ? "Create Account" : "Account Access"}
+                {creatingAccount ? "Create account" : "Account Access"}
               </p>
 
               <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-[#102d24] sm:text-3xl">
@@ -317,8 +319,8 @@ function LoginPage() {
 
               <p className="mt-2 text-sm leading-6 text-[#6f7d75]">
                 {creatingAccount
-                  ? "Customer account banayein. Shopping guest checkout se bhi available hai."
-                  : "Apne account mein sign in karein."}
+                  ? "Create a customer account. You can also shop with guest checkout."
+                  : "Sign in to your account."}
               </p>
             </div>
 
@@ -381,7 +383,7 @@ function LoginPage() {
                       to="/forgot-password"
                       className="rounded-md text-xs font-semibold text-[#0b513b] underline decoration-[#c9a24b] underline-offset-4 hover:text-[#082b21] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a24b]"
                     >
-                      Password bhool gaye?
+                      Forgot password?
                     </Link>
                   )}
                 </div>
@@ -419,7 +421,7 @@ function LoginPage() {
                 </div>
 
                 {creatingAccount && (
-                  <p className="text-[11px] text-[#89938e]">Kam az kam 6 characters.</p>
+                  <p className="text-[11px] text-[#89938e]">At least 6 characters.</p>
                 )}
               </div>
 
@@ -437,11 +439,11 @@ function LoginPage() {
 
                 {loading
                   ? creatingAccount
-                    ? "Creating Account..."
-                    : "Signing In..."
+                    ? "Creating account..."
+                    : "Signing in..."
                   : creatingAccount
-                    ? "Create Account"
-                    : "Sign In"}
+                    ? "Create account"
+                    : "Sign in"}
               </Button>
             </form>
 
@@ -471,15 +473,15 @@ function LoginPage() {
             <ShoppingBag aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#0b513b]" />
 
             <div>
-              <p className="text-sm font-bold text-[#102d24]">Sirf shopping karni hai?</p>
+              <p className="text-sm font-bold text-[#102d24]">Just want to shop?</p>
 
               <p className="mt-1 text-xs leading-5 text-[#6f7d75]">
-                Customer account ki zaroorat nahi.{" "}
+                You don't need an account.{" "}
                 <Link
                   to="/products"
                   className="font-bold text-[#0b513b] underline decoration-[#c9a24b] underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a24b]"
                 >
-                  Guest checkout se shop karein
+                  Shop with guest checkout
                 </Link>
                 .
               </p>

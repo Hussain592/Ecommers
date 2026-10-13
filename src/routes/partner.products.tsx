@@ -102,8 +102,8 @@ function PartnerProducts() {
       ) : list.length === 0 ? (
         <EmptyState
           icon={PackageSearch}
-          title="Koi listing nahi mili"
-          description="Naya product add karein ya search clear karein."
+          title="No listings found"
+          description="Add a new product or clear your search."
           action={
             <Button asChild className="rounded-xl">
               <Link to="/partner/add-product">Add Product</Link>

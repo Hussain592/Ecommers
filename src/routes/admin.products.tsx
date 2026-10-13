@@ -79,7 +79,7 @@ function AdminProducts() {
     if (error) {
       console.error("Unable to load products", error);
 
-      toast.error("Products load nahi ho sake.");
+      toast.error("Couldn't load products.");
 
       setProducts([]);
       setLoading(false);
@@ -158,7 +158,7 @@ function AdminProducts() {
     if (error) {
       console.error("Unable to update product visibility", error);
 
-      toast.error("Product status update nahi ho saka.");
+      toast.error("Couldn't update the product status.");
 
       return;
     }
@@ -175,7 +175,7 @@ function AdminProducts() {
     );
 
     toast.success(
-      active ? "Product website par show ho raha hai." : "Product website se hide ho gaya.",
+      active ? "Product is now visible on the website." : "Product hidden from the website.",
     );
   };
 
@@ -201,7 +201,7 @@ function AdminProducts() {
     if (error) {
       console.error("Unable to update featured status", error);
 
-      toast.error("Featured status update nahi ho saka.");
+      toast.error("Couldn't update the featured status.");
 
       return;
     }
@@ -218,9 +218,7 @@ function AdminProducts() {
     );
 
     toast.success(
-      nextFeatured
-        ? "Product homepage par featured ho gaya."
-        : "Product featured se remove ho gaya.",
+      nextFeatured ? "Product is now featured on the homepage." : "Product removed from featured.",
     );
   };
 
@@ -229,7 +227,7 @@ function AdminProducts() {
       brand="azadari.store"
       role="Owner / Admin"
       title="Product Review"
-      subtitle="Products approve karein, feature karein ya website se hide karein"
+      subtitle="Approve, feature or hide products"
       nav={adminNav}
     >
       {/* =====================================
@@ -280,7 +278,7 @@ function AdminProducts() {
         </div>
 
         <p className="mt-3 text-xs text-[#748078]">
-          Sirf active products public storefront par display hote hain.
+          Only active products are shown on the storefront.
         </p>
       </section>
 
@@ -292,7 +290,7 @@ function AdminProducts() {
           <div className="text-center">
             <Loader2 className="mx-auto h-7 w-7 animate-spin text-[#0b513b]" />
 
-            <p className="mt-3 text-sm text-[#6f7d75]">Products load ho rahe hain...</p>
+            <p className="mt-3 text-sm text-[#6f7d75]">Loading products...</p>
           </div>
         </div>
       ) : (
@@ -490,9 +488,9 @@ function AdminProducts() {
           ===================================== */}
           {filtered.length === 0 && (
             <div className="p-10 text-center">
-              <p className="text-sm font-semibold text-[#102d24]">Koi product nahi mila.</p>
+              <p className="text-sm font-semibold text-[#102d24]">No products found.</p>
 
-              <p className="mt-1 text-xs text-[#748078]">Search keyword change karke try karein.</p>
+              <p className="mt-1 text-xs text-[#748078]">Try a different search term.</p>
             </div>
           )}
         </section>
@@ -503,7 +501,7 @@ function AdminProducts() {
       ===================================== */}
       <p className="flex items-center gap-2 text-xs text-[#748078]">
         <CheckCircle2 aria-hidden="true" className="h-4 w-4 text-[#0b6b4c]" />
-        Sirf active products public storefront par display hote hain.
+        Only active products are shown on the storefront.
       </p>
     </DashboardShell>
   );

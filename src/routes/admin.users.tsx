@@ -137,7 +137,7 @@ function AdminUsers() {
       if (error) {
         console.error(error);
 
-        toast.error("Vendors load nahi ho sake.");
+        toast.error("Couldn't load vendors.");
 
         setLoading(false);
         return;
@@ -169,7 +169,7 @@ function AdminUsers() {
       if (error) {
         console.error(error);
 
-        toast.error("Users load nahi ho sake.");
+        toast.error("Couldn't load users.");
 
         setLoading(false);
         return;
@@ -223,7 +223,7 @@ function AdminUsers() {
       }
 
       if (!data || data.length === 0) {
-        throw new Error("Permission nahi mili.");
+        throw new Error("You don't have permission to do this.");
       }
 
       setRows((previous) =>
@@ -239,9 +239,9 @@ function AdminUsers() {
 
       await loadVendorOptions();
 
-      toast.success(status === "Active" ? "Vendor active ho gaya." : "Vendor suspend ho gaya.");
+      toast.success(status === "Active" ? "Vendor activated." : "Vendor suspended.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Vendor status update nahi ho saka.");
+      toast.error(error instanceof Error ? error.message : "Couldn't update the vendor status.");
     } finally {
       setBusyKey(null);
     }
@@ -279,7 +279,7 @@ function AdminUsers() {
     }
 
     if (!partnerVendorId) {
-      toast.error("Partner ke liye Vendor select karein.");
+      toast.error("Select a vendor for this partner.");
 
       return;
     }
@@ -303,7 +303,7 @@ function AdminUsers() {
       if (tab === "customers") {
         setRows((previous) => previous.filter((item) => item.key !== partnerDialogRow.key));
 
-        toast.success(`${partnerDialogRow.name} ab Partner hai.`);
+        toast.success(`${partnerDialogRow.name} is now a partner.`);
       } else {
         /*
          * Existing partner:
@@ -321,7 +321,7 @@ function AdminUsers() {
           ),
         );
 
-        toast.success(`${partnerDialogRow.name} ka Vendor assign ho gaya.`);
+        toast.success(`${partnerDialogRow.name} has been assigned to the vendor.`);
       }
 
       setPartnerDialogRow(null);
@@ -329,7 +329,7 @@ function AdminUsers() {
     } catch (error) {
       console.error("Unable to assign partner", error);
 
-      toast.error(error instanceof Error ? error.message : "Partner assign nahi ho saka.");
+      toast.error(error instanceof Error ? error.message : "Couldn't assign the partner.");
     } finally {
       setPartnerSaving(false);
     }
@@ -366,11 +366,11 @@ function AdminUsers() {
         ),
       );
 
-      toast.success(action === "activate" ? "Partner active ho gaya." : "Partner suspend ho gaya.");
+      toast.success(action === "activate" ? "Partner activated." : "Partner suspended.");
     } catch (error) {
       console.error("Unable to update partner", error);
 
-      toast.error(error instanceof Error ? error.message : "Partner status update nahi ho saka.");
+      toast.error(error instanceof Error ? error.message : "Couldn't update the partner status.");
     } finally {
       setBusyKey(null);
     }
@@ -433,7 +433,7 @@ function AdminUsers() {
       return;
     }
 
-    toast.success(`${vendorDialogRow.name} ab Vendor hai.`);
+    toast.success(`${vendorDialogRow.name} is now a vendor.`);
 
     setRows((previous) => previous.filter((item) => item.key !== vendorDialogRow.key));
 
@@ -466,7 +466,7 @@ function AdminUsers() {
       brand="azadari.store"
       role="Owner / Admin"
       title="Partners / Users"
-      subtitle="Accounts aur roles manage karein"
+      subtitle="Manage accounts and roles"
       nav={adminNav}
     >
       <div className="surface-card space-y-4 p-4">
@@ -522,7 +522,7 @@ function AdminUsers() {
                 {list.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                      Koi record nahi mila.
+                      No records found.
                     </td>
                   </tr>
                 ) : (
@@ -695,7 +695,7 @@ function AdminUsers() {
             <DialogTitle>Partner Vendor Assignment</DialogTitle>
 
             <DialogDescription>
-              {partnerDialogRow?.name} ko kis Vendor ke saath assign karna hai?
+              Which vendor should {partnerDialogRow?.name} work with?
             </DialogDescription>
           </DialogHeader>
 
@@ -705,7 +705,7 @@ function AdminUsers() {
 
               <Select value={partnerVendorId} onValueChange={setPartnerVendorId}>
                 <SelectTrigger className="rounded-xl">
-                  <SelectValue placeholder="Vendor select karein" />
+                  <SelectValue placeholder="Select a vendor" />
                 </SelectTrigger>
 
                 <SelectContent>
@@ -718,7 +718,7 @@ function AdminUsers() {
               </Select>
 
               {activeVendors.length === 0 && (
-                <p className="text-xs text-destructive">Koi Active Vendor available nahi hai.</p>
+                <p className="text-xs text-destructive">No active vendors available.</p>
               )}
             </div>
 
@@ -748,11 +748,9 @@ function AdminUsers() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Vendor Banayein</DialogTitle>
+            <DialogTitle>Make vendor</DialogTitle>
 
-            <DialogDescription>
-              {vendorDialogRow?.name} ke liye store details bharein.
-            </DialogDescription>
+            <DialogDescription>Enter store details for {vendorDialogRow?.name}.</DialogDescription>
           </DialogHeader>
 
           <form className="space-y-4" onSubmit={promoteToVendor}>
@@ -795,7 +793,7 @@ function AdminUsers() {
             <Button type="submit" disabled={vendorSaving} className="w-full rounded-xl">
               {vendorSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 
-              {vendorSaving ? "Saving..." : "Vendor Banayein"}
+              {vendorSaving ? "Saving..." : "Make vendor"}
             </Button>
           </form>
         </DialogContent>

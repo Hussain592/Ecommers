@@ -74,7 +74,7 @@ function VendorList() {
     if (error) {
       console.error("Error loading vendors", error);
 
-      toast.error("Vendors load nahi ho sake.");
+      toast.error("Couldn't load vendors.");
 
       setLoading(false);
       return;
@@ -147,15 +147,15 @@ function VendorList() {
       );
 
       if (action === "approve") {
-        toast.success("Vendor application approve ho gayi.");
+        toast.success("Vendor application approved.");
       } else {
-        toast.success("Vendor application reject ho gayi.");
+        toast.success("Vendor application rejected.");
       }
     } catch (error) {
       console.error("Unable to review vendor", error);
 
       toast.error(
-        error instanceof Error ? error.message : "Vendor application update nahi ho saki.",
+        error instanceof Error ? error.message : "Couldn't update the vendor application.",
       );
     } finally {
       setBusyId(null);
@@ -184,7 +184,7 @@ function VendorList() {
       }
 
       if (!data || data.length === 0) {
-        throw new Error("Permission nahi mili. Admin account se login karein.");
+        throw new Error("You don't have permission. Sign in with an admin account.");
       }
 
       setVendors((previous) =>
@@ -198,9 +198,9 @@ function VendorList() {
         ),
       );
 
-      toast.success("Vendor suspend ho gaya.");
+      toast.success("Vendor suspended.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Vendor suspend nahi ho saka.");
+      toast.error(error instanceof Error ? error.message : "Couldn't suspend the vendor.");
     } finally {
       setBusyId(null);
     }
@@ -276,7 +276,7 @@ function VendorList() {
                       className="cursor-pointer transition-colors hover:bg-muted/40 focus-within:bg-muted/40"
                       tabIndex={0}
                       role="link"
-                      aria-label={`${vendor.name} ki details dekhein`}
+                      aria-label={`View details for ${vendor.name}`}
                       onClick={() =>
                         navigate({
                           to: "/admin/vendors/$vendorId",
@@ -423,7 +423,7 @@ function VendorList() {
                       colSpan={6}
                       className="px-4 py-10 text-center text-sm text-muted-foreground"
                     >
-                      Koi vendor nahi mila.
+                      No vendors found.
                     </td>
                   </tr>
                 )}

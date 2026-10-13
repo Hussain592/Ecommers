@@ -115,7 +115,7 @@ function AdminCommissions() {
     if (error) {
       console.error("Unable to load commissions", error);
 
-      toast.error("Commissions load nahi ho sake.");
+      toast.error("Couldn't load commissions.");
 
       setLoading(false);
       return;
@@ -249,13 +249,11 @@ function AdminCommissions() {
         ),
       );
 
-      toast.success(
-        action === "approve" ? "Commission approve ho gayi." : "Commission Paid mark ho gayi.",
-      );
+      toast.success(action === "approve" ? "Commission approved." : "Commission marked as paid.");
     } catch (error) {
       console.error("Unable to update commission", error);
 
-      toast.error(error instanceof Error ? error.message : "Commission update nahi ho saki.");
+      toast.error(error instanceof Error ? error.message : "Couldn't update the commission.");
     } finally {
       setBusyId(null);
     }
@@ -296,7 +294,7 @@ function AdminCommissions() {
         brand="azadari.store"
         role="Owner / Admin"
         title="Commissions"
-        subtitle="Partner commissions aur payments"
+        subtitle="Partner commissions and payments"
         nav={adminNav}
       >
         <div className="flex justify-center p-10">
@@ -311,7 +309,7 @@ function AdminCommissions() {
       brand="azadari.store"
       role="Owner / Admin"
       title="Commissions"
-      subtitle="Sab partner commissions manage karein"
+      subtitle="Manage all partner commissions"
       nav={adminNav}
     >
       {/* SUMMARY */}
@@ -376,7 +374,7 @@ function AdminCommissions() {
               {commissions.length === 0 ? (
                 <tr>
                   <td colSpan={13} className="px-4 py-10 text-center text-muted-foreground">
-                    Abhi koi commission record nahi.
+                    No commission records yet.
                   </td>
                 </tr>
               ) : (

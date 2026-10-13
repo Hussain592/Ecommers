@@ -199,8 +199,8 @@ function ServicesPage() {
               </h1>
 
               <p className="mt-3 max-w-2xl text-sm leading-6 text-[#d8d1bf] sm:text-base">
-                Quran learning, Majlis arrangements, Niyaz, custom Islamic work aur doosri useful
-                services — simple aur clear booking ke saath.
+                Quran learning, Majlis arrangements, Niyaz, custom Islamic work and other useful
+                services, with simple and clear booking.
               </p>
             </div>
 
@@ -292,11 +292,9 @@ function ServicesPage() {
           <div className="mt-5 rounded-2xl border border-[#ded5bd] bg-[#fffdf7] px-5 py-12 text-center">
             <Search className="mx-auto h-7 w-7 text-[#9a7927]" />
 
-            <h3 className="mt-3 font-bold text-[#102d24]">Koi service nahi mili</h3>
+            <h3 className="mt-3 font-bold text-[#102d24]">No services found</h3>
 
-            <p className="mt-1 text-sm text-[#748078]">
-              Search ya category change karke dobara try karein.
-            </p>
+            <p className="mt-1 text-sm text-[#748078]">Try a different search or category.</p>
 
             <Button
               type="button"

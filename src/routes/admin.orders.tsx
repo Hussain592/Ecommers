@@ -62,7 +62,7 @@ function AdminOrders() {
 
     if (ordersRes.error) {
       console.error(ordersRes.error);
-      toast.error("Orders load nahi ho sake.");
+      toast.error("Couldn't load orders.");
       setLoading(false);
       return;
     }
@@ -86,11 +86,11 @@ function AdminOrders() {
       return;
     }
     if (!data || data.length === 0) {
-      toast.error("Permission nahi mili.");
+      toast.error("You don't have permission to do this.");
       return;
     }
 
-    toast.success("Order status update ho gaya.");
+    toast.success("Order status updated.");
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
 
     if (status === "Confirmed") {
@@ -99,9 +99,9 @@ function AdminOrders() {
       });
       if (emailError) {
         console.error("Order confirmed but email notification failed:", emailError);
-        toast.error("Order confirm ho gaya, lekin email nahi bheji ja saki.");
+        toast.error("Order confirmed, but the email couldn't be sent.");
       } else {
-        toast.success("Customer ko confirmation email bhej di.");
+        toast.success("Confirmation email sent to the customer.");
       }
     }
   };
@@ -119,7 +119,7 @@ function AdminOrders() {
       brand="azadari.store"
       role="Owner / Admin"
       title="Orders"
-      subtitle="Saare vendors ke COD orders"
+      subtitle="Cash on Delivery orders from all vendors"
       nav={adminNav}
     >
       <div className="surface-card space-y-4 p-4">
@@ -202,9 +202,7 @@ function AdminOrders() {
             </table>
           </div>
           {list.length === 0 && (
-            <p className="px-4 py-10 text-center text-sm text-muted-foreground">
-              Koi order nahi mila.
-            </p>
+            <p className="px-4 py-10 text-center text-sm text-muted-foreground">No orders found.</p>
           )}
         </div>
       )}

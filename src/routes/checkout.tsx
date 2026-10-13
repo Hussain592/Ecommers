@@ -60,7 +60,7 @@ function CheckoutPage() {
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (detailed.length === 0) {
-      toast.error("Checkout ke liye cart mein products add karein.");
+      toast.error("Your cart is empty. Add products before checking out.");
       return;
     }
 
@@ -84,7 +84,7 @@ function CheckoutPage() {
       });
       if (error) throw error;
       if (!orderIds?.length) {
-        throw new Error("Order IDs receive nahi hue.");
+        throw new Error("We didn't receive an order number. Please try again.");
       }
       sessionStorage.setItem("dukaan_last_order_ids", JSON.stringify(orderIds));
 
@@ -102,7 +102,9 @@ function CheckoutPage() {
       await navigate({ to: "/order-confirmation" });
     } catch (error) {
       console.error("Unable to place order", error);
-      toast.error(error instanceof Error ? error.message : "Order place nahi ho saka.");
+      toast.error(
+        error instanceof Error ? error.message : "Couldn't place your order. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -112,9 +114,7 @@ function CheckoutPage() {
     <ShopLayout>
       <div className="mx-auto max-w-7xl px-4 py-8">
         <h1 className="text-2xl font-extrabold sm:text-3xl">COD Checkout</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Guest checkout — account banane ki zaroorat nahi.
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">Guest checkout. No account needed.</p>
 
         <form onSubmit={submit} className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-6">
@@ -193,7 +193,7 @@ function CheckoutPage() {
                   <Textarea
                     id="notes"
                     name="notes"
-                    placeholder="Delivery ke liye koi hidayat?"
+                    placeholder="Any delivery instructions? (optional)"
                     className="rounded-xl"
                   />
                 </div>
@@ -207,7 +207,7 @@ function CheckoutPage() {
                 <div>
                   <p className="text-sm font-semibold">Cash on Delivery (COD)</p>
                   <p className="text-xs text-muted-foreground">
-                    Parcel milne par courier ko cash pay karein. Koi online payment nahi.
+                    Pay the courier in cash when your parcel arrives. No online payment needed.
                   </p>
                 </div>
                 <BadgeCheck className="ml-auto h-5 w-5 text-primary" />
@@ -220,9 +220,9 @@ function CheckoutPage() {
             <div className="mt-4 space-y-3">
               {detailed.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Cart khali hai.{" "}
+                  Your cart is empty.{" "}
                   <Link to="/products" className="text-primary underline">
-                    Products dekhein
+                    Browse products
                   </Link>
                 </p>
               )}

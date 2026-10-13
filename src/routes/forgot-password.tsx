@@ -38,7 +38,7 @@ function ForgotPasswordPage() {
       .toLowerCase();
 
     if (!email) {
-      toast.error("Apna email enter karein.");
+      toast.error("Enter your email address.");
       return;
     }
 
@@ -55,9 +55,7 @@ function ForgotPasswordPage() {
       setSentTo(email);
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Reset email nahi bheji ja saki. Dobara try karein.",
+        error instanceof Error ? error.message : "Couldn't send the reset email. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -68,17 +66,17 @@ function ForgotPasswordPage() {
     return (
       <AuthCard
         eyebrow="Email Sent"
-        title="Apna email check karein"
-        description={`Agar ${sentTo} par azadari.store ka account hai, to password reset ka link bhej diya gaya hai. Spam folder bhi check kar lein.`}
+        title="Check your email"
+        description={`If ${sentTo} has an azadari.store account, we've sent a link to reset your password. Check your spam folder too.`}
         footer={
           <Link to="/login" className={authLinkClass}>
-            Sign in page par wapas jayein
+            Back to sign in
           </Link>
         }
       >
         <div className="flex items-center gap-3 rounded-2xl border border-[#c9a24b]/20 bg-[#f7efd9]/55 p-4 text-sm text-[#102d24]">
           <MailCheck aria-hidden="true" className="h-5 w-5 shrink-0 text-[#0b513b]" />
-          Link sirf thori dair ke liye valid hota hai.
+          The link expires after a short time.
         </div>
       </AuthCard>
     );
@@ -87,11 +85,11 @@ function ForgotPasswordPage() {
   return (
     <AuthCard
       eyebrow="Forgot Password"
-      title="Password bhool gaye?"
-      description="Apna account email likhein. Hum aapko naya password set karne ka link bhejenge."
+      title="Forgot your password?"
+      description="Enter your account email and we'll send you a link to set a new password."
       footer={
         <Link to="/login" className={authLinkClass}>
-          Sign in page par wapas jayein
+          Back to sign in
         </Link>
       }
     >
@@ -124,7 +122,7 @@ function ForgotPasswordPage() {
           ) : (
             <ArrowRight aria-hidden="true" className="mr-2 h-4 w-4" />
           )}
-          {loading ? "Bhej rahe hain..." : "Reset link bhejein"}
+          {loading ? "Sending..." : "Send reset link"}
         </Button>
       </form>
     </AuthCard>

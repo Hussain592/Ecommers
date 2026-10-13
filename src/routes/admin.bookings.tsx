@@ -46,7 +46,7 @@ function AdminBookings() {
 
     if (error) {
       console.error("Unable to load service bookings:", error);
-      toast.error("Booking requests load nahi ho sakin.");
+      toast.error("Couldn't load booking requests.");
       setLoading(false);
       return;
     }
@@ -74,23 +74,23 @@ function AdminBookings() {
 
     if (error || !data?.length) {
       console.error("Unable to update booking status:", error);
-      toast.error("Booking status update nahi ho saka.");
+      toast.error("Couldn't update the booking status.");
       return;
     }
 
     setRequests((current) =>
       current.map((item) => (item.id === request.id ? { ...item, status } : item)),
     );
-    toast.success("Booking status update ho gaya.");
+    toast.success("Booking status updated.");
     if (status === "Confirmed") {
       const { error: emailError } = await supabase.functions.invoke("send-confirmation-email", {
         body: { type: "booking", id: request.id },
       });
       if (emailError) {
         console.error("Booking confirmed but email notification failed:", emailError);
-        toast.error("Booking confirm ho gayi, lekin email nahi bheji ja saki.");
+        toast.error("Booking confirmed, but the email couldn't be sent.");
       } else {
-        toast.success("Customer ko confirmation email bhej di.");
+        toast.success("Confirmation email sent to the customer.");
       }
     }
   };
@@ -100,7 +100,7 @@ function AdminBookings() {
       brand="azadari.store"
       role="Owner / Admin"
       title="Service Bookings"
-      subtitle="Customer requests dekhein aur unka status manage karein"
+      subtitle="Review customer requests and update their status"
       nav={adminNav}
     >
       <div className="flex justify-end">
@@ -201,7 +201,7 @@ function AdminBookings() {
                 {requests.length === 0 && (
                   <tr>
                     <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
-                      Abhi koi booking request nahi aayi.
+                      No booking requests yet.
                     </td>
                   </tr>
                 )}

@@ -110,7 +110,7 @@ function VendorOrders() {
       brand={storeName}
       role="Vendor Account"
       title="Orders"
-      subtitle="Saare COD orders yahan manage karein"
+      subtitle="Manage all your Cash on Delivery orders"
       nav={vendorNav}
     >
       <div className="surface-card space-y-4 p-4">
@@ -128,7 +128,7 @@ function VendorOrders() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Order ID ya customer search karein"
+            placeholder="Search by Order ID or customer"
             className="h-10 rounded-xl pl-9"
           />
         </div>
@@ -179,13 +179,13 @@ function VendorOrders() {
                             .update({ status })
                             .eq("id", o.id);
                           if (error) {
-                            toast.error("Order status update nahi ho saka.");
+                            toast.error("Couldn't update the order status.");
                             return;
                           }
                           setOrderList((current) =>
                             current.map((item) => (item.id === o.id ? { ...item, status } : item)),
                           );
-                          toast.success("Order status update ho gaya.");
+                          toast.success("Order status updated.");
 
                           if (status === "Confirmed") {
                             const { error: emailError } = await supabase.functions.invoke(
@@ -197,9 +197,9 @@ function VendorOrders() {
                                 "Order confirmed but email notification failed:",
                                 emailError,
                               );
-                              toast.error("Order confirm ho gaya, lekin email nahi bheji ja saki.");
+                              toast.error("Order confirmed, but the email couldn't be sent.");
                             } else {
-                              toast.success("Customer ko confirmation email bhej di.");
+                              toast.success("Confirmation email sent to the customer.");
                             }
                           }
                         }}
@@ -257,7 +257,7 @@ function VendorOrders() {
           </div>
           {list.length === 0 && (
             <p className="px-4 py-10 text-center text-sm text-muted-foreground">
-              Is filter par koi order nahi hai.
+              No orders match this filter.
             </p>
           )}
         </div>

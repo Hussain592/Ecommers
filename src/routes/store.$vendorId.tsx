@@ -132,12 +132,12 @@ function VendorStorePage() {
       : await supabase.from("vendor_followers").insert({ vendor_id: vendorId, user_id: user.id });
     setFollowBusy(false);
     if (result.error) {
-      toast.error("Follow update nahi ho saka.");
+      toast.error("Couldn't update follow status. Please try again.");
       return;
     }
     setIsFollowing((value) => !value);
     setFollowerCount((count) => count + (isFollowing ? -1 : 1));
-    toast.success(isFollowing ? "Store unfollow ho gaya." : "Store follow ho gaya.");
+    toast.success(isFollowing ? "You unfollowed this store." : "You're now following this store.");
   };
 
   if (loading) {
@@ -154,9 +154,9 @@ function VendorStorePage() {
     return (
       <ShopLayout>
         <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-          <h1 className="text-2xl font-bold">Store nahi mila</h1>
+          <h1 className="text-2xl font-bold">Store not found</h1>
           <Link to="/products" className="mt-4 inline-block text-primary underline">
-            Products dekhein
+            Browse products
           </Link>
         </div>
       </ShopLayout>
@@ -313,8 +313,8 @@ function VendorStorePage() {
           {products.length === 0 ? (
             <EmptyState
               icon={PackageSearch}
-              title="Is store mein abhi koi product nahi"
-              description="Baad mein dobara check karein."
+              title="This store has no products yet"
+              description="Please check back later."
             />
           ) : (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">

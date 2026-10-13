@@ -52,7 +52,7 @@ function PartnerProfile() {
 
       if (error) {
         console.error(error);
-        toast.error("Profile load nahi ho saka.");
+        toast.error("Couldn't load your profile.");
         setLoading(false);
         return;
       }
@@ -84,11 +84,11 @@ function PartnerProfile() {
     setSaving(false);
 
     if (error || !data || data.length === 0) {
-      toast.error("Profile save nahi ho saka.");
+      toast.error("Couldn't save your profile.");
       return;
     }
 
-    toast.success("Profile save ho gaya.");
+    toast.success("Profile saved.");
     setProfile((prev) => (prev ? { ...prev, ...updated } : prev));
   };
 
@@ -98,7 +98,7 @@ function PartnerProfile() {
         brand="Partner"
         role="Partner Account"
         title="Profile"
-        subtitle="Apni maloomat update karein"
+        subtitle="Update your details"
         nav={partnerNav}
       >
         <div className="flex justify-center p-10">
@@ -114,10 +114,10 @@ function PartnerProfile() {
         brand="Partner"
         role="Partner Account"
         title="Profile"
-        subtitle="Apni maloomat update karein"
+        subtitle="Update your details"
         nav={partnerNav}
       >
-        <p className="text-sm text-muted-foreground">Profile nahi mila.</p>
+        <p className="text-sm text-muted-foreground">Profile not found.</p>
       </DashboardShell>
     );
   }
@@ -129,7 +129,7 @@ function PartnerProfile() {
       brand={profile.name}
       role="Partner Account"
       title="Profile"
-      subtitle="Apni maloomat update karein"
+      subtitle="Update your details"
       nav={partnerNav}
     >
       <form className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]" onSubmit={handleSubmit}>

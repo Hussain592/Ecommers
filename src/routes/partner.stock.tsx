@@ -76,7 +76,7 @@ function PartnerStock() {
     setSaving(false);
     const failed = results.find((result) => result.error);
     if (failed?.error) toast.error(failed.error.message);
-    else toast.success("Stock Supabase mein update ho gaya.");
+    else toast.success("Stock updated.");
   };
 
   return (
@@ -84,7 +84,7 @@ function PartnerStock() {
       brand="Zeeshan Ali"
       role="Partner Account"
       title="Stock Update"
-      subtitle="Quantities update karein"
+      subtitle="Update stock quantities"
       nav={partnerNav}
       actions={
         <Button size="sm" disabled={saving} className="rounded-xl" onClick={() => void saveAll()}>

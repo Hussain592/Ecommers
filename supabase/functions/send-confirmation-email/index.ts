@@ -204,9 +204,9 @@ Deno.serve(async (request) => {
 
     const sent = await sendEmail(resendApiKey, fromEmail, {
       to: recipients,
-      subject: `Naya order ${order.id} — ${itemCount} item, Rs. ${total}`,
-      html: `<p>Assalam-o-alaikum ${escapeHtml(storeName)},</p><p>Aapke store par naya Cash on Delivery order aaya hai.</p><p><strong>Order:</strong> ${orderId}<br><strong>Customer:</strong> ${customerName}${city ? `, ${city}` : ""}</p><ul>${itemList}</ul><p><strong>Total (COD): Rs. ${total}</strong></p><p>Customer se rabta kar ke order jald confirm karein:<br><a href="${dashboardUrl}">${dashboardUrl}</a></p><p>Shukriya,<br>azadari.store</p>`,
-      text: `Naya order ${order.id}: ${customerName}${city ? `, ${city}` : ""}. Total COD: Rs. ${total}. Confirm karne ke liye: ${dashboardUrl}`,
+      subject: `New order ${order.id}: ${itemCount} item${itemCount === 1 ? "" : "s"}, Rs. ${total}`,
+      html: `<p>Assalam-o-Alaikum ${escapeHtml(storeName)},</p><p>You have a new Cash on Delivery order.</p><p><strong>Order:</strong> ${orderId}<br><strong>Customer:</strong> ${customerName}${city ? `, ${city}` : ""}</p><ul>${itemList}</ul><p><strong>Total (COD): Rs. ${total}</strong></p><p>Please call the customer and confirm the order soon:<br><a href="${dashboardUrl}">${dashboardUrl}</a></p><p>Thank you,<br>azadari.store</p>`,
+      text: `New order ${order.id}: ${customerName}${city ? `, ${city}` : ""}. Total COD: Rs. ${total}. Confirm it here: ${dashboardUrl}`,
       idempotencyKey: `new-order-${order.id}`,
     });
 
@@ -299,9 +299,9 @@ Deno.serve(async (request) => {
     const orderId = escapeHtml(String(order.id));
     const total = Number(order.total).toLocaleString("en-PK");
     const delivery = Number(order.delivery_fee ?? 0).toLocaleString("en-PK");
-    subject = `Aapka order ${order.id} confirm ho gaya`;
-    html = `<p>Assalam-o-alaikum ${customerName},</p><p>Aapka order <strong>${orderId}</strong> confirm ho gaya hai.</p><ul>${itemList}</ul><p>Delivery fee: Rs. ${delivery}<br><strong>Total payable (Cash on Delivery): Rs. ${total}</strong></p><p>Expected delivery: 2–4 working days. Parcel milne par courier ko cash pay karein.</p><p>Shukriya,<br>azadari.store</p>`;
-    text = `Assalam-o-alaikum ${order.customer_name}, aapka order ${order.id} confirm ho gaya. Total COD: Rs. ${total}. Expected delivery: 2–4 working days.`;
+    subject = `Your order ${order.id} is confirmed`;
+    html = `<p>Assalam-o-Alaikum ${customerName},</p><p>Your order <strong>${orderId}</strong> is confirmed.</p><ul>${itemList}</ul><p>Delivery fee: Rs. ${delivery}<br><strong>Total payable (Cash on Delivery): Rs. ${total}</strong></p><p>Expected delivery: 2–4 working days. Please pay the courier in cash when the parcel arrives.</p><p>Thank you,<br>azadari.store</p>`;
+    text = `Assalam-o-Alaikum ${order.customer_name}, your order ${order.id} is confirmed. Total COD: Rs. ${total}. Expected delivery: 2–4 working days.`;
   } else {
     const [{ data: booking, error: bookingError }, { data: profile }] = await Promise.all([
       adminClient
@@ -342,9 +342,9 @@ Deno.serve(async (request) => {
     const customerName = escapeHtml(String(booking.customer_name));
     const serviceName = escapeHtml(String(booking.service_name));
     const details = escapeHtml(String(booking.details ?? "No extra details"));
-    subject = `${booking.service_name} booking confirm ho gayi`;
-    html = `<p>Assalam-o-alaikum ${customerName},</p><p>Aapki <strong>${serviceName}</strong> service booking confirm ho gayi hai.</p><p>Aapki di hui requirements: ${details}</p><p>Provider aapse timing aur final details ke liye rabta karega.</p><p>Shukriya,<br>azadari.store</p>`;
-    text = `Assalam-o-alaikum ${booking.customer_name}, aapki ${booking.service_name} service booking confirm ho gayi. Provider timing aur details ke liye aapse rabta karega.`;
+    subject = `Your ${booking.service_name} booking is confirmed`;
+    html = `<p>Assalam-o-Alaikum ${customerName},</p><p>Your <strong>${serviceName}</strong> booking is confirmed.</p><p>Your requirements: ${details}</p><p>The provider will contact you to agree on timing and final details.</p><p>Thank you,<br>azadari.store</p>`;
+    text = `Assalam-o-Alaikum ${booking.customer_name}, your ${booking.service_name} booking is confirmed. The provider will contact you about timing and details.`;
   }
 
   const sent = await sendEmail(resendApiKey, fromEmail, {

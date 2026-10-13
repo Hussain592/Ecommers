@@ -35,7 +35,7 @@ function AdminLogin() {
         </span>
         <h1 className="mt-5 text-center text-2xl font-extrabold">Admin Control Panel</h1>
         <p className="mt-1 text-center text-sm text-muted-foreground">
-          azadari.store owner access — sirf authorized staff ke liye.
+          azadari.store owner access. Authorized staff only.
         </p>
 
         <form
@@ -59,7 +59,7 @@ function AdminLogin() {
 
               if (profile?.role !== "admin") {
                 await supabase.auth.signOut();
-                toast.error("Ye account Admin nahi hai. Sirf Admin yahan se login kar sakta hai.");
+                toast.error("This isn't an admin account. Only admins can sign in here.");
                 setLoading(false);
                 return;
               }
@@ -67,7 +67,9 @@ function AdminLogin() {
               toast.success("Welcome back, Admin!");
               window.location.href = "/admin/overview";
             } catch (error) {
-              toast.error(error instanceof Error ? error.message : "Login complete nahi ho saka.");
+              toast.error(
+                error instanceof Error ? error.message : "Couldn't sign you in. Please try again.",
+              );
               setLoading(false);
             }
           }}
@@ -90,7 +92,7 @@ function AdminLogin() {
               name="password"
               type="password"
               required
-              placeholder="Aapka password"
+              placeholder="Your password"
               className="h-11 rounded-xl"
             />
           </div>

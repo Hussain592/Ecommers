@@ -199,7 +199,7 @@ export function DashboardShell({ title, subtitle, brand, role, nav, actions, chi
           )}
           onClick={() => void signOut()}
         >
-          <LogOut className="h-4 w-4" /> Logout
+          <LogOut className="h-4 w-4" /> Sign out
         </Button>
       </div>
     </div>
@@ -298,16 +298,14 @@ export function DashboardShell({ title, subtitle, brand, role, nav, actions, chi
                       </p>
                     ) : notificationsError ? (
                       <div className="space-y-2 px-2 py-3" role="alert">
-                        <p className="text-sm text-destructive">
-                          Notifications load nahi ho sakin.
-                        </p>
+                        <p className="text-sm text-destructive">Couldn't load notifications.</p>
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
                           onClick={() => setNotificationRetry((value) => value + 1)}
                         >
-                          Dobara try karein
+                          Try again
                         </Button>
                       </div>
                     ) : notifications.length === 0 ? (

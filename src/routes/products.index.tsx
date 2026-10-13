@@ -930,7 +930,7 @@ function ProductsPage() {
 
         <p className="mt-1 text-sm text-muted-foreground">
           {loading
-            ? "Products load ho rahe hain..."
+            ? "Loading products..."
             : `${products.length}${hasMore ? "+" : ""} products shown with Cash on Delivery`}
         </p>
 
@@ -1147,15 +1147,15 @@ function ProductsPage() {
             <div className="text-center">
               <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#0b513b]" />
 
-              <p className="mt-3 text-sm text-muted-foreground">Products load ho rahe hain...</p>
+              <p className="mt-3 text-sm text-muted-foreground">Loading products...</p>
             </div>
           </div>
         ) : products.length === 0 ? (
           <div className="mt-6">
             <EmptyState
               icon={PackageSearch}
-              title="Koi product nahi mila"
-              description="Filter change karein ya doosra keyword try karein."
+              title="No products found"
+              description="Try changing the filters or searching for something else."
               action={
                 <Button
                   variant="outline"

@@ -43,22 +43,22 @@ const steps = [
   {
     number: "01",
     title: "Register",
-    text: "Vendor registration form complete karein.",
+    text: "Fill in the vendor registration form.",
   },
   {
     number: "02",
     title: "Verification",
-    text: "Application admin review ke liye jayegi.",
+    text: "An admin reviews your application.",
   },
   {
     number: "03",
     title: "Approval",
-    text: "Approval ke baad Vendor Dashboard access milega.",
+    text: "Once approved, you get access to the Vendor Dashboard.",
   },
   {
     number: "04",
     title: "Start Selling",
-    text: "Products add karein aur orders receive karna start karein.",
+    text: "Add products and start receiving orders.",
   },
 ];
 
@@ -80,8 +80,7 @@ function SellOnAzadariPage() {
             </h1>
 
             <p className="mt-3 max-w-xl text-sm leading-6 text-[#6f7d75] sm:text-base">
-              Apne Islamic aur Azadari products ko online list karein aur Pakistan bhar ke customers
-              tak pohanchein.
+              List your Islamic and Azadari products online and reach customers all over Pakistan.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -104,7 +103,7 @@ function SellOnAzadariPage() {
               >
                 <Link to="/login">
                   <LogIn aria-hidden="true" className="mr-2 h-4 w-4" />
-                  Vendor Sign In
+                  Vendor sign in
                 </Link>
               </Button>
             </div>
@@ -121,8 +120,7 @@ function SellOnAzadariPage() {
                 <p className="text-sm font-extrabold text-[#102d24]">Vendor approval required</p>
 
                 <p className="mt-1 text-xs leading-5 text-[#6f7d75]">
-                  Har vendor application review hoti hai. Approval ke baad hi selling access
-                  activate hota hai.
+                  Every vendor application is reviewed. Selling is switched on only after approval.
                 </p>
               </div>
             </div>
@@ -141,7 +139,7 @@ function SellOnAzadariPage() {
             <h2 className="mt-4 text-sm font-extrabold text-[#102d24]">Manage Your Products</h2>
 
             <p className="mt-1 text-xs leading-5 text-[#6f7d75]">
-              Products, stock aur listing status vendor dashboard se manage karein.
+              Manage products, stock and listing status from the vendor dashboard.
             </p>
           </article>
 
@@ -153,7 +151,7 @@ function SellOnAzadariPage() {
             <h2 className="mt-4 text-sm font-extrabold text-[#102d24]">Reach More Customers</h2>
 
             <p className="mt-1 text-xs leading-5 text-[#6f7d75]">
-              Marketplace par apne products ko relevant buyers ke samne dikhayein.
+              Show your products to the right buyers on the marketplace.
             </p>
           </article>
 
@@ -165,7 +163,7 @@ function SellOnAzadariPage() {
             <h2 className="mt-4 text-sm font-extrabold text-[#102d24]">Your Vendor Dashboard</h2>
 
             <p className="mt-1 text-xs leading-5 text-[#6f7d75]">
-              Approval ke baad products aur orders ke liye dedicated dashboard access milega.
+              After approval, you get your own dashboard for products and orders.
             </p>
           </article>
         </section>
@@ -182,7 +180,7 @@ function SellOnAzadariPage() {
             <h2 className="mt-1 text-xl font-extrabold text-[#102d24]">Vendor banne ka process</h2>
 
             <p className="mt-1 text-sm text-[#6f7d75]">
-              Sirf 4 clear steps — registration se selling tak.
+              Just 4 clear steps, from registration to your first sale.
             </p>
           </div>
 
@@ -234,8 +232,8 @@ function SellOnAzadariPage() {
               </h2>
 
               <p className="mt-2 max-w-xl text-sm leading-6 text-[#d8d1bf]">
-                Registration complete karein. Submit hone ke baad application Pending Review mein
-                jayegi.
+                Complete your registration. After you submit, your application moves to Pending
+                Review.
               </p>
             </div>
 
@@ -261,7 +259,7 @@ function SellOnAzadariPage() {
               <p className="text-sm font-extrabold text-[#102d24]">Already an approved vendor?</p>
 
               <p className="mt-1 text-xs leading-5 text-[#6f7d75]">
-                Apne existing account se sign in karke vendor dashboard open karein.
+                Sign in with your existing account to open the vendor dashboard.
               </p>
             </div>
 
@@ -272,15 +270,15 @@ function SellOnAzadariPage() {
             >
               <Link to="/login">
                 <LogIn aria-hidden="true" className="mr-2 h-4 w-4" />
-                Vendor Sign In
+                Vendor sign in
               </Link>
             </Button>
           </div>
         </section>
 
         <p className="mx-auto mt-6 max-w-2xl text-center text-xs leading-5 text-[#89938e]">
-          Sirf shopping karni hai? Customer account ki zarurat nahi — products browse karke guest
-          checkout se order place kiya ja sakta hai.
+          Just want to shop? You don't need an account. Browse products and order with guest
+          checkout.
         </p>
       </main>
     </ShopLayout>

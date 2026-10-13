@@ -37,8 +37,8 @@ export function SiteFooter() {
           </Link>
 
           <p className="mt-4 max-w-xs text-sm leading-6 text-[#cfc7b5]">
-            Islamic books, Majlis items, prayer essentials, clothing aur accessories — trusted
-            sellers se Pakistan bhar mein.
+            Islamic books, Majlis items, prayer essentials, clothing and accessories from trusted
+            sellers across Pakistan.
           </p>
 
           {/* Trust points */}
@@ -140,7 +140,7 @@ export function SiteFooter() {
             </p>
 
             <p className="rounded-xl border border-[#c9a24b]/20 bg-white/5 p-3 text-xs leading-5 text-[#cfc7b5]">
-              Order help ke liye apna Order ID aur mobile number ready rakhein.
+              Need help with an order? Keep your Order ID and mobile number ready.
             </p>
           </div>
         </div>

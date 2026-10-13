@@ -113,7 +113,7 @@ function AdminOverview() {
         activeProductsRes.error ||
         categoriesRes.error
       ) {
-        toast.error("Kuch live dashboard data load nahi ho saka. Dobara refresh karein.");
+        toast.error("Some dashboard data couldn't load. Refresh the page to try again.");
       }
 
       setLoading(false);
@@ -166,7 +166,7 @@ function AdminOverview() {
         brand="azadari.store"
         role="Owner / Admin"
         title="Platform Overview"
-        subtitle="Poore marketplace ki performance"
+        subtitle="Performance across the whole marketplace"
         nav={adminNav}
       >
         <div
@@ -175,7 +175,7 @@ function AdminOverview() {
           aria-live="polite"
         >
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Dashboard data load ho raha hai...</p>
+          <p className="text-sm text-muted-foreground">Loading dashboard...</p>
         </div>
       </DashboardShell>
     );
@@ -186,7 +186,7 @@ function AdminOverview() {
       brand="azadari.store"
       role="Owner / Admin"
       title="Platform Overview"
-      subtitle="Poore marketplace ki performance"
+      subtitle="Performance across the whole marketplace"
       nav={adminNav}
     >
       <section aria-label="Marketplace summary">
@@ -390,7 +390,7 @@ function AdminOverview() {
           <ol className="mt-4 space-y-3" aria-label="Vendors ranked by order count">
             {topVendors.length === 0 ? (
               <li className="rounded-xl bg-muted/60 p-4 text-sm text-muted-foreground">
-                Abhi koi vendor nahi.
+                No vendors yet.
               </li>
             ) : (
               topVendors.map((v, index) => (
@@ -454,7 +454,7 @@ function AdminOverview() {
               {latestOrders.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                    Abhi koi order nahi aaya.
+                    No orders yet.
                   </td>
                 </tr>
               ) : (

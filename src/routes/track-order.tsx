@@ -78,7 +78,7 @@ function TrackOrder() {
     const phone = String(formData.get("phone") ?? "").trim();
 
     if (!orderId || !phone) {
-      toast.error("Order ID aur Mobile Number dono daalein.");
+      toast.error("Enter both your Order ID and mobile number.");
 
       return;
     }
@@ -95,7 +95,7 @@ function TrackOrder() {
       if (error) {
         console.error("Unable to track order:", error);
 
-        toast.error("Order track nahi ho saka. Dobara try karein.");
+        toast.error("Couldn't track the order. Please try again.");
 
         setState("error");
         return;
@@ -119,7 +119,7 @@ function TrackOrder() {
     } catch (error) {
       console.error("Unexpected tracking error:", error);
 
-      toast.error("Order track nahi ho saka. Dobara try karein.");
+      toast.error("Couldn't track the order. Please try again.");
 
       setOrder(null);
       setState("error");
@@ -144,7 +144,7 @@ function TrackOrder() {
               <h2 className="mt-1 text-xl font-extrabold text-[#102d24]">Enter order details</h2>
 
               <p className="mt-1 text-sm text-[#6f7d75]">
-                Wahi mobile number use karein jo checkout ke waqt diya tha.
+                Use the same mobile number you entered at checkout.
               </p>
             </div>
 
@@ -181,7 +181,7 @@ function TrackOrder() {
                 />
               </div>
 
-              <p className="text-[11px] text-[#89938e]">Order confirmation mein diya gaya ID.</p>
+              <p className="text-[11px] text-[#89938e]">Shown on your order confirmation.</p>
             </div>
 
             <div className="space-y-1.5">
@@ -207,7 +207,7 @@ function TrackOrder() {
                 />
               </div>
 
-              <p className="text-[11px] text-[#89938e]">Checkout wala mobile number.</p>
+              <p className="text-[11px] text-[#89938e]">The number you used at checkout.</p>
             </div>
 
             <Button
@@ -230,8 +230,8 @@ function TrackOrder() {
             <ShieldCheck aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-[#0b6b4c]" />
 
             <p className="text-xs leading-5 text-[#5f6d65]">
-              Privacy ke liye order tabhi show hoga jab Order ID aur mobile number dono match
-              karein.
+              For your privacy, we only show an order when both the Order ID and mobile number
+              match.
             </p>
           </div>
         </section>
@@ -245,10 +245,10 @@ function TrackOrder() {
               <Truck aria-hidden="true" className="h-6 w-6" />
             </div>
 
-            <h2 className="mt-4 text-lg font-extrabold text-[#102d24]">Apna parcel track karein</h2>
+            <h2 className="mt-4 text-lg font-extrabold text-[#102d24]">Track your parcel</h2>
 
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#6f7d75]">
-              Order details enter karne ke baad current delivery progress yahan nazar aayegi.
+              Enter your order details to see its delivery progress here.
             </p>
           </section>
         )}
@@ -299,10 +299,10 @@ function TrackOrder() {
               <Search aria-hidden="true" className="h-6 w-6" />
             </div>
 
-            <h2 className="mt-4 text-lg font-extrabold text-[#102d24]">Order nahi mila</h2>
+            <h2 className="mt-4 text-lg font-extrabold text-[#102d24]">Order not found</h2>
 
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#6f7d75]">
-              Order ID aur wahi mobile number dobara check karein jo checkout ke waqt diya tha.
+              Check the Order ID and use the same mobile number you entered at checkout.
             </p>
           </section>
         )}
@@ -319,12 +319,10 @@ function TrackOrder() {
               <XCircle aria-hidden="true" className="h-6 w-6" />
             </div>
 
-            <h2 className="mt-4 text-lg font-extrabold text-[#7e1c27]">
-              Tracking mein problem aa gayi
-            </h2>
+            <h2 className="mt-4 text-lg font-extrabold text-[#7e1c27]">Something went wrong</h2>
 
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#86545a]">
-              Tracking service se connection nahi ho saka. Thori dair baad dobara try karein.
+              We couldn't reach the tracking service. Please try again in a few minutes.
             </p>
           </section>
         )}
@@ -373,7 +371,7 @@ function TrackOrder() {
                     <p className="text-sm font-bold text-[#7e1c27]">Order Cancelled</p>
 
                     <p className="mt-1 text-xs leading-5 text-[#86545a]">
-                      Ye order cancel ho chuka hai aur delivery process mein nahi hai.
+                      This order was cancelled and will not be delivered.
                     </p>
                   </div>
                 </div>
@@ -385,7 +383,7 @@ function TrackOrder() {
                     </p>
 
                     <h2 className="mt-1 text-lg font-extrabold text-[#102d24]">
-                      Aapke order ka current status
+                      Your order status
                     </h2>
                   </div>
 
@@ -456,7 +454,7 @@ function TrackOrder() {
                         <p className="text-sm font-bold text-[#0b513b]">Order Delivered</p>
 
                         <p className="mt-1 text-xs leading-5 text-[#517066]">
-                          Delivery process complete ho chuka hai.
+                          Your order has been delivered.
                         </p>
                       </div>
                     </div>
