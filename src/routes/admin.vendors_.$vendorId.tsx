@@ -24,6 +24,7 @@ import { adminNav } from "@/components/dashboard/nav-config";
 import { Button } from "@/components/ui/button";
 import { formatPKR } from "@/data/mock";
 import { supabase } from "@/lib/supabase";
+import { errorMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/admin/vendors_/$vendorId")({
   head: () => ({
@@ -134,9 +135,7 @@ function AdminVendorDetail() {
     } catch (error) {
       console.error("Unable to review vendor", error);
 
-      toast.error(
-        error instanceof Error ? error.message : "Couldn't update the vendor application.",
-      );
+      toast.error(errorMessage(error, "Couldn't update the vendor application."));
     } finally {
       setBusy(false);
     }
@@ -181,7 +180,7 @@ function AdminVendorDetail() {
     } catch (error) {
       console.error("Unable to update vendor status", error);
 
-      toast.error(error instanceof Error ? error.message : "Couldn't update the status.");
+      toast.error(errorMessage(error, "Couldn't update the status."));
     } finally {
       setBusy(false);
     }

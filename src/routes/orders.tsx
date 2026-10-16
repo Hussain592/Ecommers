@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, PackageSearch, ShoppingBag, Truck } from "lucide-react";
 
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { formatPKR } from "@/data/mock";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { CancelOrderDialog } from "@/components/shop/CancelOrderDialog";
+import { CUSTOMER_CANCELLABLE } from "@/lib/orders";
 
 export const Route = createFileRoute("/orders")({
   head: () => ({
@@ -28,11 +30,39 @@ type Order = {
   total: number;
   status: string;
   created_at: string;
+  cancel_reason: string | null;
+  cancelled_by: string | null;
   items: Array<{
     name: string;
     quantity: number;
+    size?: string | null;
+    color?: string | null;
   }> | null;
 };
+
+const STATUS_STYLE: Record<string, string> = {
+  Pending: "border-[#e9cf8f] bg-[#fdf3dc] text-[#7a5a12]",
+  Confirmed: "border-[#b9d6c6] bg-[#e8f1eb] text-[#0b513b]",
+  Dispatched: "border-[#b9cbe0] bg-[#eaf1f8] text-[#264a6e]",
+  Delivered: "border-[#a9d3bd] bg-[#e3f3ea] text-[#106b45]",
+  Cancelled: "border-[#efc9cc] bg-[#fff1f2] text-[#a61f2b]",
+};
+
+const STATUS_HELP: Record<string, string> = {
+  Pending: "The seller will call you soon to confirm.",
+  Confirmed: "The seller is packing your order.",
+  Dispatched: "On the way. Keep cash ready for the courier.",
+  Delivered: "Delivered. We hope you like it.",
+  Cancelled: "This order was cancelled.",
+};
+
+const itemLabel = (item: {
+  name: string;
+  quantity: number;
+  size?: string | null;
+  color?: string | null;
+}) =>
+  `${item.name}${[item.size, item.color].filter(Boolean).length ? ` (${[item.size, item.color].filter(Boolean).join(", ")})` : ""} × ${item.quantity}`;
 
 function OrdersPage() {
   const { user, loading: authLoading } = useAuth();
@@ -48,13 +78,23 @@ function OrdersPage() {
     }
 
     const loadOrders = async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("id, customer_name, city, total, status, created_at, items")
-        .eq("customer_id", user.id)
-        .order("created_at", {
-          ascending: false,
-        });
+      // Includes guest orders placed with the customer's confirmed email.
+      let { data, error } = await supabase.rpc("my_orders");
+
+      // Before the database update that adds my_orders(), fall back to account orders only.
+      if (error) {
+        const fallback = await supabase
+          .from("orders")
+          .select("id, customer_name, city, total, status, created_at, items")
+          .eq("customer_id", user.id)
+          .order("created_at", { ascending: false });
+        data = (fallback.data ?? []).map((order) => ({
+          ...order,
+          cancel_reason: null,
+          cancelled_by: null,
+        }));
+        error = fallback.error;
+      }
 
       if (error) {
         console.error("Unable to load orders", error);
@@ -65,7 +105,7 @@ function OrdersPage() {
       }
 
       setOrders(
-        (data ?? []).map((order) => ({
+        ((data ?? []) as Order[]).map((order) => ({
           ...order,
           total: Number(order.total),
           items: Array.isArray(order.items) ? order.items : null,
@@ -227,9 +267,18 @@ function OrdersPage() {
                     </p>
                   </div>
 
-                  <span className="rounded-full border border-[#c9a24b]/30 bg-[#f7efd9] px-3 py-1 text-xs font-semibold text-[#70591f]">
-                    {order.status}
-                  </span>
+                  <div className="text-right">
+                    <span
+                      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${STATUS_STYLE[order.status] ?? "border-[#c9a24b]/30 bg-[#f7efd9] text-[#70591f]"}`}
+                    >
+                      {order.status}
+                    </span>
+                    <p className="mt-1 text-[11px] text-[#748078]">
+                      {order.status === "Cancelled" && order.cancelled_by === "customer"
+                        ? "You cancelled this order."
+                        : (STATUS_HELP[order.status] ?? "")}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="border-t border-[#eee6d2] px-5 py-4">
@@ -238,8 +287,7 @@ function OrdersPage() {
                       <p className="text-xs text-[#89938e]">Items</p>
 
                       <p className="mt-1 line-clamp-2 text-sm text-[#44564d]">
-                        {order.items?.map((item) => `${item.name} × ${item.quantity}`).join(", ") ??
-                          "Order items"}
+                        {order.items?.map(itemLabel).join(", ") ?? "Order items"}
                       </p>
                     </div>
 
@@ -248,17 +296,45 @@ function OrdersPage() {
                     </p>
                   </div>
 
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className="mt-4 rounded-xl border-[#d8cdae] bg-white text-[#0b513b] hover:bg-[#f7efd9] focus-visible:ring-[#c9a24b]"
-                  >
-                    <Link to="/track-order">
-                      <Truck aria-hidden="true" className="mr-2 h-4 w-4" />
-                      Track Order
-                    </Link>
-                  </Button>
+                  {order.status === "Cancelled" && order.cancel_reason && (
+                    <p className="mt-3 rounded-xl bg-[#fff5f6] px-3 py-2 text-xs text-[#86545a]">
+                      Reason: {order.cancel_reason}
+                    </p>
+                  )}
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl border-[#d8cdae] bg-white text-[#0b513b] hover:bg-[#f7efd9] focus-visible:ring-[#c9a24b]"
+                    >
+                      <Link to="/track-order">
+                        <Truck aria-hidden="true" className="mr-2 h-4 w-4" />
+                        Track order
+                      </Link>
+                    </Button>
+
+                    {CUSTOMER_CANCELLABLE.has(order.status) && (
+                      <CancelOrderDialog
+                        orderId={order.id}
+                        onCancelled={(reason) =>
+                          setOrders((current) =>
+                            current.map((item) =>
+                              item.id === order.id
+                                ? {
+                                    ...item,
+                                    status: "Cancelled",
+                                    cancel_reason: reason,
+                                    cancelled_by: "customer",
+                                  }
+                                : item,
+                            ),
+                          )
+                        }
+                      />
+                    )}
+                  </div>
                 </div>
               </article>
             ))}

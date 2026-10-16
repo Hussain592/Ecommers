@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { formatPKR, productImageFallback } from "@/data/mock";
 import { useCart } from "@/lib/cart";
+import { variantLabel } from "@/lib/variants";
 import { deliveryFeeFor, useDeliverySettings } from "@/lib/delivery";
 
 export const Route = createFileRoute("/cart")({
@@ -123,14 +124,14 @@ function CartPage() {
                 CART ITEMS
             ===================================== */}
             <section aria-label="Cart items" className="space-y-4">
-              {detailed.map(({ product, qty }) => {
+              {detailed.map(({ key, product, qty, variant }) => {
                 const lineTotal = product.price * qty;
 
                 const maxStock = Math.max(1, Number(product.stock ?? 1));
 
                 return (
                   <article
-                    key={product.id}
+                    key={key}
                     className="overflow-hidden rounded-3xl border border-[#ded5bd] bg-[#fffdf7] shadow-[0_5px_18px_rgba(8,43,33,0.05)] transition-all hover:border-[#c9a24b]/60 hover:shadow-[0_10px_26px_rgba(8,43,33,0.08)]"
                   >
                     <div className="grid gap-4 p-4 sm:grid-cols-[120px_minmax(0,1fr)_auto] sm:p-5">
@@ -197,6 +198,17 @@ function CartPage() {
                           </h2>
                         </Link>
 
+                        {variant && variantLabel(variant) && (
+                          <p className="mt-1 inline-flex rounded-full border border-[#e2d8bf] bg-white px-2.5 py-0.5 text-xs font-semibold text-[#44564d]">
+                            {[
+                              variant.size ? `Size: ${variant.size}` : null,
+                              variant.color ? `Colour: ${variant.color}` : null,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                        )}
+
                         <p className="mt-1 text-xs text-[#748078]">
                           Sold by{" "}
                           <span className="font-medium text-[#52635b]">{product.vendor}</span>
@@ -217,7 +229,7 @@ function CartPage() {
                               variant="ghost"
                               size="icon"
                               className="h-9 w-9 rounded-l-xl rounded-r-none text-[#52635b] hover:bg-[#f7efd9] hover:text-[#0b513b]"
-                              onClick={() => setQty(product.id, qty - 1)}
+                              onClick={() => setQty(key, qty - 1)}
                               aria-label={`Decrease quantity of ${product.name}`}
                             >
                               <Minus aria-hidden="true" className="h-3.5 w-3.5" />
@@ -236,7 +248,7 @@ function CartPage() {
                               size="icon"
                               disabled={qty >= maxStock}
                               className="h-9 w-9 rounded-l-none rounded-r-xl text-[#52635b] hover:bg-[#f7efd9] hover:text-[#0b513b] disabled:opacity-35"
-                              onClick={() => setQty(product.id, Math.min(qty + 1, maxStock))}
+                              onClick={() => setQty(key, Math.min(qty + 1, maxStock))}
                               aria-label={`Increase quantity of ${product.name}`}
                             >
                               <Plus aria-hidden="true" className="h-3.5 w-3.5" />
@@ -248,7 +260,7 @@ function CartPage() {
                             variant="ghost"
                             size="sm"
                             className="h-9 rounded-xl px-3 text-[#a61f2b] hover:bg-[#fae7e9] hover:text-[#8c1822]"
-                            onClick={() => remove(product.id)}
+                            onClick={() => remove(key)}
                             aria-label={`Remove ${product.name} from cart`}
                           >
                             <Trash2 aria-hidden="true" className="mr-1.5 h-4 w-4" />

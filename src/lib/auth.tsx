@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { deviceClockSkew } from "@/lib/clock";
 
 export type AppRole = "customer" | "vendor" | "partner" | "admin";
 export type Profile = { name: string; role: AppRole; email: string | null };
@@ -9,6 +10,8 @@ type AuthContextValue = {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  /** Seconds the device clock is wrong by, or null when it is fine. */
+  clockSkew: number | null;
   signOut: () => Promise<void>;
 };
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -17,6 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [clockSkew, setClockSkew] = useState<number | null>(null);
 
   useEffect(() => {
     const loadProfile = async (nextSession: Session | null) => {
@@ -37,7 +41,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     };
     void supabase.auth.getSession().then(({ data }) => loadProfile(data.session));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      // Only a token the server has just issued tells us the real time.
+      if (nextSession && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")) {
+        setClockSkew(deviceClockSkew(nextSession.access_token));
+      }
       void loadProfile(nextSession);
     });
     return () => listener.subscription.unsubscribe();
@@ -50,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         profile,
         loading,
+        clockSkew,
         signOut: async () => {
           await supabase.auth.signOut();
         },

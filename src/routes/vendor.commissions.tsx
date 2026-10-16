@@ -112,7 +112,7 @@ function VendorCommissions() {
       brand={storeName}
       role="Vendor Account"
       title="Commissions"
-      subtitle="Commission paid to partners"
+      subtitle="Partner commission is deducted from your payout"
       nav={vendorNav}
     >
       {loading ? (
@@ -148,7 +148,7 @@ function VendorCommissions() {
             <EmptyState
               icon={BadgePercent}
               title="No commissions yet"
-              description="When a partner sells your products, their commission will appear here."
+              description="When an order with a product added by your partner is delivered, the partner's commission appears here and is deducted from that order's payout."
             />
           ) : (
             <section className="surface-card overflow-hidden">

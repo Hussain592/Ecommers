@@ -434,7 +434,7 @@ function ReviewComposer({
         title="Sign in to write a review"
         action={
           <Button asChild size="sm" className="rounded-xl">
-            <Link to="/login">
+            <Link to="/login" search={{ redirect: `/products/${productId}` }}>
               <LogIn aria-hidden="true" className="mr-2 h-4 w-4" />
               Sign in
             </Link>

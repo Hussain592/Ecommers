@@ -1,12 +1,13 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Menu, MoonStar, Search, ShoppingCart, Truck, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPKR } from "@/data/mock";
 import { useCart } from "@/lib/cart";
 import { useDeliverySettings } from "@/lib/delivery";
+import { useStoreSettings } from "@/lib/store-info";
 
 const nav = [
   {
@@ -35,21 +36,92 @@ export function SiteHeader() {
   const { count } = useCart();
 
   const { freeDeliveryThreshold } = useDeliverySettings();
+  const { announcement } = useStoreSettings();
 
   const [open, setOpen] = useState(false);
 
+  const navigate = useNavigate();
+
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const headerRef = useRef<HTMLElement>(null);
+
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  const closeTimer = useRef<number | undefined>(undefined);
+
+  const cancelScheduledClose = () => window.clearTimeout(closeTimer.current);
+
+  /*
+   * The menu closes by itself as soon as the user leaves it, so nobody
+   * has to hunt for an empty spot to tap:
+   * - mouse: shortly after the pointer leaves the header (a short delay
+   *   forgives an accidental wobble past the edge),
+   * - touch/pen: on any touch outside the header, or when the page scrolls,
+   * - keyboard: Escape closes it and returns focus to the menu button.
+   */
+  useEffect(() => {
+    if (!open) return;
+
+    const header = headerRef.current;
+    const startScrollY = window.scrollY;
+
+    const onPointerDownOutside = (event: PointerEvent) => {
+      if (header && !header.contains(event.target as Node)) setOpen(false);
+    };
+
+    const onScroll = () => {
+      if (Math.abs(window.scrollY - startScrollY) > 24) setOpen(false);
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setOpen(false);
+      menuButtonRef.current?.focus();
+    };
+
+    // The menu is only for small screens; close it if the window grows.
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const onResize = () => {
+      if (desktop.matches) setOpen(false);
+    };
+
+    document.addEventListener("pointerdown", onPointerDownOutside);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("keydown", onKeyDown);
+    desktop.addEventListener("change", onResize);
+
+    return () => {
+      cancelScheduledClose();
+      document.removeEventListener("pointerdown", onPointerDownOutside);
+      window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("keydown", onKeyDown);
+      desktop.removeEventListener("change", onResize);
+    };
+  }, [open]);
+
   return (
     <header
+      ref={headerRef}
       className="sticky top-0 z-40 border-b border-[#c9a24b]/30 bg-[#082b21]/95 shadow-sm backdrop-blur-xl"
-      onMouseLeave={() => setOpen(false)}
+      onPointerLeave={(event) => {
+        if (!open || event.pointerType !== "mouse") return;
+        cancelScheduledClose();
+        closeTimer.current = window.setTimeout(() => setOpen(false), 250);
+      }}
+      onPointerEnter={cancelScheduledClose}
     >
       {/* =====================================================
           TOP ANNOUNCEMENT
       ===================================================== */}
       <div className="hidden border-b border-[#c9a24b]/20 bg-[#041c15] py-1.5 text-center text-xs font-medium tracking-wide text-[#f8f1df] sm:block">
-        Cash on Delivery all over Pakistan
-        <span className="mx-2 text-[#c9a24b]">•</span>
-        Free delivery on orders above {formatPKR(freeDeliveryThreshold)}
+        {announcement ?? (
+          <>
+            Cash on Delivery all over Pakistan
+            <span className="mx-2 text-[#c9a24b]">•</span>
+            Free delivery on orders above {formatPKR(freeDeliveryThreshold)}
+          </>
+        )}
       </div>
 
       {/* =====================================================
@@ -82,18 +154,31 @@ export function SiteHeader() {
             SEARCH
         ================================================= */}
         <div className="order-3 col-span-2 w-full sm:order-0 sm:max-w-md">
-          <div className="relative">
+          <form
+            role="search"
+            className="relative"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const term = searchTerm.trim();
+              setOpen(false);
+              void navigate({ to: "/products", search: term ? { q: term } : {} });
+            }}
+          >
             <Search
               aria-hidden="true"
               className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6b746e]"
             />
 
             <Input
-              aria-label="Search Islamic products, services and brands"
+              type="search"
+              enterKeyHint="search"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              aria-label="Search products"
               placeholder="Search Islamic products, books, brands..."
               className="h-10 rounded-xl border-[#d8cdae] bg-[#fffdf7] pl-9 text-[#173229] shadow-sm placeholder:text-[#7d867f] focus-visible:border-[#d8b85c] focus-visible:ring-[#d8b85c]/30"
             />
-          </div>
+          </form>
         </div>
 
         {/* =================================================
@@ -161,6 +246,7 @@ export function SiteHeader() {
 
           {/* Mobile Menu */}
           <Button
+            ref={menuButtonRef}
             type="button"
             variant="outline"
             size="icon"
@@ -183,7 +269,6 @@ export function SiteHeader() {
           id="mobile-navigation"
           className="border-t border-[#d8b85c]/25 bg-[#061f18] px-4 py-3 shadow-lg lg:hidden"
           aria-label="Mobile navigation"
-          onMouseLeave={() => setOpen(false)}
         >
           <div className="space-y-1">
             {nav.map((item) => (

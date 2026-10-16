@@ -50,7 +50,15 @@ type OrderItem = {
   name?: string;
   quantity?: number;
   price?: number;
+  size?: string | null;
+  color?: string | null;
 };
+
+/** "Black Kurta (L, Black)" when the item has a size or colour. */
+function itemName(item: OrderItem): string {
+  const options = [item.size, item.color].filter(Boolean).join(", ");
+  return `${item.name ?? "Product"}${options ? ` (${options})` : ""}`;
+}
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (character) => {
@@ -188,7 +196,7 @@ Deno.serve(async (request) => {
     const items: OrderItem[] = Array.isArray(order.items) ? order.items : [];
     const itemList = items
       .map((item) => {
-        const name = escapeHtml(String(item.name ?? "Product"));
+        const name = escapeHtml(itemName(item));
         const quantity = Number(item.quantity ?? 0);
         const price = Number(item.price ?? 0);
         return `<li>${name} × ${quantity} — Rs. ${(price * quantity).toLocaleString("en-PK")}</li>`;
@@ -289,7 +297,7 @@ Deno.serve(async (request) => {
 
     const items: OrderItem[] = Array.isArray(order.items) ? order.items : [];
     const rows = items.map((item) => {
-      const name = escapeHtml(String(item.name ?? "Product"));
+      const name = escapeHtml(itemName(item));
       const quantity = Number(item.quantity ?? 0);
       const price = Number(item.price ?? 0);
       return `<li>${name} × ${quantity} — Rs. ${(price * quantity).toLocaleString("en-PK")}</li>`;

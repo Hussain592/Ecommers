@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import {
   CheckCircle2,
-  Heart,
+  Share2,
   Minus,
   Plus,
   ShieldCheck,
@@ -29,13 +29,34 @@ import {
   formatPKR,
   getVendorProfile,
   productImageFallback,
+  productImageSource,
   type Product,
   type VendorProfile,
 } from "@/data/mock";
 
 import { useCart } from "@/lib/cart";
+import { useStoreSettings } from "@/lib/store-info";
 import { summarize, useProductReviews } from "@/lib/reviews";
+import { useProductVariants, variantChoices, variantLabel } from "@/lib/variants";
+import { VariantPicker, type VariantSelection } from "@/components/shop/VariantPicker";
 import { supabase } from "@/lib/supabase";
+
+/** Opens the phone's share sheet (WhatsApp etc.); on desktop, copies the link. */
+async function shareProduct(name: string) {
+  const url = window.location.href;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: name, text: `${name} on azadari.store`, url });
+      return;
+    }
+    await navigator.clipboard.writeText(url);
+    toast.success("Link copied. Paste it anywhere to share this product.");
+  } catch (error) {
+    // Closing the share sheet is not an error.
+    if (error instanceof DOMException && error.name === "AbortError") return;
+    toast.error("Couldn't share. Copy the link from the address bar instead.");
+  }
+}
 
 export const Route = createFileRoute("/products/$id")({
   head: () => ({
@@ -141,6 +162,7 @@ function mapDatabaseProduct(data: DatabaseProductRow): Product {
 }
 
 function ProductDetail() {
+  const { returnWindowDays } = useStoreSettings();
   const { id } = Route.useParams();
 
   const { add, catalog } = useCart();
@@ -164,8 +186,6 @@ function ProductDetail() {
   const [productLoading, setProductLoading] = useState(!cachedProduct);
 
   const [qty, setQty] = useState(1);
-
-  const [liked, setLiked] = useState(false);
 
   const [activeTab, setActiveTab] = useState<"details" | "reviews" | "seller">("details");
 
@@ -342,6 +362,17 @@ function ProductDetail() {
 
   const productId = product?.id;
 
+  const { data: variants = [] } = useProductVariants(productId);
+
+  const [selection, setSelection] = useState<VariantSelection>({ size: null, color: null });
+
+  const [missingOption, setMissingOption] = useState<"size" | "color" | null>(null);
+
+  useEffect(() => {
+    setSelection({ size: null, color: null });
+    setMissingOption(null);
+  }, [productId]);
+
   const { data: productReviews = [] } = useProductReviews(productId);
 
   const { rating, count: reviewCount } = summarize(productReviews);
@@ -404,10 +435,8 @@ function ProductDetail() {
   const savedGalleryImages = Array.from(
     new Set([product.image, ...(product.images ?? [])].filter(Boolean)),
   );
-  const galleryImages =
-    savedGalleryImages.length === 1
-      ? [savedGalleryImages[0], savedGalleryImages[0], savedGalleryImages[0]]
-      : savedGalleryImages;
+  // Show each real photo once. Repeating one photo three times looks like a gallery but adds nothing.
+  const galleryImages = savedGalleryImages.map((image) => productImageSource(product.name, image));
   const activeImage = galleryImages[selectedImageIndex] ?? product.image;
 
   /*
@@ -419,6 +448,57 @@ function ProductDetail() {
     ...getVendorProfile(product.vendor, product.city || "Pakistan"),
 
     ...backendVendor,
+  };
+
+  /*
+   * ------------------------------------------------
+   * SIZE / COLOUR
+   * ------------------------------------------------
+   */
+  const hasOptions = variants.length > 0;
+
+  const choices = variantChoices(variants);
+
+  const selectedVariant = hasOptions
+    ? variants.find(
+        (variant) =>
+          (choices.sizes.length === 0 || variant.size === selection.size) &&
+          (choices.colors.length === 0 || variant.color === selection.color),
+      )
+    : undefined;
+
+  const availableStock = hasOptions ? (selectedVariant?.stock ?? 0) : product.stock;
+
+  const cartVariant = selectedVariant
+    ? { id: selectedVariant.id, size: selectedVariant.size, color: selectedVariant.color }
+    : undefined;
+
+  /** Stop and point at the missing choice instead of adding the wrong thing to the cart. */
+  const readyToBuy = () => {
+    if (!hasOptions) return true;
+    const missing =
+      choices.sizes.length > 0 && !selection.size
+        ? "size"
+        : choices.colors.length > 0 && !selection.color
+          ? "color"
+          : null;
+    if (missing) {
+      setMissingOption(missing);
+      document
+        .getElementById(missing === "size" ? "variant-size" : "variant-color")
+        ?.querySelector<HTMLElement>("button:not(:disabled)")
+        ?.focus();
+      return false;
+    }
+    if (!selectedVariant || selectedVariant.stock === 0) {
+      toast.error("This option is out of stock. Please choose another.");
+      return false;
+    }
+    if (qty > selectedVariant.stock) {
+      toast.error(`Only ${selectedVariant.stock} left in ${variantLabel(selectedVariant)}.`);
+      return false;
+    }
+    return true;
   };
 
   /*
@@ -469,33 +549,35 @@ function ProductDetail() {
               />
             </div>
 
-            <div className="grid max-w-sm grid-cols-3 gap-3">
-              {galleryImages.map((image, index) => (
-                <button
-                  key={`${image}-${index}`}
-                  type="button"
-                  onClick={() => setSelectedImageIndex(index)}
-                  className={`overflow-hidden rounded-xl border-2 bg-card transition-colors ${
-                    selectedImageIndex === index
-                      ? "border-primary"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                  aria-label={`Show product image ${index + 1}`}
-                >
-                  <img
-                    src={image}
-                    alt={`${product.name} preview`}
-                    width={160}
-                    height={160}
-                    onError={(event) => {
-                      event.currentTarget.onerror = null;
-                      event.currentTarget.src = productImageFallback(product.name, image);
-                    }}
-                    className="aspect-square w-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
+            {galleryImages.length > 1 && (
+              <div className="grid max-w-sm grid-cols-3 gap-3">
+                {galleryImages.map((image, index) => (
+                  <button
+                    key={`${image}-${index}`}
+                    type="button"
+                    onClick={() => setSelectedImageIndex(index)}
+                    className={`overflow-hidden rounded-xl border-2 bg-card transition-colors ${
+                      selectedImageIndex === index
+                        ? "border-primary"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                    aria-label={`Show product image ${index + 1}`}
+                  >
+                    <img
+                      src={image}
+                      alt={`${product.name} preview`}
+                      width={160}
+                      height={160}
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = productImageFallback(product.name, image);
+                      }}
+                      className="aspect-square w-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Information */}
@@ -507,12 +589,12 @@ function ProductDetail() {
 
               <Button
                 variant="outline"
-                size="icon"
-                className={`rounded-full ${liked ? "text-destructive" : ""}`}
-                aria-label="Save product"
-                onClick={() => setLiked((value) => !value)}
+                size="sm"
+                className="shrink-0 rounded-full"
+                onClick={() => void shareProduct(product.name)}
               >
-                <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
+                <Share2 className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                Share
               </Button>
             </div>
 
@@ -543,8 +625,10 @@ function ProductDetail() {
                 {formatPKR(product.price)}
               </span>
 
-              {product.oldPrice && (
+              {/* Only show a "was" price when it really was higher. */}
+              {discount > 0 && product.oldPrice && (
                 <span className="text-base text-muted-foreground line-through">
+                  <span className="sr-only">Was </span>
                   {formatPKR(product.oldPrice)}
                 </span>
               )}
@@ -556,14 +640,18 @@ function ProductDetail() {
               )}
             </div>
 
-            {/* Deal */}
-            <div className="mt-3 rounded-xl border border-success/20 bg-success/5 p-3 text-sm">
-              <p className="font-semibold text-success">Flash deal price</p>
+            {/* Deal: only when there is a real saving */}
+            {discount > 0 && product.oldPrice && (
+              <div className="mt-3 rounded-xl border border-success/20 bg-success/5 p-3 text-sm">
+                <p className="font-semibold text-success">
+                  You save {formatPKR(product.oldPrice - product.price)}
+                </p>
 
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Limited stock offer. This price is locked in at checkout.
-              </p>
-            </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  The final price is confirmed when you place your order.
+                </p>
+              </div>
+            )}
 
             {/* Stock */}
             <div className="mt-4 flex items-center gap-2 text-sm">
@@ -573,12 +661,25 @@ function ProductDetail() {
                 }`}
               />
 
-              {product.stock > 0 ? (
+              {product.stock === 0 ? (
+                <span className="font-medium text-destructive">Out of stock</span>
+              ) : hasOptions && selectedVariant ? (
+                selectedVariant.stock > 0 ? (
+                  <span>
+                    {selectedVariant.stock <= 5 ? "Only " : ""}
+                    <strong>{selectedVariant.stock}</strong> left in {variantLabel(selectedVariant)}
+                  </span>
+                ) : (
+                  <span className="font-medium text-destructive">
+                    {variantLabel(selectedVariant)} is out of stock
+                  </span>
+                )
+              ) : hasOptions ? (
+                <span>Choose your options to see stock</span>
+              ) : (
                 <span>
                   <strong>{product.stock} pieces</strong> available
                 </span>
-              ) : (
-                <span className="font-medium text-destructive">Out of stock</span>
               )}
             </div>
 
@@ -612,6 +713,21 @@ function ProductDetail() {
 
             <Separator className="my-6" />
 
+            {hasOptions && (
+              <div className="mb-5">
+                <VariantPicker
+                  variants={variants}
+                  value={selection}
+                  onChange={(next) => {
+                    setSelection(next);
+                    setMissingOption(null);
+                    setQty(1);
+                  }}
+                  missing={missingOption}
+                />
+              </div>
+            )}
+
             {/* Cart Controls */}
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center rounded-xl border border-border">
@@ -632,7 +748,7 @@ function ProductDetail() {
                   onClick={() =>
                     setQty((current) =>
                       Math.min(
-                        product.stock || 1,
+                        Math.max(1, availableStock),
 
                         current + 1,
                       ),
@@ -649,10 +765,14 @@ function ProductDetail() {
                 className="flex-1 rounded-xl"
                 disabled={product.stock === 0}
                 onClick={() => {
-                  add(product.id, qty);
+                  if (!readyToBuy()) return;
+
+                  add(product.id, qty, cartVariant);
 
                   toast.success("Added to cart", {
-                    description: product.name,
+                    description: selectedVariant
+                      ? `${product.name} (${variantLabel(selectedVariant)})`
+                      : product.name,
                   });
                 }}
               >
@@ -662,7 +782,16 @@ function ProductDetail() {
 
               {product.stock > 0 ? (
                 <Button asChild size="lg" variant="outline" className="flex-1 rounded-xl">
-                  <Link to="/checkout" onClick={() => add(product.id, qty)}>
+                  <Link
+                    to="/checkout"
+                    onClick={(event) => {
+                      if (!readyToBuy()) {
+                        event.preventDefault();
+                        return;
+                      }
+                      add(product.id, qty, cartVariant);
+                    }}
+                  >
                     <Zap className="mr-2 h-4 w-4" />
                     Buy Now
                   </Link>
@@ -714,22 +843,27 @@ function ProductDetail() {
               </div>
 
               <div className="mt-4 grid grid-cols-3 divide-x border-t pt-3 text-center">
+                {/* Only real numbers here: no made-up seller ratings or response times. */}
                 <div>
-                  <p className="text-sm font-bold">{vendor.rating}</p>
+                  <p className="text-sm font-bold">{realFollowerCount.toLocaleString("en-PK")}</p>
 
-                  <p className="text-[11px] text-muted-foreground">Seller rating</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {realFollowerCount === 1 ? "Follower" : "Followers"}
+                  </p>
                 </div>
 
                 <div>
-                  <p className="text-sm font-bold">{vendor.responseRate}</p>
+                  <p className="text-sm font-bold">{reviewCount > 0 ? rating.toFixed(1) : "New"}</p>
 
-                  <p className="text-[11px] text-muted-foreground">Chat response</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {reviewCount > 0 ? "Product rating" : "No ratings yet"}
+                  </p>
                 </div>
 
                 <div>
-                  <p className="text-sm font-bold">{vendor.responseTime}</p>
+                  <p className="text-sm font-bold">COD</p>
 
-                  <p className="text-[11px] text-muted-foreground">Response time</p>
+                  <p className="text-[11px] text-muted-foreground">Pay on delivery</p>
                 </div>
               </div>
             </div>
@@ -793,7 +927,9 @@ function ProductDetail() {
 
                   <p className="flex gap-2">
                     <Undo2 className="h-4 w-4 shrink-0 text-success" />
-                    7-day return policy
+                    {returnWindowDays > 0
+                      ? `${returnWindowDays}-day return policy`
+                      : "Returns only for damaged or wrong items"}
                   </p>
 
                   <p className="flex gap-2">

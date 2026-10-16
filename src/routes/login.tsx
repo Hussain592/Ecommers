@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
+import { errorMessage } from "@/lib/errors";
+import { CLOCK_FIX_STEPS, describeClockSkew, deviceClockSkew } from "@/lib/clock";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -40,6 +42,15 @@ export const Route = createFileRoute("/login")({
     ],
   }),
 
+  // ?redirect=/checkout sends customers back where they were. Only paths on
+  // this site are accepted, so the link can't send anyone to another website.
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
+    const value = search["redirect"];
+    return typeof value === "string" && value.startsWith("/") && !value.startsWith("//")
+      ? { redirect: value }
+      : {};
+  },
+
   component: LoginPage,
 });
 
@@ -51,6 +62,8 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
+
+  const { redirect } = Route.useSearch();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -121,7 +134,7 @@ function LoginPage() {
           toast.success("Account created!");
 
           await navigate({
-            to: "/",
+            to: redirect ?? "/",
           });
         }
 
@@ -142,13 +155,24 @@ function LoginPage() {
         throw error;
       }
 
+      // A wrong device clock makes the new session expire at once, so every page
+      // would send the user back here. Explain the real problem instead.
+      const skew = deviceClockSkew(data.session.access_token);
+      if (skew !== null) {
+        toast.error(`${describeClockSkew(skew)}, so you can't stay signed in.`, {
+          description: CLOCK_FIX_STEPS,
+          duration: 20000,
+        });
+        return;
+      }
+
       const { data: profile } = await supabase
         .from("users")
         .select("role, status")
         .eq("auth_id", data.user.id)
         .maybeSingle();
 
-      let target = "/";
+      let target = redirect ?? "/";
 
       if (profile?.role === "admin") {
         target = "/admin";
@@ -186,9 +210,7 @@ function LoginPage() {
        */
       window.location.href = target;
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Couldn't sign you in. Please try again.",
-      );
+      toast.error(errorMessage(error, "Couldn't sign you in. Please try again."));
     } finally {
       setLoading(false);
     }

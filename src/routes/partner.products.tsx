@@ -4,6 +4,7 @@ import { Loader2, PackageSearch, Search } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { PRODUCT_STATE_HELP, PRODUCT_STATE_LABEL, productState } from "@/lib/product-status";
 import { partnerNav } from "@/components/dashboard/nav-config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,8 @@ type ProductRow = {
   category: string;
   stock: number;
   active: boolean;
+  approval_status: string | null;
+  rejection_reason: string | null;
 };
 
 function PartnerProducts() {
@@ -56,7 +59,7 @@ function PartnerProducts() {
 
       const { data, error } = await supabase
         .from("products")
-        .select("id, name, image, category, stock, active")
+        .select("id, name, image, category, stock, active, approval_status, rejection_reason")
         .eq("created_by", authData.user.id)
         .order("created_at", { ascending: false });
 
@@ -127,7 +130,14 @@ function PartnerProducts() {
                   <p className="truncate text-sm font-semibold">{p.name}</p>
                   <p className="text-xs text-muted-foreground">{p.category}</p>
                   <div className="mt-2">
-                    <StatusBadge status={p.active ? "Active" : "Inactive"} />
+                    <div className="flex flex-col items-start gap-1">
+                      <StatusBadge status={PRODUCT_STATE_LABEL[productState(p)]} />
+                      <span className="max-w-60 text-[11px] leading-4 text-muted-foreground">
+                        {productState(p) === "rejected" && p.rejection_reason
+                          ? `Reason: ${p.rejection_reason}`
+                          : PRODUCT_STATE_HELP[productState(p)]}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>

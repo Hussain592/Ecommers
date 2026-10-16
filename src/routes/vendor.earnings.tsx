@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Banknote, Clock, Loader2, TrendingUp } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -88,8 +88,10 @@ function VendorEarnings() {
 
   const now = new Date();
   const itemSubtotal = (order: OrderRow) => Number(order.total) - Number(order.delivery_fee ?? 0);
-  const lifetimeEarnings = orders.reduce((s, o) => s + itemSubtotal(o), 0);
-  const thisMonthEarnings = orders
+  // Cancelled orders never earn anything, so they are left out of every total.
+  const earningOrders = orders.filter((o) => o.status !== "Cancelled");
+  const lifetimeEarnings = earningOrders.reduce((s, o) => s + itemSubtotal(o), 0);
+  const thisMonthEarnings = earningOrders
     .filter((o) => {
       const d = new Date(o.created_at);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
@@ -104,7 +106,7 @@ function VendorEarnings() {
 
   const salesChart = Array.from({ length: 6 }).map((_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-    const monthSales = orders
+    const monthSales = earningOrders
       .filter((o) => {
         const od = new Date(o.created_at);
         return od.getMonth() === d.getMonth() && od.getFullYear() === d.getFullYear();
@@ -112,6 +114,8 @@ function VendorEarnings() {
       .reduce((s, o) => s + itemSubtotal(o), 0);
     return { month: MONTH_LABELS[d.getMonth()], sales: monthSales };
   });
+  const hasSales = salesChart.some((point) => point.sales > 0);
+  const pendingPayoutCount = payouts.filter((p) => p.status === "Pending").length;
 
   if (loading) {
     return (
@@ -138,29 +142,54 @@ function VendorEarnings() {
       nav={vendorNav}
     >
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Lifetime Earnings" value={formatPKR(lifetimeEarnings)} icon={TrendingUp} />
         <StatCard
-          label="This Month"
+          label="Lifetime sales"
+          value={formatPKR(lifetimeEarnings)}
+          hint="Product sales, excluding delivery and cancelled orders"
+          icon={TrendingUp}
+        />
+        <StatCard
+          label="This month"
           value={formatPKR(thisMonthEarnings)}
+          hint={now.toLocaleDateString("en-PK", { month: "long", year: "numeric" })}
           icon={Banknote}
           tone="success"
         />
         <StatCard
-          label="Pending Payout"
+          label="Pending payout"
           value={formatPKR(pendingPayout)}
+          hint={
+            pendingPayoutCount > 0
+              ? `${pendingPayoutCount} ${pendingPayoutCount === 1 ? "payout" : "payouts"} on the way to you`
+              : "Nothing waiting right now"
+          }
           icon={Clock}
           tone="warning"
         />
         <StatCard
-          label="COD Collected (Delivered)"
+          label="COD collected"
           value={formatPKR(codCollected)}
+          hint="Cash collected from delivered orders"
           icon={Banknote}
         />
       </div>
 
       <section className="surface-card p-5">
-        <h2 className="font-bold">Monthly Earnings</h2>
-        <div className="mt-4 h-64 w-full">
+        <h2 className="font-bold">Monthly sales</h2>
+        <p className="text-xs text-muted-foreground">
+          Last 6 months (PKR), excluding cancelled orders
+        </p>
+        <div className="relative mt-4 h-64 w-full">
+          {!hasSales && (
+            <div className="absolute inset-0 z-10 grid place-items-center px-6 text-center">
+              <div className="rounded-2xl border border-border bg-card/90 px-5 py-4 shadow-sm backdrop-blur">
+                <p className="text-sm font-semibold">No sales yet</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Your monthly sales will appear here once customers start ordering.
+                </p>
+              </div>
+            </div>
+          )}
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={salesChart}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
@@ -178,6 +207,7 @@ function VendorEarnings() {
                 axisLine={false}
               />
               <Tooltip
+                formatter={(value) => [formatPKR(Number(value)), "Sales"]}
                 cursor={{ fill: "var(--muted)" }}
                 contentStyle={{
                   borderRadius: 12,
@@ -193,7 +223,13 @@ function VendorEarnings() {
       </section>
 
       <section className="surface-card overflow-hidden">
-        <h2 className="px-5 pt-5 font-bold">Payout History</h2>
+        <div className="px-5 pt-5">
+          <h2 className="font-bold">Payout history</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            A payout is created when an order is delivered: product amount (without delivery fee)
+            minus the azadari.store commission, minus any partner commission.
+          </p>
+        </div>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[620px] text-sm">
             <thead className="bg-muted/70 text-left text-xs uppercase tracking-wide text-muted-foreground">
@@ -217,7 +253,11 @@ function VendorEarnings() {
                   <tr key={p.id} className="hover:bg-muted/40">
                     <td className="px-4 py-3 font-medium">{p.id}</td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {new Date(p.created_at).toLocaleDateString("en-PK")}
+                      {new Date(p.created_at).toLocaleDateString("en-PK", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
                     </td>
                     <td className="px-4 py-3">{p.method}</td>
                     <td className="px-4 py-3 font-medium">{formatPKR(Number(p.amount))}</td>

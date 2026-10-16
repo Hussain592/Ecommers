@@ -18,7 +18,7 @@ import {
 import { ShopLayout } from "@/components/shop/ShopLayout";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { Button } from "@/components/ui/button";
-import { formatPKR, productImageFallback, type Product } from "@/data/mock";
+import { formatPKR, productImageFallback, productImageSource, type Product } from "@/data/mock";
 import { useCart } from "@/lib/cart";
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -229,7 +229,7 @@ function HeroProductSlider({ deals }: { deals: Product[] }) {
               <div className="grid gap-4 rounded-2xl border border-white/10 bg-black/10 p-3 sm:grid-cols-[120px_minmax(0,1fr)] sm:items-center">
                 <div className="aspect-square overflow-hidden rounded-xl bg-[#fffaf0]">
                   <img
-                    src={product.image}
+                    src={productImageSource(product.name, product.image)}
                     alt={product.name}
                     width={500}
                     height={500}

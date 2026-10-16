@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatPKR } from "@/data/mock";
+import { PrintOrderMenu } from "@/components/dashboard/PrintOrderMenu";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin/orders")({
@@ -137,7 +138,7 @@ function AdminOrders() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Order ID ya vendor"
+            placeholder="Search by order ID or vendor"
             className="h-10 rounded-xl pl-9"
           />
         </div>
@@ -160,6 +161,7 @@ function AdminOrders() {
                   <th className="px-4 py-3 font-semibold">Date</th>
                   <th className="px-4 py-3 font-semibold">Total</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 text-right font-semibold">Print</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -195,6 +197,9 @@ function AdminOrders() {
                           ))}
                         </SelectContent>
                       </Select>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <PrintOrderMenu orderId={o.id} />
                     </td>
                   </tr>
                 ))}

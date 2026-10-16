@@ -11,7 +11,6 @@ import {
   Paintbrush,
   Scissors,
   ShieldCheck,
-  Star,
   Users,
   Utensils,
 } from "lucide-react";
@@ -54,8 +53,6 @@ type IslamicService = {
   description: string;
   city: string;
   duration: string;
-  rating: number;
-  reviews: number;
   startingPrice: number;
   provider: string;
   includes: string[];
@@ -71,8 +68,6 @@ const islamicServices: IslamicService[] = [
       "One-to-one Quran, Nazra and Tajweed learning with an experienced teacher for children and adults. Timing can be arranged according to availability.",
     city: "Online",
     duration: "30–45 mins",
-    rating: 4.9,
-    reviews: 126,
     startingPrice: 2500,
     provider: "Verified Quran Teacher",
     icon: BookOpen,
@@ -91,8 +86,6 @@ const islamicServices: IslamicService[] = [
       "Complete Majlis arrangement including floor setup, black draping, seating and respectful decoration according to your space and gathering requirements.",
     city: "Karachi",
     duration: "2–4 hours",
-    rating: 4.8,
-    reviews: 74,
     startingPrice: 7000,
     provider: "Azadari Event Services",
     icon: Users,
@@ -111,8 +104,6 @@ const islamicServices: IslamicService[] = [
       "Clean and reliable Niyaz preparation, packing and delivery for Majalis and religious gatherings. Quantity and menu can be discussed before confirmation.",
     city: "Karachi",
     duration: "Same day",
-    rating: 4.9,
-    reviews: 98,
     startingPrice: 5000,
     provider: "Niyaz Catering Partner",
     icon: Utensils,
@@ -131,8 +122,6 @@ const islamicServices: IslamicService[] = [
       "Custom black kurtas, abayas and modest clothing stitching with size and style customization. Final timing depends on design and order volume.",
     city: "Pakistan",
     duration: "3–5 days",
-    rating: 4.7,
-    reviews: 53,
     startingPrice: 1800,
     provider: "Azadari Tailoring Partner",
     icon: Scissors,
@@ -151,8 +140,6 @@ const islamicServices: IslamicService[] = [
       "Custom decorative Alam work, name plates and respectful finishing according to your requirements. Design details are confirmed before work begins.",
     city: "Karachi",
     duration: "5–10 days",
-    rating: 4.8,
-    reviews: 41,
     startingPrice: 6000,
     provider: "Custom Craft Partner",
     icon: Hammer,
@@ -171,8 +158,6 @@ const islamicServices: IslamicService[] = [
       "Custom Arabic and Islamic calligraphy for home, Majlis spaces, gifts and personalized decor. Size, text and style are discussed before confirmation.",
     city: "Pakistan",
     duration: "4–7 days",
-    rating: 4.9,
-    reviews: 67,
     startingPrice: 2500,
     provider: "Islamic Art Partner",
     icon: Paintbrush,
@@ -276,12 +261,6 @@ function ServiceDetail() {
                     <span className="inline-flex items-center gap-1.5">
                       <Clock className="h-4 w-4 text-[#d8b85c]" aria-hidden="true" />
                       {service.duration}
-                    </span>
-
-                    <span className="inline-flex items-center gap-1.5">
-                      <Star className="h-4 w-4 fill-[#d8b85c] text-[#d8b85c]" aria-hidden="true" />
-                      <strong className="font-semibold text-[#fffaf0]">{service.rating}</strong>
-                      <span>({service.reviews} reviews)</span>
                     </span>
                   </div>
                 </div>

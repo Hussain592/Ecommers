@@ -83,7 +83,7 @@ export const categories = [
 
 const images = [earbuds, kurta, watch];
 export function resolveProductImage(image: string | null | undefined) {
-  if (!image) return earbuds;
+  if (!image) return PRODUCT_PLACEHOLDER_IMAGE;
   if (/^https?:\/\//i.test(image)) return image;
   if (image.startsWith("/assets/") && image.includes("earbuds")) return earbuds;
   if (image.startsWith("/assets/") && image.includes("kurta")) return kurta;
@@ -91,11 +91,27 @@ export function resolveProductImage(image: string | null | undefined) {
   return image;
 }
 
+/**
+ * Neutral picture for products without a photo. Showing another product's
+ * photo (e.g. earbuds on a Janamaz) misleads customers, so anything we can't
+ * match gets this clearly-labelled placeholder instead.
+ */
+export const PRODUCT_PLACEHOLDER_IMAGE = `data:image/svg+xml;utf8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+    <rect width="400" height="400" fill="#f7f3e8"/>
+    <circle cx="200" cy="170" r="58" fill="#0d4031"/>
+    <circle cx="222" cy="156" r="50" fill="#f7f3e8"/>
+    <path d="M246 196l6 14 15 1-12 9 4 15-13-8-13 8 4-15-12-9 15-1z" fill="#c9a24b"/>
+    <text x="200" y="285" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="600" fill="#6f7d75" text-anchor="middle">Photo coming soon</text>
+  </svg>`,
+)}`;
+
 export function productImageFallback(name: string, image?: string | null) {
   const source = `${name} ${image ?? ""}`.toLowerCase();
-  if (source.includes("kurta") || source.includes("fashion")) return kurta;
+  if (source.includes("kurta")) return kurta;
   if (source.includes("watch") || source.includes("fitness")) return watch;
-  return earbuds;
+  if (source.includes("earbud") || source.includes("headphone")) return earbuds;
+  return PRODUCT_PLACEHOLDER_IMAGE;
 }
 
 export function productImageSource(name: string, image?: string | null) {
@@ -540,10 +556,3 @@ export const partnersList = [
 export const formatPKR = (n: number) =>
   `Rs. ${n.toLocaleString("en-PK", { maximumFractionDigits: 0 })}`;
 
-export const trackingSteps = [
-  { label: "Order Placed", time: "06 Aug, 10:12 AM", done: true },
-  { label: "Confirmed by Vendor", time: "06 Aug, 11:40 AM", done: true },
-  { label: "Dispatched", time: "07 Aug, 09:05 AM", done: true },
-  { label: "Out for Delivery", time: "Expected 08 Aug", done: false },
-  { label: "Delivered", time: "—", done: false },
-];

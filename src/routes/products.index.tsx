@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -9,6 +9,7 @@ import {
   PackageSearch,
   Search,
   SlidersHorizontal,
+  X,
 } from "lucide-react";
 
 import { ShopLayout } from "@/components/shop/ShopLayout";
@@ -17,6 +18,7 @@ import { EmptyState } from "@/components/dashboard/EmptyState";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import {
   Select,
@@ -44,9 +46,20 @@ const CACHE_TTL = 30_000;
    TYPES
 ============================================================ */
 
+function productCountText(shown: number, total: number | null) {
+  const count = total ?? shown;
+  if (count === 0) return "No products found";
+  const noun = count === 1 ? "product" : "products";
+  return shown < count
+    ? `Showing ${shown.toLocaleString("en-PK")} of ${count.toLocaleString("en-PK")} ${noun}, all with Cash on Delivery`
+    : `${count.toLocaleString("en-PK")} ${noun}, all with Cash on Delivery`;
+}
+
 type ProductPageResult = {
   products: Product[];
   hasMore: boolean;
+  /** Total matching products; only counted for the first page. */
+  total: number | null;
 };
 
 type CategoryRow = {
@@ -78,9 +91,38 @@ const pendingPages = new Map<string, Promise<ProductPageResult>>();
    ROUTE
 ============================================================ */
 
+/** A whole, positive rupee amount from the URL or an input, or null. */
+function toPrice(value: unknown): number | null {
+  const amount = Math.floor(Number(value));
+  return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
+
+const PRICE_PRESETS: Array<{ label: string; min: number | null; max: number | null }> = [
+  { label: "Under Rs. 1,000", min: null, max: 1000 },
+  { label: "Rs. 1,000 – 3,000", min: 1000, max: 3000 },
+  { label: "Rs. 3,000 – 10,000", min: 3000, max: 10000 },
+  { label: "Over Rs. 10,000", min: 10000, max: null },
+];
+
+function priceLabel(min: number | null, max: number | null) {
+  const fmt = (n: number) => n.toLocaleString("en-PK");
+  if (min !== null && max !== null) return `Rs. ${fmt(min)} – ${fmt(max)}`;
+  if (min !== null) return `Over Rs. ${fmt(min)}`;
+  if (max !== null) return `Under Rs. ${fmt(max)}`;
+  return "Any price";
+}
+
 export const Route = createFileRoute("/products/")({
-  validateSearch: (search: Record<string, unknown>): { category?: string } =>
-    typeof search["category"] === "string" ? { category: search["category"] } : {},
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { category?: string; q?: string; sort?: "popular" | "high"; min?: number; max?: number } => ({
+    ...(typeof search["category"] === "string" ? { category: search["category"] } : {}),
+    ...(typeof search["q"] === "string" && search["q"].trim() ? { q: search["q"].trim() } : {}),
+    // Lowest price first is the default, so only the other choices appear in the URL.
+    ...(search["sort"] === "popular" || search["sort"] === "high" ? { sort: search["sort"] } : {}),
+    ...(toPrice(search["min"]) !== null ? { min: toPrice(search["min"]) as number } : {}),
+    ...(toPrice(search["max"]) !== null ? { max: toPrice(search["max"]) as number } : {}),
+  }),
 
   head: () => ({
     meta: [
@@ -297,11 +339,15 @@ async function getProductPage({
   categoryValues,
   search,
   sort,
+  minPrice,
+  maxPrice,
 }: {
   pageNum: number;
   categoryValues: string[];
   search: string;
   sort: string;
+  minPrice: number | null;
+  maxPrice: number | null;
 }): Promise<ProductPageResult> {
   const normalizedSearch = search.trim();
 
@@ -315,6 +361,10 @@ async function getProductPage({
     search: normalizedSearch.toLowerCase(),
 
     sort,
+
+    minPrice,
+
+    maxPrice,
   });
 
   const now = Date.now();
@@ -332,7 +382,11 @@ async function getProductPage({
   }
 
   const request = (async () => {
-    let query = supabase.from("products").select(PRODUCT_LIST_SELECT).eq("active", true);
+    let query = (
+      pageNum === 0
+        ? supabase.from("products").select(PRODUCT_LIST_SELECT, { count: "exact" })
+        : supabase.from("products").select(PRODUCT_LIST_SELECT)
+    ).eq("active", true);
 
     /*
      * Multiple category names support.
@@ -351,18 +405,26 @@ async function getProductPage({
     }
 
     /*
+     * Price range.
+     */
+
+    if (minPrice !== null) {
+      query = query.gte("price", minPrice);
+    }
+
+    if (maxPrice !== null) {
+      query = query.lte("price", maxPrice);
+    }
+
+    /*
      * Sort.
      */
 
-    if (sort === "low") {
-      query = query.order("price", {
-        ascending: true,
-      });
-    } else if (sort === "high") {
+    if (sort === "high") {
       query = query.order("price", {
         ascending: false,
       });
-    } else {
+    } else if (sort === "popular") {
       query = query
         .order("sales_count", {
           ascending: false,
@@ -370,13 +432,22 @@ async function getProductPage({
         .order("created_at", {
           ascending: false,
         });
+    } else {
+      // Default: cheapest products first.
+      query = query.order("price", {
+        ascending: true,
+      });
     }
+
+    // Tie-breaker so products with the same price always keep the same order.
+    // Without it, "Load more" can repeat or skip products between pages.
+    query = query.order("id", { ascending: true });
 
     const start = pageNum * PAGE_SIZE;
 
     const end = start + PAGE_SIZE;
 
-    const { data, error } = await query.range(start, end);
+    const { data, error, count } = await query.range(start, end);
 
     if (error) {
       throw error;
@@ -390,6 +461,8 @@ async function getProductPage({
       products: visibleRows.map(mapListProduct),
 
       hasMore: rows.length > PAGE_SIZE,
+
+      total: count ?? null,
     };
 
     pageCache.set(cacheKey, {
@@ -415,13 +488,44 @@ async function getProductPage({
 ============================================================ */
 
 function ProductsPage() {
-  const { category } = Route.useSearch();
+  const {
+    category,
+    q: searchFromUrl,
+    sort: sortFromUrl,
+    min: minFromUrl,
+    max: maxFromUrl,
+  } = Route.useSearch();
+
+  const minPrice = minFromUrl ?? null;
+
+  const maxPrice = maxFromUrl ?? null;
+
+  const priceActive = minPrice !== null || maxPrice !== null;
+
+  const [priceOpen, setPriceOpen] = useState(false);
+
+  const [minDraft, setMinDraft] = useState(minPrice?.toString() ?? "");
+
+  const [maxDraft, setMaxDraft] = useState(maxPrice?.toString() ?? "");
+
+  const [priceError, setPriceError] = useState("");
+
+  const navigate = useNavigate({ from: "/products/" });
 
   /* Search */
 
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(searchFromUrl ?? "");
 
-  const [debouncedQ, setDebouncedQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState(searchFromUrl ?? "");
+
+  /*
+   * The header search box sends people here with ?q=...
+   * Follow it, even when they search again while already on this page.
+   */
+  useEffect(() => {
+    setQ(searchFromUrl ?? "");
+    setDebouncedQ(searchFromUrl ?? "");
+  }, [searchFromUrl]);
 
   /* Selected category */
 
@@ -429,7 +533,62 @@ function ProductsPage() {
 
   /* Sort */
 
-  const [sort, setSort] = useState("popular");
+  const [sort, setSortState] = useState<string>(sortFromUrl ?? "low");
+
+  // Keep the chosen order in the URL, so it survives a refresh or a shared link.
+  const setSort = (value: string) => {
+    setSortState(value);
+    void navigate({
+      search: (previous) => {
+        const next = { ...previous };
+        if (value === "popular" || value === "high") next.sort = value;
+        else delete next.sort;
+        return next;
+      },
+      replace: true,
+    });
+  };
+
+  useEffect(() => {
+    setSortState(sortFromUrl ?? "low");
+  }, [sortFromUrl]);
+
+  // Keep the inputs in step with the URL (presets, chip removal, back button).
+  useEffect(() => {
+    setMinDraft(minPrice?.toString() ?? "");
+    setMaxDraft(maxPrice?.toString() ?? "");
+    setPriceError("");
+  }, [minPrice, maxPrice]);
+
+  const setPriceRange = (min: number | null, max: number | null) => {
+    void navigate({
+      search: (previous) => {
+        const next = { ...previous };
+        if (min !== null) next.min = min;
+        else delete next.min;
+        if (max !== null) next.max = max;
+        else delete next.max;
+        return next;
+      },
+      replace: true,
+    });
+  };
+
+  const applyCustomPrice = () => {
+    const min = minDraft.trim() ? toPrice(minDraft) : null;
+    const max = maxDraft.trim() ? toPrice(maxDraft) : null;
+    if ((minDraft.trim() && min === null) || (maxDraft.trim() && max === null)) {
+      setPriceError("Enter whole rupee amounts, like 500.");
+      return;
+    }
+    if (min !== null && max !== null && min > max) {
+      setPriceError("The minimum can't be more than the maximum.");
+      return;
+    }
+    setPriceError("");
+    setPriceRange(min, max);
+    setPriceOpen(false);
+  };
 
   /* Category tree */
 
@@ -461,6 +620,7 @@ function ProductsPage() {
   const [page, setPage] = useState(0);
 
   const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -835,6 +995,10 @@ function ProductsPage() {
           search: debouncedQ,
 
           sort,
+
+          minPrice,
+
+          maxPrice,
         });
 
         if (requestId !== requestIdRef.current) {
@@ -853,6 +1017,8 @@ function ProductsPage() {
 
         setHasMore(result.hasMore);
 
+        if (replace) setTotalCount(result.total);
+
         setPage(pageNum);
       } catch (error) {
         if (requestId !== requestIdRef.current) {
@@ -863,12 +1029,13 @@ function ProductsPage() {
 
         if (replace) {
           setProducts([]);
+          setTotalCount(null);
         }
 
         setHasMore(false);
       }
     },
-    [categoryFilterValues, debouncedQ, sort],
+    [categoryFilterValues, debouncedQ, sort, minPrice, maxPrice],
   );
 
   /* ========================================================
@@ -929,16 +1096,14 @@ function ProductsPage() {
         </h1>
 
         <p className="mt-1 text-sm text-muted-foreground">
-          {loading
-            ? "Loading products..."
-            : `${products.length}${hasMore ? "+" : ""} products shown with Cash on Delivery`}
+          {loading ? "Loading products..." : productCountText(products.length, totalCount)}
         </p>
 
         {/* =================================================
             FILTER BAR
         ================================================= */}
 
-        <div className="mt-6 grid gap-3 rounded-2xl border border-[#d8cdae]/70 bg-[#fffdf7] p-4 shadow-[0_4px_16px_rgba(8,43,33,0.05)] sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+        <div className="mt-6 grid gap-3 rounded-2xl border border-[#d8cdae]/70 bg-[#fffdf7] p-4 shadow-[0_4px_16px_rgba(8,43,33,0.05)] sm:grid-cols-[minmax(0,1fr)_auto] lg:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
           {/* Search */}
 
           <div className="relative">
@@ -1083,7 +1248,7 @@ function ProductsPage() {
 
                       {/* Children */}
 
-                      {activeChildren.length > 0 ? (
+                      {activeChildren.length > 0 && (
                         <div className="mt-1 space-y-0.5">
                           {activeChildren.map((child) => (
                             <button
@@ -1102,14 +1267,6 @@ function ProductsPage() {
                             </button>
                           ))}
                         </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => selectProductCategory(activeRoot.name)}
-                          className="mt-4 text-sm font-semibold text-[#0b513b]"
-                        >
-                          View products
-                        </button>
                       )}
                     </div>
                   )}
@@ -1118,12 +1275,122 @@ function ProductsPage() {
             )}
           </div>
 
+          {/* Price */}
+
+          <Popover open={priceOpen} onOpenChange={setPriceOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                aria-label={`Filter by price: ${priceLabel(minPrice, maxPrice)}`}
+                className={`h-10 w-full justify-between rounded-xl border-[#d8cdae] bg-white font-normal sm:w-48 ${
+                  priceActive ? "border-[#0b513b] text-[#0b513b]" : "text-[#102d24]"
+                }`}
+              >
+                <span className="truncate">{priceLabel(minPrice, maxPrice)}</span>
+                <ChevronDown aria-hidden="true" className="ml-2 h-4 w-4 shrink-0 opacity-60" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-4">
+              <p className="text-sm font-semibold text-[#102d24]">Price range</p>
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {PRICE_PRESETS.map((preset) => {
+                  const selected = preset.min === minPrice && preset.max === maxPrice;
+                  return (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => {
+                        setPriceRange(preset.min, preset.max);
+                        setPriceOpen(false);
+                      }}
+                      className={`rounded-xl border px-3 py-2 text-left text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a24b] ${
+                        selected
+                          ? "border-[#0b513b] bg-[#e8f1eb] text-[#0b513b]"
+                          : "border-[#e2d8bf] hover:bg-[#f7f1e4]"
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <form
+                className="mt-4"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  applyCustomPrice();
+                }}
+              >
+                <p className="text-xs font-semibold text-[#5f6d65]">Or set your own (Rs.)</p>
+                <div className="mt-2 flex items-center gap-2">
+                  <Input
+                    inputMode="numeric"
+                    aria-label="Minimum price in rupees"
+                    placeholder="Min"
+                    value={minDraft}
+                    onChange={(event) => {
+                      setMinDraft(event.target.value.replace(/[^0-9]/g, ""));
+                      setPriceError("");
+                    }}
+                    className="h-9 rounded-lg"
+                  />
+                  <span aria-hidden="true" className="text-[#89938e]">
+                    –
+                  </span>
+                  <Input
+                    inputMode="numeric"
+                    aria-label="Maximum price in rupees"
+                    placeholder="Max"
+                    value={maxDraft}
+                    onChange={(event) => {
+                      setMaxDraft(event.target.value.replace(/[^0-9]/g, ""));
+                      setPriceError("");
+                    }}
+                    className="h-9 rounded-lg"
+                  />
+                </div>
+                {priceError && (
+                  <p className="mt-2 text-xs text-destructive" role="alert">
+                    {priceError}
+                  </p>
+                )}
+                <div className="mt-3 flex justify-between gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={!priceActive && !minDraft && !maxDraft}
+                    onClick={() => {
+                      setMinDraft("");
+                      setMaxDraft("");
+                      setPriceRange(null, null);
+                      setPriceOpen(false);
+                    }}
+                  >
+                    Clear
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className="rounded-lg bg-[#082b21] text-[#fffaf0] hover:bg-[#0d3d2f]"
+                  >
+                    Apply
+                  </Button>
+                </div>
+              </form>
+            </PopoverContent>
+          </Popover>
+
           {/* Sort */}
 
           <Select value={sort} onValueChange={setSort}>
             <SelectTrigger
               aria-label="Sort products"
-              className="h-10 w-full rounded-xl border-[#d8cdae] bg-white sm:w-44"
+              className="h-10 w-full rounded-xl border-[#d8cdae] bg-white sm:w-52"
             >
               <SlidersHorizontal className="mr-2 h-4 w-4" />
 
@@ -1131,14 +1398,31 @@ function ProductsPage() {
             </SelectTrigger>
 
             <SelectContent>
-              <SelectItem value="popular">Most Popular</SelectItem>
+              <SelectItem value="low">Lowest price first</SelectItem>
 
-              <SelectItem value="low">Price: Low to High</SelectItem>
+              <SelectItem value="high">Highest price first</SelectItem>
 
-              <SelectItem value="high">Price: High to Low</SelectItem>
+              <SelectItem value="popular">Most popular</SelectItem>
             </SelectContent>
           </Select>
         </div>
+
+        {/* Active price filter: always visible, removable in one click */}
+
+        {priceActive && (
+          <div className="mt-3 flex flex-wrap items-center gap-2" aria-live="polite">
+            <span className="text-xs text-[#6f7d75]">Filtered by price:</span>
+            <button
+              type="button"
+              onClick={() => setPriceRange(null, null)}
+              aria-label={`Remove price filter ${priceLabel(minPrice, maxPrice)}`}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#0b513b]/30 bg-[#e8f1eb] px-3 py-1 text-xs font-semibold text-[#0b513b] hover:bg-[#d8e8dc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a24b]"
+            >
+              {priceLabel(minPrice, maxPrice)}
+              <X aria-hidden="true" className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
 
         {/* LOADING */}
 
@@ -1164,9 +1448,11 @@ function ProductsPage() {
                     setDebouncedQ("");
                     setCat("all");
                     setActiveRootId(null);
+                    // Also clears the price range, search and sort kept in the URL.
+                    void navigate({ search: {}, replace: true });
                   }}
                 >
-                  Reset filters
+                  Reset all filters
                 </Button>
               }
             />

@@ -20,8 +20,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { cn } from "@/lib/utils";
-import { trackingSteps } from "@/data/mock";
 import { supabase } from "@/lib/supabase";
+import { CancelOrderDialog } from "@/components/shop/CancelOrderDialog";
+import { CUSTOMER_CANCELLABLE } from "@/lib/orders";
 
 export const Route = createFileRoute("/track-order")({
   head: () => ({
@@ -52,7 +53,34 @@ type TrackState = "idle" | "loading" | "found" | "missing" | "error";
 type TrackedOrder = {
   id: string;
   status: string;
+  /** Kept so the guest can cancel without typing it again. */
+  phone: string;
+  cancelledNow?: boolean;
+  /** When each step happened (null until it happens, or before migration 036). */
+  times: Record<"placed" | "confirmed" | "dispatched" | "delivered", string | null>;
 };
+
+const STEPS = [
+  { key: "placed", label: "Order placed", waiting: "" },
+  {
+    key: "confirmed",
+    label: "Confirmed by seller",
+    waiting: "The seller will call you to confirm",
+  },
+  { key: "dispatched", label: "Handed to courier", waiting: "Usually 1–2 days after confirmation" },
+  { key: "delivered", label: "Delivered", waiting: "Pay the courier in cash when it arrives" },
+] as const;
+
+const asTime = (value: unknown) => (typeof value === "string" && value ? value : null);
+
+function formatStepTime(iso: string) {
+  return new Date(iso).toLocaleString("en-PK", {
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 const statusIndex: Record<string, number> = {
   Pending: 0,
@@ -113,6 +141,15 @@ function TrackOrder() {
         id: String(trackedOrder.id),
 
         status: String(trackedOrder.status),
+
+        phone,
+
+        times: {
+          placed: asTime(trackedOrder.created_at),
+          confirmed: asTime(trackedOrder.confirmed_at),
+          dispatched: asTime(trackedOrder.dispatched_at),
+          delivered: asTime(trackedOrder.delivered_at),
+        },
       });
 
       setState("found");
@@ -368,15 +405,36 @@ function TrackOrder() {
                   <XCircle aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#a61f2b]" />
 
                   <div>
-                    <p className="text-sm font-bold text-[#7e1c27]">Order Cancelled</p>
+                    <p className="text-sm font-bold text-[#7e1c27]">Order cancelled</p>
 
                     <p className="mt-1 text-xs leading-5 text-[#86545a]">
-                      This order was cancelled and will not be delivered.
+                      {order.cancelledNow
+                        ? "You cancelled this order. Nothing will be delivered and you don't owe anything."
+                        : "This order was cancelled and will not be delivered."}
                     </p>
                   </div>
                 </div>
               ) : (
                 <>
+                  {CUSTOMER_CANCELLABLE.has(order.status) && (
+                    <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#eadfc4] bg-[#fbf7ec] p-4">
+                      <p className="text-xs leading-5 text-[#5f6d65]">
+                        Changed your mind? You can cancel until the seller dispatches your order.
+                      </p>
+                      <CancelOrderDialog
+                        orderId={order.id}
+                        phone={order.phone}
+                        onCancelled={() =>
+                          setOrder((current) =>
+                            current
+                              ? { ...current, status: "Cancelled", cancelledNow: true }
+                              : current,
+                          )
+                        }
+                      />
+                    </div>
+                  )}
+
                   <div className="mb-5">
                     <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#9a7927]">
                       Delivery progress
@@ -388,13 +446,14 @@ function TrackOrder() {
                   </div>
 
                   <ol className="space-y-0">
-                    {trackingSteps.map((step, index) => {
+                    {STEPS.map((step, index) => {
+                      const time = order.times[step.key];
                       const done = index <= currentIndex;
 
                       const current = index === currentIndex;
 
                       return (
-                        <li key={step.label} className="grid grid-cols-[42px_minmax(0,1fr)] gap-3">
+                        <li key={step.key} className="grid grid-cols-[42px_minmax(0,1fr)] gap-3">
                           <div className="flex flex-col items-center">
                             <span
                               className={cn(
@@ -408,7 +467,7 @@ function TrackOrder() {
                               {done ? <Check aria-hidden="true" className="h-4 w-4" /> : index + 1}
                             </span>
 
-                            {index < trackingSteps.length - 1 && (
+                            {index < STEPS.length - 1 && (
                               <span
                                 className={cn(
                                   "min-h-12 w-0.5 flex-1",
@@ -436,7 +495,15 @@ function TrackOrder() {
                               )}
                             </div>
 
-                            <p className="mt-1 text-xs text-[#7f8b84]">{step.time}</p>
+                            <p className="mt-1 text-xs text-[#7f8b84]">
+                              {time
+                                ? formatStepTime(time)
+                                : done
+                                  ? "Done"
+                                  : order.status === "Cancelled"
+                                    ? "—"
+                                    : step.waiting}
+                            </p>
                           </div>
                         </li>
                       );

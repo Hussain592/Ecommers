@@ -13,7 +13,8 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CartProvider } from "../lib/cart";
-import { AuthProvider } from "../lib/auth";
+import { AuthProvider, useAuth } from "../lib/auth";
+import { CLOCK_FIX_STEPS, describeClockSkew } from "../lib/clock";
 import { Toaster } from "../components/ui/sonner";
 
 const SITE_TITLE = "azadari.store";
@@ -218,6 +219,23 @@ function GlobalTitleLock() {
   return null;
 }
 
+/** Shown on every page when the device clock is wrong (it breaks sign-in). */
+function ClockWarning() {
+  const { clockSkew } = useAuth();
+  if (clockSkew === null) return null;
+  return (
+    <div
+      role="alert"
+      className="sticky top-0 z-[60] border-b border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+    >
+      <p className="mx-auto max-w-5xl">
+        <strong>{describeClockSkew(clockSkew)}.</strong> Because of this you&apos;ll keep being
+        signed out. {CLOCK_FIX_STEPS}
+      </p>
+    </div>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -226,6 +244,7 @@ function RootComponent() {
       <AuthProvider>
         <CartProvider>
           <GlobalTitleLock />
+          <ClockWarning />
 
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />

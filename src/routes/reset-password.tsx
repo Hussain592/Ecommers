@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
+import { errorMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -91,9 +92,7 @@ function ResetPasswordPage() {
       // Full navigation so the auth provider starts fresh.
       window.location.href = "/login";
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Couldn't update your password. Please try again.",
-      );
+      toast.error(errorMessage(error, "Couldn't update your password. Please try again."));
       setSaving(false);
     }
   };

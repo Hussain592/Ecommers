@@ -22,6 +22,12 @@ export const Route = createFileRoute("/vendor/products/$id/edit")({
 function EditProduct() {
   const { id } = Route.useParams();
   const [product, setProduct] = useState<Product>();
+  const [status, setStatus] = useState<{
+    active: boolean;
+    approval_status: string | null;
+    rejection_reason: string | null;
+  }>();
+  const [storeName, setStoreName] = useState("My Store");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,7 +37,7 @@ function EditProduct() {
       const { data, error } = await supabase
         .from("products")
         .select(
-          "id, name, description, image, images, price, compare_price, stock, category, brand, active",
+          "id, name, description, image, images, price, compare_price, stock, category, brand, active, approval_status, rejection_reason, vendors(name)",
         )
         .eq("id", id)
         .maybeSingle();
@@ -42,6 +48,13 @@ function EditProduct() {
         console.error("Unable to load product for editing", error);
         setProduct(undefined);
       } else if (data) {
+        const vendorInfo = Array.isArray(data.vendors) ? data.vendors[0] : data.vendors;
+        if (vendorInfo?.name) setStoreName(vendorInfo.name);
+        setStatus({
+          active: Boolean(data.active),
+          approval_status: data.approval_status ?? null,
+          rejection_reason: data.rejection_reason ?? null,
+        });
         setProduct({
           id: data.id,
           name: data.name,
@@ -84,7 +97,7 @@ function EditProduct() {
 
   return (
     <DashboardShell
-      brand="Al-Madina Traders"
+      brand={storeName}
       role="Vendor Account"
       title="Edit Product"
       subtitle={loading ? "Loading product..." : product ? product.name : "Product not found"}
@@ -95,7 +108,7 @@ function EditProduct() {
           Loading product...
         </div>
       ) : product ? (
-        <ProductForm mode="edit" product={product} />
+        <ProductForm mode="edit" product={product} {...(status ? { status } : {})} />
       ) : (
         <div className="surface-card p-10 text-center">
           <p className="text-sm text-muted-foreground">This product doesn't exist.</p>

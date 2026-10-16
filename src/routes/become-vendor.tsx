@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
+import { errorMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/become-vendor")({
   head: () => ({
@@ -111,11 +112,7 @@ function BecomeVendorPage() {
     } catch (error) {
       console.error("Unable to submit vendor application", error);
 
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Couldn't submit your application. Please try again.",
-      );
+      toast.error(errorMessage(error, "Couldn't submit your application. Please try again."));
     } finally {
       setLoading(false);
     }

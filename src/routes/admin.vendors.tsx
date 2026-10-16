@@ -9,6 +9,7 @@ import { adminNav } from "@/components/dashboard/nav-config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
+import { errorMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/admin/vendors")({
   head: () => ({
@@ -154,9 +155,7 @@ function VendorList() {
     } catch (error) {
       console.error("Unable to review vendor", error);
 
-      toast.error(
-        error instanceof Error ? error.message : "Couldn't update the vendor application.",
-      );
+      toast.error(errorMessage(error, "Couldn't update the vendor application."));
     } finally {
       setBusyId(null);
     }
@@ -200,7 +199,7 @@ function VendorList() {
 
       toast.success("Vendor suspended.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Couldn't suspend the vendor.");
+      toast.error(errorMessage(error, "Couldn't suspend the vendor."));
     } finally {
       setBusyId(null);
     }

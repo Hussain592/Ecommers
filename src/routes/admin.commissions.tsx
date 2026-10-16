@@ -10,6 +10,7 @@ import { adminNav } from "@/components/dashboard/nav-config";
 import { Button } from "@/components/ui/button";
 import { formatPKR } from "@/data/mock";
 import { supabase } from "@/lib/supabase";
+import { errorMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/admin/commissions")({
   head: () => ({
@@ -253,7 +254,7 @@ function AdminCommissions() {
     } catch (error) {
       console.error("Unable to update commission", error);
 
-      toast.error(error instanceof Error ? error.message : "Couldn't update the commission.");
+      toast.error(errorMessage(error, "Couldn't update the commission."));
     } finally {
       setBusyId(null);
     }
@@ -309,7 +310,7 @@ function AdminCommissions() {
       brand="azadari.store"
       role="Owner / Admin"
       title="Commissions"
-      subtitle="Manage all partner commissions"
+      subtitle="Approve partner commissions, then mark them paid"
       nav={adminNav}
     >
       {/* SUMMARY */}
@@ -374,7 +375,8 @@ function AdminCommissions() {
               {commissions.length === 0 ? (
                 <tr>
                   <td colSpan={13} className="px-4 py-10 text-center text-muted-foreground">
-                    No commission records yet.
+                    No commissions yet. One is created automatically when an order with a
+                    partner-added product is marked Delivered. Set the rate in Settings.
                   </td>
                 </tr>
               ) : (

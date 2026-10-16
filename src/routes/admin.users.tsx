@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 
 import { supabase } from "@/lib/supabase";
+import { errorMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/admin/users")({
   head: () => ({
@@ -241,7 +242,7 @@ function AdminUsers() {
 
       toast.success(status === "Active" ? "Vendor activated." : "Vendor suspended.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Couldn't update the vendor status.");
+      toast.error(errorMessage(error, "Couldn't update the vendor status."));
     } finally {
       setBusyKey(null);
     }
@@ -329,7 +330,7 @@ function AdminUsers() {
     } catch (error) {
       console.error("Unable to assign partner", error);
 
-      toast.error(error instanceof Error ? error.message : "Couldn't assign the partner.");
+      toast.error(errorMessage(error, "Couldn't assign the partner."));
     } finally {
       setPartnerSaving(false);
     }
@@ -370,7 +371,7 @@ function AdminUsers() {
     } catch (error) {
       console.error("Unable to update partner", error);
 
-      toast.error(error instanceof Error ? error.message : "Couldn't update the partner status.");
+      toast.error(errorMessage(error, "Couldn't update the partner status."));
     } finally {
       setBusyKey(null);
     }

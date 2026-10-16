@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 
 import {
   Select,
@@ -20,9 +19,21 @@ import {
 } from "@/components/ui/select";
 
 import { type Product } from "@/data/mock";
+import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { PRODUCT_STATE_HELP, PRODUCT_STATE_LABEL, productState } from "@/lib/product-status";
+import { VariantEditor } from "@/components/dashboard/VariantEditor";
+import {
+  comboKey,
+  draftCombos,
+  draftTotalStock,
+  EMPTY_VARIANT_DRAFT,
+  type VariantDraft,
+} from "@/lib/variant-draft";
+import { fetchProductVariants, variantChoices } from "@/lib/variants";
 
 import { supabase } from "@/lib/supabase";
 import { randomUuidLike } from "@/lib/id";
+import { errorMessage } from "@/lib/errors";
 
 type CategoryOption = {
   id: string;
@@ -32,14 +43,75 @@ type CategoryOption = {
   created_by: string | null;
 };
 
+/**
+ * Make product_variants match what the seller entered: update kept options,
+ * add new ones, delete removed ones. With sizes/colours off, all are removed
+ * and the single stock number is written back.
+ */
+async function syncVariants(productId: string, draft: VariantDraft, plainStock: number) {
+  const desired = draft.enabled
+    ? draftCombos(draft).map((combo) => ({
+        ...combo,
+        stock: Number(draft.stock[comboKey(combo.size, combo.color)]) || 0,
+      }))
+    : [];
+
+  const { data: existing, error } = await supabase
+    .from("product_variants")
+    .select("id, size, color")
+    .eq("product_id", productId);
+
+  if (error) {
+    // Table missing (database not updated yet): only a problem if the seller used sizes/colours.
+    if (desired.length > 0) {
+      throw new Error(
+        "Sizes and colours aren't switched on for the store yet. Save without them, or ask the admin to run the latest database update.",
+      );
+    }
+    return;
+  }
+
+  const wanted = new Map(desired.map((item) => [comboKey(item.size, item.color), item]));
+  const stale = (existing ?? []).filter((row) => !wanted.has(comboKey(row.size, row.color)));
+
+  if (stale.length > 0) {
+    const { error: deleteError } = await supabase
+      .from("product_variants")
+      .delete()
+      .in(
+        "id",
+        stale.map((row) => row.id),
+      );
+    if (deleteError) throw deleteError;
+  }
+
+  for (const item of desired) {
+    const match = (existing ?? []).find(
+      (row) => comboKey(row.size, row.color) === comboKey(item.size, item.color),
+    );
+    const { error: saveError } = match
+      ? await supabase.from("product_variants").update({ stock: item.stock }).eq("id", match.id)
+      : await supabase.from("product_variants").insert({ product_id: productId, ...item });
+    if (saveError) throw saveError;
+  }
+
+  if (!draft.enabled && (existing ?? []).length > 0) {
+    // Removing variants can leave the old total behind; write the plain stock back.
+    await supabase.from("products").update({ stock: plainStock }).eq("id", productId);
+  }
+}
+
 export function ProductForm({
   product,
   mode,
-  showStatus = true,
+  status,
   actorType = "vendor",
 }: {
   product?: Product;
   mode: "create" | "edit";
+  /** Approval state of an existing product. Set by the admin; vendors and partners only see it. */
+  status?: { active: boolean; approval_status: string | null; rejection_reason: string | null };
+  /** @deprecated Vendors and partners can no longer change visibility. Kept so old callers compile. */
   showStatus?: boolean;
   actorType?: "vendor" | "partner";
 }) {
@@ -53,7 +125,31 @@ export function ProductForm({
 
   const remainingImageCount = Math.max(0, 3 - imagePreviews.length);
 
-  const [active, setActive] = useState(product?.active ?? false);
+  const [variantDraft, setVariantDraft] = useState<VariantDraft>(EMPTY_VARIANT_DRAFT);
+
+  const [variantError, setVariantError] = useState<string>();
+
+  useEffect(() => {
+    if (mode !== "edit" || !product?.id) return;
+    let cancelled = false;
+    void fetchProductVariants(product.id).then((rows) => {
+      if (cancelled || rows.length === 0) return;
+      const { sizes, colors } = variantChoices(rows);
+      setVariantDraft({
+        enabled: true,
+        sizes,
+        colors,
+        stock: Object.fromEntries(
+          rows.map((row) => [comboKey(row.size, row.color), String(row.stock)]),
+        ),
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, product?.id]);
+
+  const variantTotal = draftTotalStock(variantDraft);
 
   /*
    * CATEGORY STATES
@@ -311,9 +407,7 @@ export function ProductForm({
     } catch (error) {
       console.error("Unable to add category", error);
 
-      toast.error(
-        error instanceof Error ? error.message : "Couldn't add the category. Please try again.",
-      );
+      toast.error(errorMessage(error, "Couldn't add the category. Please try again."));
     } finally {
       setCategorySaving(false);
     }
@@ -398,6 +492,41 @@ export function ProductForm({
    */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    // Catch obvious mistakes before they reach customers, and point at the field to fix.
+    const draft = new FormData(event.currentTarget);
+    const draftName = String(draft.get("name") ?? "").trim();
+    const draftPrice = Number(draft.get("price"));
+    const draftCompare = String(draft.get("comparePrice") ?? "").trim();
+    const draftStock = Number(draft.get("stock"));
+    const problem =
+      draftName.length < 3
+        ? { field: "name", message: "Enter a product name of at least 3 characters." }
+        : !Number.isFinite(draftPrice) || draftPrice <= 0
+          ? { field: "price", message: "Enter a price greater than Rs. 0." }
+          : draftCompare && Number(draftCompare) <= draftPrice
+            ? {
+                field: "comparePrice",
+                message:
+                  "Compare price must be higher than the price, or leave it empty. It shows customers the old price.",
+              }
+            : !Number.isInteger(draftStock) || draftStock < 0
+              ? { field: "stock", message: "Enter the stock as a whole number (0 or more)." }
+              : null;
+
+    if (problem && !(variantDraft.enabled && problem.field === "stock")) {
+      toast.error(problem.message);
+      event.currentTarget.querySelector<HTMLElement>(`[name="${problem.field}"]`)?.focus();
+      return;
+    }
+
+    if (variantDraft.enabled && draftCombos(variantDraft).length === 0) {
+      const message = "Add at least one size or colour, or turn off Sizes and colours.";
+      setVariantError(message);
+      toast.error(message);
+      return;
+    }
+    setVariantError(undefined);
 
     if (!selectedCategory) {
       toast.error("Select a category for the product.");
@@ -490,9 +619,7 @@ export function ProductForm({
 
         compare_price: comparePriceValue ? Number(comparePriceValue) : null,
 
-        stock: Number(formData.get("stock")),
-
-        active: mode === "create" ? false : active,
+        stock: variantDraft.enabled ? variantTotal : Number(formData.get("stock")),
 
         image: images[0] ?? null,
         images,
@@ -518,13 +645,17 @@ export function ProductForm({
           throw new Error("Couldn't update the product. You may not have permission to edit it.");
         }
 
+        await syncVariants(product.id, variantDraft, payload.stock);
+
         toast.success("Product updated.");
       } else {
         /*
          * CREATE PRODUCT
          */
+        const newId = `PRD-${randomUuidLike()}`;
+
         const { error } = await supabase.from("products").insert({
-          id: `PRD-${randomUuidLike()}`,
+          id: newId,
 
           vendor_id: vendorId,
 
@@ -536,6 +667,8 @@ export function ProductForm({
         if (error) {
           throw error;
         }
+
+        await syncVariants(newId, variantDraft, payload.stock);
 
         toast.success("Product submitted. It will go live after admin approval.");
       }
@@ -552,9 +685,7 @@ export function ProductForm({
     } catch (error) {
       console.error("Unable to save product", error);
 
-      toast.error(
-        error instanceof Error ? error.message : "Couldn't save the product. Please try again.",
-      );
+      toast.error(errorMessage(error, "Couldn't save the product. Please try again."));
     } finally {
       setSaving(false);
     }
@@ -735,18 +866,42 @@ export function ProductForm({
             <div className="space-y-1.5">
               <Label htmlFor="pstock">Stock Qty *</Label>
 
-              <Input
-                id="pstock"
-                name="stock"
-                type="number"
-                min="0"
-                required
-                defaultValue={product?.stock}
-                className="rounded-xl"
-              />
+              {variantDraft.enabled ? (
+                <>
+                  <Input
+                    id="pstock"
+                    value={variantTotal}
+                    readOnly
+                    tabIndex={-1}
+                    aria-describedby="pstock-help"
+                    className="rounded-xl bg-muted"
+                  />
+                  <p id="pstock-help" className="text-[11px] text-muted-foreground">
+                    Added up from sizes and colours.
+                  </p>
+                </>
+              ) : (
+                <Input
+                  id="pstock"
+                  name="stock"
+                  type="number"
+                  min="0"
+                  required
+                  defaultValue={product?.stock}
+                  className="rounded-xl"
+                />
+              )}
             </div>
           </div>
         </section>
+        <VariantEditor
+          value={variantDraft}
+          onChange={(next) => {
+            setVariantDraft(next);
+            setVariantError(undefined);
+          }}
+          error={variantError}
+        />
       </div>
 
       {/* Sidebar */}
@@ -822,18 +977,23 @@ export function ProductForm({
 
         {/* Status */}
 
-        {showStatus && mode === "edit" && (
-          <section className="surface-card p-5">
+        {mode === "edit" && status && (
+          <section className="surface-card p-5" aria-live="polite">
             <h2 className="font-bold">Status</h2>
-
-            <div className="mt-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">Active</p>
-
-                <p className="text-xs text-muted-foreground">Website par visible</p>
-              </div>
-
-              <Switch checked={active} onCheckedChange={setActive} />
+            <div className="mt-3 flex flex-col items-start gap-2">
+              <StatusBadge status={PRODUCT_STATE_LABEL[productState(status)]} />
+              <p className="text-xs leading-5 text-muted-foreground">
+                {PRODUCT_STATE_HELP[productState(status)]}
+              </p>
+              {productState(status) === "rejected" && status.rejection_reason && (
+                <p className="rounded-xl bg-destructive/10 p-3 text-xs leading-5 text-destructive">
+                  <span className="font-semibold">Reason from the admin:</span>{" "}
+                  {status.rejection_reason}
+                </p>
+              )}
+              <p className="text-[11px] text-muted-foreground">
+                Only the admin can publish or hide products.
+              </p>
             </div>
           </section>
         )}
@@ -857,7 +1017,11 @@ export function ProductForm({
           <Button type="submit" className="flex-1 rounded-xl" disabled={saving || categorySaving}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 
-            {mode === "create" ? "Add Product" : "Save Changes"}
+            {mode === "create"
+              ? "Submit for approval"
+              : status && productState(status) === "rejected"
+                ? "Save and send for review"
+                : "Save changes"}
           </Button>
         </div>
       </aside>

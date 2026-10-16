@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
+import { errorMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({
@@ -54,9 +55,7 @@ function ForgotPasswordPage() {
       // Same message whether or not the email exists, so accounts cannot be guessed.
       setSentTo(email);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Couldn't send the reset email. Please try again.",
-      );
+      toast.error(errorMessage(error, "Couldn't send the reset email. Please try again."));
     } finally {
       setLoading(false);
     }

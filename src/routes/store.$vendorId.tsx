@@ -21,6 +21,7 @@ import { PackageSearch } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { resolveProductImage, type Product } from "@/data/mock";
 import { useAuth } from "@/lib/auth";
+import { useStoreSettings } from "@/lib/store-info";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/store/$vendorId")({
@@ -44,6 +45,7 @@ type VendorInfo = {
 };
 
 function VendorStorePage() {
+  const { returnWindowDays } = useStoreSettings();
   const { vendorId } = Route.useParams();
   const [vendor, setVendor] = useState<VendorInfo | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -260,7 +262,11 @@ function VendorStorePage() {
               </p>
               <p className="flex items-center gap-2">
                 <Undo2 className="h-4 w-4 text-primary" />
-                <span>7-day return policy</span>
+                <span>
+                  {returnWindowDays > 0
+                    ? `${returnWindowDays}-day return policy`
+                    : "Returns only for damaged or wrong items"}
+                </span>
               </p>
               <p className="flex items-center gap-2">
                 <Clock3 className="h-4 w-4 text-primary" /> Fast response

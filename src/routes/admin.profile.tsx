@@ -11,7 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin/profile")({
-  head: () => ({ meta: [{ title: "azadari.store" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "azadari.store" }, { name: "robots", content: "noindex" }],
+  }),
   component: AdminProfile,
 });
 

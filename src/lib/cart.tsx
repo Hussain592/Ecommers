@@ -11,23 +11,35 @@ import {
 import { type Product, type ProductRow } from "@/data/mock";
 import { supabase } from "@/lib/supabase";
 
+/** The chosen size/colour of a cart line, if the product has options. */
+export type CartVariant = { id: string; size: string | null; color: string | null };
+
 export type CartLine = {
   id: string;
   qty: number;
+  variant?: CartVariant;
 };
+
+/** One cart line per product + size/colour combination. */
+export function cartLineKey(id: string, variantId?: string | null) {
+  return variantId ? `${id}::${variantId}` : id;
+}
 
 type CartCtx = {
   lines: CartLine[];
-  add: (id: string, qty?: number) => void;
-  remove: (id: string) => void;
-  setQty: (id: string, qty: number) => void;
+  add: (id: string, qty?: number, variant?: CartVariant) => void;
+  /** Takes the line key (see cartLineKey); for products without options it is the product id. */
+  remove: (key: string) => void;
+  setQty: (key: string, qty: number) => void;
   clear: () => void;
 
   count: number;
 
   detailed: Array<{
+    key: string;
     product: Product;
     qty: number;
+    variant?: CartVariant;
   }>;
 
   subtotal: number;
@@ -71,7 +83,9 @@ const PRODUCT_SELECT =
  * dobara fire na ho, isliye short in-memory cache.
  */
 const FIRST_PAGE_CACHE_TTL = 30_000;
-const CATALOG_STORAGE_KEY = "dukaan_catalog_v1";
+// Bump the version whenever product data changes shape or wording,
+// so visitors never see an outdated cached catalog.
+const CATALOG_STORAGE_KEY = "dukaan_catalog_v2";
 
 type CatalogRowsResult = {
   rows: ProductRow[];
@@ -288,6 +302,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
             safeLines.map((line) => ({
               id: line.id,
               qty: Number(line.qty),
+              ...(line.variant && typeof line.variant.id === "string"
+                ? {
+                    variant: {
+                      id: line.variant.id,
+                      size: line.variant.size ?? null,
+                      color: line.variant.color ?? null,
+                    },
+                  }
+                : {}),
             })),
           );
         }
@@ -496,25 +519,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
 
         return {
+          key: cartLineKey(line.id, line.variant?.id),
           product,
           qty: line.qty,
+          ...(line.variant ? { variant: line.variant } : {}),
         };
       })
       .filter(Boolean) as Array<{
+      key: string;
       product: Product;
       qty: number;
+      variant?: CartVariant;
     }>;
 
     return {
       lines,
 
-      add: (id, qty = 1) => {
+      add: (id, qty = 1, variant) => {
+        const key = cartLineKey(id, variant?.id);
         setLines((previous) => {
-          const existing = previous.find((line) => line.id === id);
+          const existing = previous.find((line) => cartLineKey(line.id, line.variant?.id) === key);
 
           if (existing) {
             return previous.map((line) =>
-              line.id === id
+              cartLineKey(line.id, line.variant?.id) === key
                 ? {
                     ...line,
                     qty: line.qty + qty,
@@ -523,28 +551,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
             );
           }
 
-          return [
-            ...previous,
-            {
-              id,
-              qty,
-            },
-          ];
+          return [...previous, { id, qty, ...(variant ? { variant } : {}) }];
         });
       },
 
-      remove: (id) => {
-        setLines((previous) => previous.filter((line) => line.id !== id));
+      remove: (key) => {
+        setLines((previous) =>
+          previous.filter((line) => cartLineKey(line.id, line.variant?.id) !== key),
+        );
       },
 
-      setQty: (id, qty) => {
+      setQty: (key, qty) => {
         setLines((previous) => {
           if (qty <= 0) {
-            return previous.filter((line) => line.id !== id);
+            return previous.filter((line) => cartLineKey(line.id, line.variant?.id) !== key);
           }
 
           return previous.map((line) =>
-            line.id === id
+            cartLineKey(line.id, line.variant?.id) === key
               ? {
                   ...line,
                   qty,

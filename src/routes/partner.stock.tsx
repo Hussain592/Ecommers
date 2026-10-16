@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { type Product } from "@/data/mock";
 import { supabase } from "@/lib/supabase";
+import { useProductsWithVariants } from "@/lib/variants";
 import { useAuth } from "@/lib/auth";
+import { useAccountName } from "@/lib/use-account-name";
 
 export const Route = createFileRoute("/partner/stock")({
   head: () => ({
@@ -26,6 +28,7 @@ export const Route = createFileRoute("/partner/stock")({
 });
 
 function PartnerStock() {
+  const partnerName = useAccountName("Partner");
   const { user } = useAuth();
   const [productList, setProductList] = useState<Product[]>([]);
   const [stock, setStock] = useState<Record<string, number>>({});
@@ -63,10 +66,26 @@ function PartnerStock() {
     void loadProducts();
   }, [user]);
 
+  const withVariants = useProductsWithVariants();
+
+  // Only save what changed, and never overwrite products whose stock is set per size/colour.
+  const changed = productList.filter(
+    (product) => !withVariants.has(product.id) && (stock[product.id] ?? 0) !== product.stock,
+  );
+
   const saveAll = async () => {
+    if (changed.length === 0) return;
+    if (
+      changed.some(
+        (product) => !Number.isInteger(stock[product.id]) || (stock[product.id] ?? 0) < 0,
+      )
+    ) {
+      toast.error("Stock must be a whole number, 0 or more.");
+      return;
+    }
     setSaving(true);
     const results = await Promise.all(
-      productList.map((product) =>
+      changed.map((product) =>
         supabase
           .from("products")
           .update({ stock: stock[product.id] ?? 0 })
@@ -75,20 +94,38 @@ function PartnerStock() {
     );
     setSaving(false);
     const failed = results.find((result) => result.error);
-    if (failed?.error) toast.error(failed.error.message);
-    else toast.success("Stock updated.");
+    if (failed?.error) {
+      toast.error("Couldn't save some stock changes. Please try again.");
+      return;
+    }
+    setProductList((current) =>
+      current.map((product) => ({ ...product, stock: stock[product.id] ?? product.stock })),
+    );
+    toast.success(
+      `Stock updated for ${changed.length} ${changed.length === 1 ? "product" : "products"}.`,
+    );
   };
 
   return (
     <DashboardShell
-      brand="Zeeshan Ali"
+      brand={partnerName}
       role="Partner Account"
       title="Stock Update"
       subtitle="Update stock quantities"
       nav={partnerNav}
       actions={
-        <Button size="sm" disabled={saving} className="rounded-xl" onClick={() => void saveAll()}>
-          <Save className="mr-2 h-4 w-4" /> Save All
+        <Button
+          size="sm"
+          disabled={saving || changed.length === 0}
+          className="rounded-xl"
+          onClick={() => void saveAll()}
+        >
+          <Save className="mr-2 h-4 w-4" />
+          {saving
+            ? "Saving..."
+            : changed.length > 0
+              ? `Save ${changed.length} ${changed.length === 1 ? "change" : "changes"}`
+              : "No changes"}
         </Button>
       }
     >
@@ -123,14 +160,25 @@ function PartnerStock() {
                   <td className="px-4 py-3">{p.stock}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end">
-                      <Input
-                        type="number"
-                        className="h-9 w-24 rounded-lg"
-                        value={stock[p.id] ?? 0}
-                        onChange={(e) =>
-                          setStock((s) => ({ ...s, [p.id]: Number(e.target.value) }))
-                        }
-                      />
+                      {withVariants.has(p.id) ? (
+                        <span className="max-w-48 text-right text-xs text-muted-foreground">
+                          Set per size and colour. Ask the vendor to update it.
+                        </span>
+                      ) : (
+                        <Input
+                          type="number"
+                          min={0}
+                          aria-label={`New stock for ${p.name}`}
+                          className="h-9 w-24 rounded-lg"
+                          value={stock[p.id] ?? 0}
+                          onChange={(e) =>
+                            setStock((s) => ({
+                              ...s,
+                              [p.id]: Math.max(0, Math.floor(Number(e.target.value) || 0)),
+                            }))
+                          }
+                        />
+                      )}
                     </div>
                   </td>
                 </tr>

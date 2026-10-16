@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, Package, PackagePlus, ShoppingBag, TrendingUp, Wallet } from "lucide-react";
 import {
@@ -126,6 +126,7 @@ function VendorDashboard() {
       .reduce((s, o) => s + Number(o.total) - Number(o.delivery_fee ?? 0), 0);
     return { month: MONTH_LABELS[d.getMonth()], sales: monthSales };
   });
+  const hasSales = salesChart.some((point) => point.sales > 0);
 
   if (loading) {
     return (
@@ -133,7 +134,7 @@ function VendorDashboard() {
         brand={storeName}
         role="Vendor Account"
         title="Dashboard Overview"
-        subtitle="Today's performance at a glance"
+        subtitle="Your store at a glance"
         nav={vendorNav}
       >
         <div className="flex justify-center p-10">
@@ -148,12 +149,12 @@ function VendorDashboard() {
       brand={storeName}
       role="Vendor Account"
       title="Dashboard Overview"
-      subtitle="Today's performance at a glance"
+      subtitle="Your store at a glance"
       nav={vendorNav}
       actions={
         <Button asChild size="sm" className="rounded-xl">
           <Link to="/vendor/products/new">
-            <PackagePlus className="mr-2 h-4 w-4" /> Add Product
+            <PackagePlus className="mr-2 h-4 w-4" /> Add product
           </Link>
         </Button>
       }
@@ -168,7 +169,7 @@ function VendorDashboard() {
         <StatCard
           label="Total Orders"
           value={String(orders.length)}
-          hint={`${pendingOrders} pending`}
+          hint={pendingOrders > 0 ? `${pendingOrders} waiting for confirmation` : "None waiting"}
           icon={ShoppingBag}
           tone="warning"
         />
@@ -185,7 +186,17 @@ function VendorDashboard() {
         <section className="surface-card p-5">
           <h2 className="font-bold">Sales Trend</h2>
           <p className="text-xs text-muted-foreground">Last 6 months (PKR)</p>
-          <div className="mt-4 h-64 w-full">
+          <div className="relative mt-4 h-64 w-full">
+            {!hasSales && (
+              <div className="absolute inset-0 z-10 grid place-items-center px-6 text-center">
+                <div className="rounded-2xl border border-border bg-card/90 px-5 py-4 shadow-sm backdrop-blur">
+                  <p className="text-sm font-semibold">No sales yet</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Your monthly sales will appear here once customers start ordering.
+                  </p>
+                </div>
+              </div>
+            )}
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={salesChart}>
                 <defs>
@@ -209,6 +220,7 @@ function VendorDashboard() {
                   axisLine={false}
                 />
                 <Tooltip
+                  formatter={(value) => [formatPKR(Number(value)), "Sales"]}
                   contentStyle={{
                     borderRadius: 12,
                     border: "1px solid var(--border)",

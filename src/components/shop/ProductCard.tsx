@@ -1,16 +1,20 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingCart, Star } from "lucide-react";
+import { ShoppingCart, SlidersHorizontal, Star } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { formatPKR, productImageFallback, productImageSource, type Product } from "@/data/mock";
 import { useCart } from "@/lib/cart";
 import { useRatingSummary } from "@/lib/reviews";
+import { useProductsWithVariants } from "@/lib/variants";
 
 export function ProductCard({ product }: { product: Product }) {
   const { add } = useCart();
 
   const outOfStock = product.stock === 0;
+
+  // Products with sizes or colours open their page so the customer can choose first.
+  const needsOptions = useProductsWithVariants().has(product.id);
 
   const discount =
     product.oldPrice && product.oldPrice > product.price
@@ -146,21 +150,37 @@ export function ProductCard({ product }: { product: Product }) {
           </div>
         )}
 
-        {/* Add to cart */}
+        {/* Add to cart, or pick a size/colour first */}
         <div className="mt-auto pt-3.5">
-          <Button
-            type="button"
-            disabled={outOfStock}
-            onClick={handleAddToCart}
-            aria-label={
-              outOfStock ? `${product.name} is out of stock` : `Add ${product.name} to cart`
-            }
-            className="h-10 w-full rounded-xl border border-[#c9a24b]/35 bg-[#082b21] text-xs font-bold text-[#fffaf0] shadow-none transition-all hover:bg-[#0d3d2f] hover:shadow-[0_6px_16px_rgba(8,43,33,0.18)] focus-visible:ring-2 focus-visible:ring-[#c9a24b] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <ShoppingCart aria-hidden="true" className="mr-2 h-4 w-4" />
+          {needsOptions && !outOfStock ? (
+            <Button
+              asChild
+              className="h-10 w-full rounded-xl border border-[#c9a24b]/35 bg-[#082b21] text-xs font-bold text-[#fffaf0] shadow-none transition-all hover:bg-[#0d3d2f] focus-visible:ring-2 focus-visible:ring-[#c9a24b] focus-visible:ring-offset-2"
+            >
+              <Link
+                to="/products/$id"
+                params={{ id: product.id }}
+                aria-label={`Choose size or colour for ${product.name}`}
+              >
+                <SlidersHorizontal aria-hidden="true" className="mr-2 h-4 w-4" />
+                Choose options
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              disabled={outOfStock}
+              onClick={handleAddToCart}
+              aria-label={
+                outOfStock ? `${product.name} is out of stock` : `Add ${product.name} to cart`
+              }
+              className="h-10 w-full rounded-xl border border-[#c9a24b]/35 bg-[#082b21] text-xs font-bold text-[#fffaf0] shadow-none transition-all hover:bg-[#0d3d2f] hover:shadow-[0_6px_16px_rgba(8,43,33,0.18)] focus-visible:ring-2 focus-visible:ring-[#c9a24b] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <ShoppingCart aria-hidden="true" className="mr-2 h-4 w-4" />
 
-            {outOfStock ? "Out of Stock" : "Add to Cart"}
-          </Button>
+              {outOfStock ? "Out of Stock" : "Add to Cart"}
+            </Button>
+          )}
         </div>
       </div>
     </article>

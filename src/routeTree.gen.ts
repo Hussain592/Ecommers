@@ -36,9 +36,11 @@ import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminVendorsRouteImport } from './routes/admin.vendors'
 import { Route as PartnerIndexRouteImport } from './routes/partner.index'
 import { Route as PartnerAddProductRouteImport } from './routes/partner.add-product'
+import { Route as PartnerEarningsRouteImport } from './routes/partner.earnings'
 import { Route as PartnerProductsRouteImport } from './routes/partner.products'
 import { Route as PartnerProfileRouteImport } from './routes/partner.profile'
 import { Route as PartnerStockRouteImport } from './routes/partner.stock'
+import { Route as PrintOrdersRouteImport } from './routes/print.orders'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProductsIdRouteImport } from './routes/products.$id'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
@@ -189,6 +191,11 @@ const PartnerAddProductRoute = PartnerAddProductRouteImport.update({
   path: '/partner/add-product',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartnerEarningsRoute = PartnerEarningsRouteImport.update({
+  id: '/partner/earnings',
+  path: '/partner/earnings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PartnerProductsRoute = PartnerProductsRouteImport.update({
   id: '/partner/products',
   path: '/partner/products',
@@ -202,6 +209,11 @@ const PartnerProfileRoute = PartnerProfileRouteImport.update({
 const PartnerStockRoute = PartnerStockRouteImport.update({
   id: '/partner/stock',
   path: '/partner/stock',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrintOrdersRoute = PrintOrdersRouteImport.update({
+  id: '/print/orders',
+  path: '/print/orders',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsIndexRoute = ProductsIndexRouteImport.update({
@@ -301,9 +313,11 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/admin/vendors': typeof AdminVendorsRoute
   '/partner/add-product': typeof PartnerAddProductRoute
+  '/partner/earnings': typeof PartnerEarningsRoute
   '/partner/products': typeof PartnerProductsRoute
   '/partner/profile': typeof PartnerProfileRoute
   '/partner/stock': typeof PartnerStockRoute
+  '/print/orders': typeof PrintOrdersRoute
   '/products/$id': typeof ProductsIdRoute
   '/services/$id': typeof ServicesIdRoute
   '/store/$vendorId': typeof StoreVendorIdRoute
@@ -345,9 +359,11 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/admin/vendors': typeof AdminVendorsRoute
   '/partner/add-product': typeof PartnerAddProductRoute
+  '/partner/earnings': typeof PartnerEarningsRoute
   '/partner/products': typeof PartnerProductsRoute
   '/partner/profile': typeof PartnerProfileRoute
   '/partner/stock': typeof PartnerStockRoute
+  '/print/orders': typeof PrintOrdersRoute
   '/products/$id': typeof ProductsIdRoute
   '/services/$id': typeof ServicesIdRoute
   '/store/$vendorId': typeof StoreVendorIdRoute
@@ -392,9 +408,11 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/admin/vendors': typeof AdminVendorsRoute
   '/partner/add-product': typeof PartnerAddProductRoute
+  '/partner/earnings': typeof PartnerEarningsRoute
   '/partner/products': typeof PartnerProductsRoute
   '/partner/profile': typeof PartnerProfileRoute
   '/partner/stock': typeof PartnerStockRoute
+  '/print/orders': typeof PrintOrdersRoute
   '/products/$id': typeof ProductsIdRoute
   '/services/$id': typeof ServicesIdRoute
   '/store/$vendorId': typeof StoreVendorIdRoute
@@ -440,9 +458,11 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/vendors'
     | '/partner/add-product'
+    | '/partner/earnings'
     | '/partner/products'
     | '/partner/profile'
     | '/partner/stock'
+    | '/print/orders'
     | '/products/$id'
     | '/services/$id'
     | '/store/$vendorId'
@@ -484,9 +504,11 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/vendors'
     | '/partner/add-product'
+    | '/partner/earnings'
     | '/partner/products'
     | '/partner/profile'
     | '/partner/stock'
+    | '/print/orders'
     | '/products/$id'
     | '/services/$id'
     | '/store/$vendorId'
@@ -530,9 +552,11 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/vendors'
     | '/partner/add-product'
+    | '/partner/earnings'
     | '/partner/products'
     | '/partner/profile'
     | '/partner/stock'
+    | '/print/orders'
     | '/products/$id'
     | '/services/$id'
     | '/store/$vendorId'
@@ -566,9 +590,11 @@ export interface RootRouteChildren {
   TrackOrderRoute: typeof TrackOrderRoute
   VendorRoute: typeof VendorRouteWithChildren
   PartnerAddProductRoute: typeof PartnerAddProductRoute
+  PartnerEarningsRoute: typeof PartnerEarningsRoute
   PartnerProductsRoute: typeof PartnerProductsRoute
   PartnerProfileRoute: typeof PartnerProfileRoute
   PartnerStockRoute: typeof PartnerStockRoute
+  PrintOrdersRoute: typeof PrintOrdersRoute
   ProductsIdRoute: typeof ProductsIdRoute
   ServicesIdRoute: typeof ServicesIdRoute
   StoreVendorIdRoute: typeof StoreVendorIdRoute
@@ -768,6 +794,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PartnerAddProductRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/partner/earnings': {
+      id: '/partner/earnings'
+      path: '/partner/earnings'
+      fullPath: '/partner/earnings'
+      preLoaderRoute: typeof PartnerEarningsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/partner/products': {
       id: '/partner/products'
       path: '/partner/products'
@@ -787,6 +820,13 @@ declare module '@tanstack/react-router' {
       path: '/partner/stock'
       fullPath: '/partner/stock'
       preLoaderRoute: typeof PartnerStockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/print/orders': {
+      id: '/print/orders'
+      path: '/print/orders'
+      fullPath: '/print/orders'
+      preLoaderRoute: typeof PrintOrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products/': {
@@ -964,9 +1004,11 @@ const rootRouteChildren: RootRouteChildren = {
   TrackOrderRoute: TrackOrderRoute,
   VendorRoute: VendorRouteWithChildren,
   PartnerAddProductRoute: PartnerAddProductRoute,
+  PartnerEarningsRoute: PartnerEarningsRoute,
   PartnerProductsRoute: PartnerProductsRoute,
   PartnerProfileRoute: PartnerProfileRoute,
   PartnerStockRoute: PartnerStockRoute,
+  PrintOrdersRoute: PrintOrdersRoute,
   ProductsIdRoute: ProductsIdRoute,
   ServicesIdRoute: ServicesIdRoute,
   StoreVendorIdRoute: StoreVendorIdRoute,

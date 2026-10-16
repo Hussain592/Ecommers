@@ -44,6 +44,11 @@ export const vendorNav: NavItem[] = [
     icon: Wallet,
   },
   {
+    to: "/vendor/commissions",
+    label: "Partner Commissions",
+    icon: BadgePercent,
+  },
+  {
     to: "/vendor/settings",
     label: "Settings",
     icon: Settings,
@@ -70,6 +75,11 @@ export const partnerNav: NavItem[] = [
     to: "/partner/stock",
     label: "Stock Update",
     icon: Boxes,
+  },
+  {
+    to: "/partner/earnings",
+    label: "My Commission",
+    icon: Wallet,
   },
   {
     to: "/partner/profile",

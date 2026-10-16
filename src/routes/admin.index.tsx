@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
+import { errorMessage } from "@/lib/errors";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
@@ -67,9 +68,7 @@ function AdminLogin() {
               toast.success("Welcome back, Admin!");
               window.location.href = "/admin/overview";
             } catch (error) {
-              toast.error(
-                error instanceof Error ? error.message : "Couldn't sign you in. Please try again.",
-              );
+              toast.error(errorMessage(error, "Couldn't sign you in. Please try again."));
               setLoading(false);
             }
           }}

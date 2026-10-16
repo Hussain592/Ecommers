@@ -2,6 +2,7 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ProductForm } from "@/components/dashboard/ProductForm";
 import { partnerNav } from "@/components/dashboard/nav-config";
+import { useAccountName } from "@/lib/use-account-name";
 
 export const Route = createFileRoute("/partner/add-product")({
   head: () => ({
@@ -9,7 +10,7 @@ export const Route = createFileRoute("/partner/add-product")({
       { title: "azadari.store" },
       {
         name: "description",
-        content: "Submit a new product listing for vendor approval on azadari.store.",
+        content: "Submit a new product listing for review on azadari.store.",
       },
       { property: "og:title", content: "Add Product — Partner | azadari.store" },
       { property: "og:description", content: "Partner product submission form." },
@@ -19,12 +20,14 @@ export const Route = createFileRoute("/partner/add-product")({
 });
 
 function PartnerAddProduct() {
+  const partnerName = useAccountName("Partner");
+
   return (
     <DashboardShell
-      brand="Zeeshan Ali"
+      brand={partnerName}
       role="Partner Account"
       title="Add Product"
-      subtitle="Submit a product for the vendor to approve"
+      subtitle="The admin reviews every new product before it goes live"
       nav={partnerNav}
     >
       <ProductForm mode="create" showStatus={false} actorType="partner" />

@@ -6,6 +6,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { partnerNav } from "@/components/dashboard/nav-config";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
+import { PRODUCT_STATE_HELP, PRODUCT_STATE_LABEL, productState } from "@/lib/product-status";
 
 export const Route = createFileRoute("/partner/")({
   head: () => ({
@@ -32,6 +33,7 @@ type ProductRow = {
   category: string;
   stock: number;
   active: boolean;
+  approval_status: string | null;
 };
 
 function PartnerDashboard() {
@@ -56,7 +58,7 @@ function PartnerDashboard() {
 
       const { data, error } = await supabase
         .from("products")
-        .select("id, name, image, category, stock, active")
+        .select("id, name, image, category, stock, active, approval_status")
         .eq("created_by", authData.user.id)
         .order("created_at", { ascending: false });
 
@@ -72,7 +74,8 @@ function PartnerDashboard() {
     void load();
   }, []);
 
-  const approved = products.filter((p) => p.active).length;
+  const approved = products.filter((p) => productState(p) === "live").length;
+  const waiting = products.filter((p) => productState(p) === "pending").length;
   const lowStock = products.filter((p) => p.stock < 10).length;
   const recent = products.slice(0, 5);
 
@@ -102,14 +105,20 @@ function PartnerDashboard() {
       actions={
         <Button asChild size="sm" className="rounded-xl">
           <Link to="/partner/add-product">
-            <PackagePlus className="mr-2 h-4 w-4" /> Add Product
+            <PackagePlus className="mr-2 h-4 w-4" /> Add product
           </Link>
         </Button>
       }
     >
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="My Products" value={String(products.length)} icon={Package} />
-        <StatCard label="Active" value={String(approved)} icon={CheckCircle2} tone="success" />
+        <StatCard
+          label="Live"
+          value={String(approved)}
+          hint={waiting > 0 ? `${waiting} waiting for approval` : "Visible to customers"}
+          icon={CheckCircle2}
+          tone="success"
+        />
         <StatCard
           label="Low Stock Items"
           value={String(lowStock)}
@@ -154,7 +163,13 @@ function PartnerDashboard() {
       </section>
 
       <p className="text-center text-xs text-muted-foreground">
-        Note: Earnings, commission and payout details aren't shown on partner accounts.
+        You earn commission on every delivered order of a product you added.{" "}
+        <Link
+          to="/partner/earnings"
+          className="font-semibold text-primary underline-offset-4 hover:underline"
+        >
+          See my commission
+        </Link>
       </p>
     </DashboardShell>
   );
